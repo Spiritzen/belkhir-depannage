@@ -1,0 +1,811 @@
+---
+/**
+ * Couverture Hauts-de-France — refonte « wahou »
+ * (PROMPT_CLAUDE_CODE_COVERAGE_HAUTS_DE_FRANCE_WAHOU.txt, 01/09/2026).
+ *
+ * Remplace l'ancienne silhouette beige abstraite par une carte SVG
+ * géographiquement reconnaissable des cinq départements (source et licence
+ * documentées dans `src/data/coverage-map.ts`), synchronisée avec une liste
+ * de badges interactifs, un tracé de mobilité stylisé et le fourgon Belkhir
+ * Dépannage déjà utilisé ailleurs sur le site (aucun nouvel asset généré).
+ */
+import { Image } from 'astro:assets';
+import vanImg from '../../assets/legacy/illustration-equipe.png';
+import Icon from '../ui/Icon.astro';
+import { coverageZones } from '../../data/landing';
+import { siteConfig } from '../../lib/site-config';
+import { getPhoneCta } from '../../lib/phone';
+import {
+  COVERAGE_MAP_VIEWBOX,
+  COVERAGE_MAP_OUTLINE_PATH,
+  COVERAGE_MAP_OUTLINE_LENGTH,
+  COVERAGE_MAP_DEPARTMENTS,
+  COVERAGE_ROUTE_PATH,
+  COVERAGE_ROUTE_LENGTH,
+  COVERAGE_ROUTE_NODES,
+  COVERAGE_VAN_ANCHOR,
+} from '../../data/coverage-map';
+
+const standardCta = getPhoneCta(siteConfig.standardPhone);
+
+// Position du fourgon dérivée du même repère que la carte (pourcentages :
+// reste cohérent quelle que soit la largeur réelle rendue de la section 20).
+const [, , VIEWBOX_W, VIEWBOX_H] = COVERAGE_MAP_VIEWBOX.split(' ').map(Number);
+const vanLeftPct = (COVERAGE_VAN_ANCHOR.x / VIEWBOX_W) * 100;
+const vanBottomPct = ((VIEWBOX_H - COVERAGE_VAN_ANCHOR.y) / VIEWBOX_H) * 100;
+const vanWidthPct = COVERAGE_VAN_ANCHOR.widthRatio * 100;
+---
+
+<section class="coverage" id="zones-couvertes" aria-labelledby="coverage-title">
+  <div class="container coverage__grid">
+    <div class="coverage__intro">
+      <p class="coverage__eyebrow">
+        <span class="coverage__eyebrow-bar" aria-hidden="true"></span>
+        ZONE D’INTERVENTION
+      </p>
+
+      <h2 id="coverage-title">
+        Une équipe mobile dans les <span class="coverage__accent">Hauts-de-France</span>
+      </h2>
+
+      <p class="coverage__narration">
+        <span class="coverage__brand-initial">B</span>elkhir <span class="coverage__brand-initial"
+          >D</span
+        >épannage organise ses déplacements dans les cinq départements des Hauts-de-France.
+        Indiquez-nous votre commune et la nature du problème : l’équipe vérifie avec vous la
+        disponibilité dans votre secteur et la réponse pouvant être apportée à votre situation.
+      </p>
+    </div>
+
+    <ul class="coverage__depts">
+      {
+        coverageZones.map((zone) => (
+          <li>
+            <button type="button" class="coverage__dept-badge" data-department={zone.code}>
+              <Icon name="map-pin" class="coverage__dept-icon" />
+              <span>
+                {zone.name} <span class="coverage__dept-code">({zone.code})</span>
+              </span>
+            </button>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="coverage__cta-wrap">
+      {
+        standardCta.kind === 'link' ? (
+          <>
+            <a href={standardCta.href} class="coverage__cta" data-phone-role={standardCta.role}>
+              <Icon name="map-pin" class="coverage__cta-icon" />
+              Vérifier mon secteur
+            </a>
+            <p class="coverage__cta-hint">Indiquez votre commune lors de l’appel.</p>
+          </>
+        ) : (
+          <button
+            type="button"
+            class="coverage__cta"
+            disabled
+            aria-describedby="coverage-cta-note"
+            data-phone-role={standardCta.role}
+          >
+            <Icon name="map-pin" class="coverage__cta-icon" />
+            Vérifier mon secteur
+            <span id="coverage-cta-note" class="visually-hidden">
+              Numéro standard non encore renseigné dans cette maquette.
+            </span>
+          </button>
+        )
+      }
+    </div>
+
+    <p class="coverage__caution">
+      La disponibilité et le délai d’intervention varient selon la commune, la nature de l’urgence,
+      les conditions de déplacement et la disponibilité de l’équipe au moment de l’appel.
+    </p>
+
+    <div class="coverage__map-wrap">
+      <svg class="coverage-map" viewBox={COVERAGE_MAP_VIEWBOX} aria-hidden="true" focusable="false">
+        <path
+          class="coverage-map__outline"
+          d={COVERAGE_MAP_OUTLINE_PATH}
+          style={`--outline-length:${COVERAGE_MAP_OUTLINE_LENGTH}`}></path>
+
+        <g class="coverage-map__depts">
+          {
+            coverageZones.map((zone) => {
+              const shape = COVERAGE_MAP_DEPARTMENTS[zone.code];
+              if (!shape) return null;
+              return (
+                <g class="coverage-map__dept-group" data-department={zone.code}>
+                  <path class="coverage-map__dept" d={shape.d} />
+                  <circle
+                    class="coverage-map__landmark"
+                    cx={shape.centroid[0]}
+                    cy={shape.centroid[1]}
+                    r="2.4"
+                  />
+                  <text class="coverage-map__code" x={shape.centroid[0]} y={shape.centroid[1] - 7}>
+                    {zone.code}
+                  </text>
+                </g>
+              );
+            })
+          }
+        </g>
+
+        <g class="coverage-map__route-group">
+          <path
+            class="coverage-map__route"
+            d={COVERAGE_ROUTE_PATH}
+            style={`--route-length:${COVERAGE_ROUTE_LENGTH}`}></path>
+          {
+            COVERAGE_ROUTE_NODES.map(([x, y]) => (
+              <circle class="coverage-map__route-node" cx={x} cy={y} r="2.6" />
+            ))
+          }
+        </g>
+      </svg>
+
+      <Image
+        src={vanImg}
+        alt=""
+        class="coverage__van"
+        widths={[240, 360]}
+        sizes="(max-width: 56rem) 46vw, 18rem"
+        style={`left:${vanLeftPct.toFixed(2)}%; bottom:${vanBottomPct.toFixed(2)}%; width:${vanWidthPct.toFixed(2)}%;`}
+      />
+    </div>
+  </div>
+</section>
+
+<script>
+  const section = document.querySelector<HTMLElement>('.coverage');
+  if (!section) {
+    throw new Error('Section .coverage introuvable.');
+  }
+
+  // ---------------------------------------------------------------------
+  // 1. Synchronisation carte / liste (section 12 du prompt) — toujours
+  //    active, indépendante de la séquence d'entrée « wahou » ci-dessous.
+  //    Les formes SVG restent décoratives pour les lecteurs d'écran ; seule
+  //    la liste de badges est focusable, pour éviter toute tabulation
+  //    redondante entre deux contrôles qui portent la même information.
+  // ---------------------------------------------------------------------
+  const badges = Array.from(section.querySelectorAll<HTMLButtonElement>('.coverage__dept-badge'));
+  const deptGroups = Array.from(section.querySelectorAll<SVGGElement>('.coverage-map__dept-group'));
+
+  function setActiveDepartment(code: string | null): void {
+    for (const badge of badges) {
+      badge.classList.toggle('is-active', badge.dataset.department === code);
+    }
+    for (const group of deptGroups) {
+      group.classList.toggle('is-active', group.dataset.department === code);
+    }
+  }
+
+  for (const badge of badges) {
+    const code = badge.dataset.department ?? null;
+    badge.addEventListener('mouseenter', () => setActiveDepartment(code));
+    badge.addEventListener('focus', () => setActiveDepartment(code));
+    badge.addEventListener('mouseleave', () => setActiveDepartment(null));
+    badge.addEventListener('blur', () => setActiveDepartment(null));
+  }
+  for (const group of deptGroups) {
+    const code = group.dataset.department ?? null;
+    group.addEventListener('mouseenter', () => setActiveDepartment(code));
+    group.addEventListener('mouseleave', () => setActiveDepartment(null));
+  }
+
+  // ---------------------------------------------------------------------
+  // 2. Séquence d'entrée « wahou » + réinitialisation/rejeu (sections 17 et
+  //    18 du prompt). Un seul IntersectionObserver pour toute la section,
+  //    même principe armé/`is-visible` que les autres sections animées du
+  //    site (WhyUs.astro) : sans JavaScript, ou si la préférence de
+  //    réduction de mouvement est active, tout reste visible par défaut.
+  // ---------------------------------------------------------------------
+  const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (!REDUCED_MOTION && 'IntersectionObserver' in window) {
+    const intro = section.querySelector<HTMLElement>('.coverage__intro');
+    const outline = section.querySelector<SVGPathElement>('.coverage-map__outline');
+    const routeGroup = section.querySelector<SVGGElement>('.coverage-map__route-group');
+    const van = section.querySelector<HTMLElement>('.coverage__van');
+    const ctaWrap = section.querySelector<HTMLElement>('.coverage__cta-wrap');
+    const caution = section.querySelector<HTMLElement>('.coverage__caution');
+    const badgeItems = Array.from(section.querySelectorAll<HTMLElement>('.coverage__depts > li'));
+
+    section.setAttribute('data-coverage-armed', '');
+
+    // Délais de déclenchement (durées de transition dans le CSS ci-dessous).
+    const OUTLINE_DELAY_MS = 150;
+    const DEPT_BASE_DELAY_MS = 500;
+    const DEPT_STAGGER_MS = 90;
+    const BADGE_BASE_DELAY_MS = 550;
+    const BADGE_STAGGER_MS = 90;
+    const ROUTE_DELAY_MS = 950;
+    const VAN_DELAY_MS = 1350;
+    const CTA_DELAY_MS = 1560;
+
+    let played = false;
+    const pendingTimeouts = new Set<number>();
+
+    function clearPending(): void {
+      for (const id of pendingTimeouts) {
+        window.clearTimeout(id);
+      }
+      pendingTimeouts.clear();
+    }
+
+    function schedule(delay: number, run: () => void): void {
+      const id = window.setTimeout(() => {
+        pendingTimeouts.delete(id);
+        run();
+      }, delay);
+      pendingTimeouts.add(id);
+    }
+
+    function show(el: Element | null): void {
+      el?.classList.add('is-visible');
+    }
+
+    function hide(el: Element | null): void {
+      el?.classList.remove('is-visible');
+    }
+
+    function playSequence(): void {
+      clearPending();
+      schedule(0, () => show(intro));
+      schedule(OUTLINE_DELAY_MS, () => show(outline));
+      deptGroups.forEach((group, index) => {
+        schedule(DEPT_BASE_DELAY_MS + index * DEPT_STAGGER_MS, () => show(group));
+      });
+      badgeItems.forEach((item, index) => {
+        schedule(BADGE_BASE_DELAY_MS + index * BADGE_STAGGER_MS, () => show(item));
+      });
+      schedule(ROUTE_DELAY_MS, () => show(routeGroup));
+      schedule(VAN_DELAY_MS, () => show(van));
+      schedule(CTA_DELAY_MS, () => {
+        show(ctaWrap);
+        show(caution);
+      });
+    }
+
+    function resetSequence(): void {
+      clearPending();
+      hide(intro);
+      hide(outline);
+      for (const group of deptGroups) hide(group);
+      for (const item of badgeItems) hide(item);
+      hide(routeGroup);
+      hide(van);
+      hide(ctaWrap);
+      hide(caution);
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.22) {
+            if (!played) {
+              played = true;
+              playSequence();
+            }
+          } else if (!entry.isIntersecting) {
+            // Sortie réellement complète du viewport uniquement (pas une
+            // simple oscillation sous le seuil de déclenchement) : on
+            // réinitialise pour permettre un rejeu complet au retour.
+            played = false;
+            resetSequence();
+          }
+        }
+      },
+      { threshold: [0, 0.22] },
+    );
+
+    observer.observe(section);
+  }
+</script>
+
+<style>
+  .coverage {
+    position: relative;
+    padding-block: clamp(5rem, 7vw, 7rem);
+    /*
+     * Fond noir profond avec deux lueurs orange très discrètes (section 7
+     * du prompt) : jamais de grosse tache, transition franche avec le fond
+     * blanc abricot de « Pourquoi choisir Belkhir Dépannage ? ».
+     */
+    background:
+      radial-gradient(46% 38% at 82% 18%, rgba(255, 105, 0, 0.08), transparent 70%),
+      radial-gradient(50% 42% at 15% 85%, rgba(255, 105, 0, 0.06), transparent 72%),
+      var(--color-anthracite-950);
+  }
+
+  /*
+   * Grille nommée plutôt que deux simples colonnes : sur mobile, seul
+   * l'ordre des zones change (voir la media query en bas de fichier),
+   * jamais l'ordre du DOM — la carte doit s'intercaler entre la narration
+   * et la liste des départements (section 20 du prompt), ce qu'un simple
+   * `order` sur deux colonnes ne permettrait pas d'exprimer proprement.
+   */
+  .coverage__grid {
+    display: grid;
+    grid-template-columns: 0.85fr 1fr;
+    grid-template-areas:
+      'intro map'
+      'depts map'
+      'cta map'
+      'caution map';
+    gap: clamp(1rem, 1.5vw, 1.5rem) clamp(2.5rem, 4vw, 4rem);
+    align-items: start;
+  }
+
+  .coverage__intro {
+    grid-area: intro;
+    align-self: end;
+    opacity: 1;
+    transform: none;
+  }
+
+  .coverage[data-coverage-armed] .coverage__intro {
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity 600ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .coverage[data-coverage-armed] .coverage__intro.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  .coverage__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--color-orange-500);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    margin-bottom: clamp(0.75rem, 0.6rem + 0.4vw, 1rem);
+  }
+
+  .coverage__eyebrow-bar {
+    width: 28px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--color-orange-500);
+  }
+
+  #coverage-title {
+    color: var(--color-white);
+    font-size: clamp(1.6rem, 2.9vw, 2.1rem);
+    line-height: 1.2;
+    margin-bottom: clamp(1rem, 0.85rem + 0.5vw, 1.25rem);
+  }
+
+  /* « Hauts-de-France » ne se coupe jamais à l'intérieur du nom ; en
+     dessous de 27rem, tout le groupe peut redescendre à la ligne plutôt que
+     de forcer un débordement (section 8 du prompt). */
+  .coverage__accent {
+    color: var(--color-brand);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 27rem) {
+    .coverage__accent {
+      white-space: normal;
+    }
+  }
+
+  .coverage__narration {
+    max-width: 34rem;
+    font-size: clamp(1rem, 0.92rem + 0.3vw, 1.1rem);
+    line-height: 1.65;
+    color: var(--color-gray-300);
+    margin-bottom: clamp(1.5rem, 1.25rem + 0.6vw, 2rem);
+  }
+
+  .coverage__brand-initial {
+    color: var(--color-orange-500);
+  }
+
+  /* ---------- Badges départementaux ---------- */
+
+  .coverage__depts {
+    grid-area: depts;
+    list-style: none;
+    margin: 0 0 clamp(1.5rem, 1.25rem + 0.6vw, 2rem);
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .coverage__depts > li {
+    opacity: 1;
+    transform: none;
+  }
+
+  .coverage[data-coverage-armed] .coverage__depts > li {
+    opacity: 0;
+    transform: translateY(12px);
+    transition:
+      opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .coverage[data-coverage-armed] .coverage__depts > li.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  .coverage__dept-badge {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.65rem 0.9rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--color-white);
+    font-weight: 600;
+    font-size: 0.92rem;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      border-color 260ms ease,
+      background-color 260ms ease,
+      box-shadow 260ms ease,
+      transform 260ms ease;
+  }
+
+  .coverage__dept-badge:hover,
+  .coverage__dept-badge:focus-visible,
+  .coverage__dept-badge.is-active {
+    border-color: rgba(255, 105, 0, 0.55);
+    background: rgba(255, 105, 0, 0.12);
+    box-shadow: 0 0 0 1px rgba(255, 105, 0, 0.25) inset;
+    transform: translateY(-2px);
+  }
+
+  .coverage__dept-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    color: var(--color-orange-500);
+  }
+
+  .coverage__dept-code {
+    color: var(--color-gray-300);
+    font-weight: 500;
+  }
+
+  /* ---------- CTA et précision ---------- */
+
+  .coverage__cta-wrap {
+    grid-area: cta;
+    opacity: 1;
+    transform: none;
+    margin-bottom: clamp(1.25rem, 1.1rem + 0.4vw, 1.5rem);
+  }
+
+  .coverage[data-coverage-armed] .coverage__cta-wrap {
+    opacity: 0;
+    transform: translateY(12px);
+    transition:
+      opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .coverage[data-coverage-armed] .coverage__cta-wrap.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  .coverage__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: var(--touch-target-min);
+    padding: 0.85rem 1.5rem;
+    border-radius: var(--radius-pill);
+    border: 2px solid transparent;
+    background: var(--color-orange-600);
+    color: var(--color-white);
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      transform 260ms ease,
+      box-shadow 260ms ease,
+      background-color 260ms ease;
+  }
+
+  .coverage__cta:hover,
+  .coverage__cta:focus-visible {
+    background: var(--color-orange-700);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(255, 105, 0, 0.28);
+  }
+
+  .coverage__cta:hover .coverage__cta-icon,
+  .coverage__cta:focus-visible .coverage__cta-icon {
+    transform: translateX(2px);
+  }
+
+  .coverage__cta:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .coverage__cta-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+    transition: transform 220ms ease;
+  }
+
+  .coverage__cta-hint {
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--color-gray-300);
+  }
+
+  .coverage__caution {
+    grid-area: caution;
+    max-width: 32rem;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--color-gray-300);
+    opacity: 1;
+    transform: none;
+  }
+
+  .coverage[data-coverage-armed] .coverage__caution {
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .coverage[data-coverage-armed] .coverage__caution.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ---------- Carte ---------- */
+
+  .coverage__map-wrap {
+    grid-area: map;
+    position: relative;
+    align-self: center;
+  }
+
+  .coverage-map {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 24rem;
+    margin-inline: auto;
+    overflow: visible;
+  }
+
+  .coverage-map__outline {
+    fill: none;
+    stroke: var(--color-orange-500);
+    stroke-width: 1.4;
+    stroke-linejoin: round;
+    opacity: 0.9;
+  }
+
+  .coverage[data-coverage-armed] .coverage-map__outline {
+    stroke-dasharray: var(--outline-length);
+    stroke-dashoffset: var(--outline-length);
+    transition: stroke-dashoffset 900ms ease;
+  }
+
+  .coverage[data-coverage-armed] .coverage-map__outline.is-visible {
+    stroke-dashoffset: 0;
+  }
+
+  .coverage-map__dept-group {
+    opacity: 1;
+  }
+
+  .coverage[data-coverage-armed] .coverage-map__dept-group {
+    opacity: 0;
+    transition: opacity 420ms ease;
+  }
+
+  .coverage[data-coverage-armed] .coverage-map__dept-group.is-visible {
+    opacity: 1;
+  }
+
+  .coverage-map__dept {
+    stroke: rgba(255, 105, 0, 0.4);
+    stroke-width: 1;
+    stroke-linejoin: round;
+    transition:
+      fill 260ms ease,
+      stroke 260ms ease,
+      filter 260ms ease;
+  }
+
+  /* Nuances anthracite légèrement différenciées par département (section 7
+     du prompt), toujours très proches les unes des autres. */
+  .coverage-map__depts > .coverage-map__dept-group:nth-child(1) .coverage-map__dept {
+    fill: #222737;
+  }
+  .coverage-map__depts > .coverage-map__dept-group:nth-child(2) .coverage-map__dept {
+    fill: #262c3f;
+  }
+  .coverage-map__depts > .coverage-map__dept-group:nth-child(3) .coverage-map__dept {
+    fill: #1f2432;
+  }
+  .coverage-map__depts > .coverage-map__dept-group:nth-child(4) .coverage-map__dept {
+    fill: #262b3d;
+  }
+  .coverage-map__depts > .coverage-map__dept-group:nth-child(5) .coverage-map__dept {
+    fill: #202536;
+  }
+
+  .coverage-map__dept-group.is-active .coverage-map__dept {
+    fill: rgba(255, 105, 0, 0.32);
+    stroke: var(--color-orange-500);
+    stroke-width: 1.6;
+    filter: drop-shadow(0 0 7px rgba(255, 105, 0, 0.55));
+  }
+
+  .coverage-map__landmark {
+    fill: rgba(255, 154, 77, 0.7);
+  }
+
+  .coverage-map__dept-group.is-active .coverage-map__landmark {
+    fill: var(--color-orange-500);
+  }
+
+  .coverage-map__code {
+    font-size: 10px;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    fill: rgba(255, 255, 255, 0.55);
+    text-anchor: middle;
+    transition: fill 260ms ease;
+  }
+
+  .coverage-map__dept-group.is-active .coverage-map__code {
+    fill: var(--color-white);
+  }
+
+  .coverage-map__route-group {
+    opacity: 1;
+  }
+
+  .coverage[data-coverage-armed] .coverage-map__route-group {
+    opacity: 0;
+    transition: opacity 200ms ease;
+  }
+
+  .coverage[data-coverage-armed] .coverage-map__route-group.is-visible {
+    opacity: 1;
+  }
+
+  .coverage-map__route {
+    fill: none;
+    stroke: var(--color-orange-600);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  .coverage[data-coverage-armed] .coverage-map__route {
+    stroke-dasharray: var(--route-length);
+    stroke-dashoffset: var(--route-length);
+    transition: stroke-dashoffset 550ms ease;
+  }
+
+  .coverage[data-coverage-armed] .coverage-map__route-group.is-visible .coverage-map__route {
+    stroke-dashoffset: 0;
+  }
+
+  .coverage-map__route-node {
+    fill: var(--color-orange-500);
+  }
+
+  .coverage__van {
+    position: absolute;
+    transform: translate(-50%, 0) translateX(0);
+    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45));
+    opacity: 1;
+  }
+
+  .coverage[data-coverage-armed] .coverage__van {
+    opacity: 0;
+    transform: translate(-50%, 0) translateX(-60px);
+    transition:
+      opacity 480ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .coverage[data-coverage-armed] .coverage__van.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0) translateX(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .coverage[data-coverage-armed] .coverage__intro,
+    .coverage[data-coverage-armed] .coverage__depts > li,
+    .coverage[data-coverage-armed] .coverage__cta-wrap,
+    .coverage[data-coverage-armed] .coverage__caution,
+    .coverage[data-coverage-armed] .coverage-map__outline,
+    .coverage[data-coverage-armed] .coverage-map__dept-group,
+    .coverage[data-coverage-armed] .coverage-map__route-group,
+    .coverage[data-coverage-armed] .coverage-map__route,
+    .coverage[data-coverage-armed] .coverage__van {
+      opacity: 1;
+      transform: none;
+      stroke-dashoffset: 0;
+      transition-duration: 0.001ms;
+    }
+
+    .coverage__dept-badge,
+    .coverage__cta {
+      transition-duration: 0.001ms;
+    }
+
+    .coverage__dept-badge:hover,
+    .coverage__dept-badge:focus-visible,
+    .coverage__dept-badge.is-active,
+    .coverage__cta:hover,
+    .coverage__cta:focus-visible {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 64rem) {
+    .coverage-map {
+      max-width: 20rem;
+    }
+  }
+
+  @media (max-width: 56rem) {
+    /* Ordre mobile demandé (section 20 du prompt) : eyebrow/titre/narration,
+       puis la carte pleine largeur, puis la liste, le CTA et la précision. */
+    .coverage__grid {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        'intro'
+        'map'
+        'depts'
+        'cta'
+        'caution';
+    }
+
+    .coverage__intro {
+      align-self: auto;
+    }
+
+    .coverage__map-wrap {
+      align-self: auto;
+    }
+
+    .coverage-map {
+      max-width: 22rem;
+    }
+  }
+
+  @media (max-width: 26rem) {
+    .coverage__depts {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

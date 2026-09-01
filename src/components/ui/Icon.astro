@@ -1,0 +1,178 @@
+---
+/**
+ * Petit jeu d'icônes SVG inline, dessinées pour ce projet (aucune
+ * bibliothèque d'icônes tierce). Purement décoratives : toujours
+ * `aria-hidden="true"`, le sens est porté par le texte qui les accompagne.
+ */
+interface Props {
+  name:
+    | 'phone'
+    | 'chevron-down'
+    | 'chevron-right'
+    | 'check'
+    | 'map-pin'
+    | 'star'
+    | 'shield'
+    | 'clock'
+    | 'droplet'
+    | 'flame'
+    | 'wrench'
+    | 'key'
+    | 'window'
+    | 'shutter'
+    | 'arrow-right'
+    | 'menu'
+    | 'x'
+    | 'users'
+    | 'route'
+    | 'alert-triangle'
+    | 'search'
+    | 'clipboard-check'
+    | 'shield-check';
+  class?: string;
+}
+
+// `...rest` capture aussi l'attribut interne que le compilateur Astro ajoute
+// à cet appel de composant pour que le CSS *scoped* du composant appelant
+// (ex. `.phone-cta__icon { width: 1.2em }` dans PhoneCta.astro) continue de
+// cibler ce <svg> une fois rendu. Un <svg> sans width/height explicite se
+// rabat sinon sur la taille par défaut du navigateur (300×150), d'où la
+// largeur par défaut ci-dessous en filet de sécurité.
+const { name, ...rest } = Astro.props;
+---
+
+<svg
+  width="1em"
+  height="1em"
+  {...rest}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.8"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  focusable="false"
+>
+  {
+    name === 'phone' && (
+      <path d="M4 4h4l2 5-2.5 2c1.2 2.7 3.3 4.8 6 6l2-2.5 5 2v4c0 1-.8 2-2 2C9.2 22.5 1.5 14.8 2 5c0-1.2 1-2 2-2Z" />
+    )
+  }
+  {name === 'chevron-down' && <polyline points="6 9 12 15 18 9" />}
+  {name === 'chevron-right' && <polyline points="9 6 15 12 9 18" />}
+  {name === 'check' && <polyline points="20 6 9 17 4 12" />}
+  {
+    name === 'map-pin' && (
+      <>
+        <path d="M12 21s7-7.6 7-12.3A7 7 0 0 0 5 8.7C5 13.4 12 21 12 21Z" />
+        <circle cx="12" cy="8.7" r="2.4" />
+      </>
+    )
+  }
+  {
+    name === 'star' && (
+      <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9L12 3.5Z" />
+    )
+  }
+  {name === 'shield' && <path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3Z" />}
+  {
+    name === 'clock' && (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <polyline points="12 7 12 12 16 14" />
+      </>
+    )
+  }
+  {name === 'droplet' && <path d="M12 3s6 7.2 6 11.2a6 6 0 1 1-12 0C6 10.2 12 3 12 3Z" />}
+  {
+    name === 'flame' && (
+      <path d="M12 21.5c-4 0-6.5-2.7-6.5-6.3 0-2.6 1.6-4.3 2.6-6 .3.9.9 1.7 1.7 2 .1-2.6.9-5.2 3-7.2 0 2.4.6 3.9 2 5.4 1.6 1.7 3.2 3.4 3.2 5.8 0 3.6-2 6.3-6 6.3Z" />
+    )
+  }
+  {
+    name === 'wrench' && (
+      <path d="M14.7 6.3a4 4 0 1 1-5.4 5.4L4.5 16.5l3 3 4.8-4.8a4 4 0 0 0 5.4-5.4l-2.6 2.6-2-2 2.6-2.6Z" />
+    )
+  }
+  {
+    name === 'key' && (
+      <>
+        <circle cx="8" cy="8" r="4" />
+        <path d="M10.8 10.8 20 20M15.5 15.5l2-2M12.5 18.5l2-2" />
+      </>
+    )
+  }
+  {
+    name === 'window' && (
+      <>
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M12 3v18M3 12h18" />
+      </>
+    )
+  }
+  {
+    name === 'shutter' && (
+      <>
+        <rect x="3" y="4" width="18" height="16" rx="1.5" />
+        <path d="M3 9h18M3 13.5h18" />
+      </>
+    )
+  }
+  {name === 'arrow-right' && <path d="M5 12h14M12 5l7 7-7 7" />}
+  {name === 'menu' && <path d="M4 7h16M4 12h16M4 17h16" />}
+  {name === 'x' && <path d="M6 6l12 12M18 6 6 18" />}
+  {
+    name === 'users' && (
+      <>
+        <circle cx="9" cy="8.5" r="3" />
+        <path d="M3.5 19c.6-3 2.7-4.7 5.5-4.7s4.9 1.7 5.5 4.7" />
+        <circle cx="17" cy="9.5" r="2.3" />
+        <path d="M15.8 14.7c2.1.4 3.6 1.9 4.1 4.3" />
+      </>
+    )
+  }
+  {
+    name === 'route' && (
+      <>
+        <circle cx="4.5" cy="18.5" r="1.6" />
+        <circle cx="19.5" cy="5.5" r="1.6" />
+        <path d="M6 17.5c4-7 6-11 7-12M13.5 5c2.5 1 4.5 3 5.3 3.3" stroke-dasharray="2.4 3" />
+      </>
+    )
+  }
+  {
+    name === 'alert-triangle' && (
+      <>
+        <path d="M12 4 3 20h18L12 4Z" />
+        <path d="M12 10v4.5" />
+        <circle cx="12" cy="17.3" r="0.15" fill="currentColor" stroke="none" />
+      </>
+    )
+  }
+  {
+    name === 'search' && (
+      <>
+        <circle cx="10.5" cy="10.5" r="6.5" />
+        <path d="M20 20l-4.6-4.6" />
+      </>
+    )
+  }
+  {
+    name === 'clipboard-check' && (
+      <>
+        <rect x="5" y="4" width="14" height="17" rx="2" />
+        <path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1Z" />
+        <path d="M9 13l2.2 2.2L16 10.5" />
+      </>
+    )
+  }
+  {
+    name === 'shield-check' && (
+      <>
+        <path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3Z" />
+        <path d="M9 12l2 2 4-4.5" />
+      </>
+    )
+  }
+</svg>

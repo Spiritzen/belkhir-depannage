@@ -1,0 +1,149 @@
+/*
+ * Tokens de design — landing V1 Belkhir Dépannage.
+ *
+ * L'orange de marque (--color-orange-600) est échantillonné depuis
+ * l'ancien site (rgba(255,105,0,1), utilisé en style inline sur
+ * belkhir-depannage80.fr). Les tons sombres, gris et le rouge d'urgence
+ * extrême sont des choix éditoriaux documentés (l'exacte valeur anthracite
+ * de l'ancien site n'était pas extractible de son CSS Elementor compilé) :
+ * ils prolongent l'ambiance « urgence maîtrisée » de l'existant sans
+ * imposer une nouvelle identité arbitraire (section 5 du prompt de mission).
+ */
+
+:root {
+  /* Verrouillage de la palette (sprint « mode sombre mobile », 01/09/2026) :
+     `only light` — et non `light` seul — indique explicitement aux
+     navigateurs que ce document ne prend en charge QUE la palette claire de
+     la direction artistique, même si certaines sections sont visuellement
+     noires (anthracite). Sans le mot-clé `only`, un navigateur peut malgré
+     tout appliquer un assombrissement automatique des contrôles natifs et
+     du chrome de page quand le système est en mode sombre. Ne jamais écrire
+     `light dark` ni ajouter `dark` : cela réintroduirait exactement le
+     comportement que ce verrou doit empêcher. Doublé par la métadonnée
+     HTML équivalente dans BaseLayout.astro : le HTML compilé doit porter
+     les deux déclarations. */
+  color-scheme: only light;
+
+  /* Marque */
+  --color-orange-100: #fff1e6;
+  --color-orange-500: #ff8a3d;
+  --color-orange-600: #ff6900; /* échantillonné sur l'ancien site */
+  --color-orange-700: #cc5400;
+  /* Couleur phare officielle de Belkhir Dépannage (retouche 02, 31/08/2026) :
+     alias sémantique de --color-orange-600, à réutiliser tel quel pour tout
+     accent de marque futur plutôt que de coder une nouvelle nuance orange. */
+  --color-brand: var(--color-orange-600);
+
+  /* Urgence extrême — nouveau, distinct mais compatible avec la marque.
+     --color-red-600 légèrement assombri (correctif PREPUB-007, 01/09/2026,
+     docs/RAPPORT_AUDIT_PREPUBLICATION_GITHUB_PAGES.txt) : #e5342a donnait un
+     contraste texte blanc / fond rouge de 4,32:1 (< 4,5:1 requis WCAG AA
+     pour du texte normal) sur le CTA d'urgence plein (navbar, tiroir mobile,
+     footer, barre sticky). #d73127 mesure 4,82:1 (marge de sécurité
+     au-dessus du seuil), ajustement à peine perceptible (~6 % plus sombre),
+     teinte et distinction avec l'orange standard inchangées. --color-red-700
+     (hover/focus, déjà 6,35:1) reste inchangé. */
+  --color-red-100: #fdeceb;
+  --color-red-600: #d73127;
+  --color-red-700: #b8241c;
+
+  /* Tons sombres */
+  --color-anthracite-950: #0d0f14;
+  --color-anthracite-900: #161a23;
+  --color-anthracite-800: #232838;
+  --color-anthracite-700: #323a4d;
+
+  /* Neutres */
+  --color-white: #ffffff;
+  --color-gray-50: #f7f7f8;
+  --color-gray-100: #eceef1;
+  --color-gray-300: #cbd0d8;
+  --color-gray-500: #6b7280;
+  /* Palier intermédiaire ajouté (correctif PREPUB-008, 01/09/2026) :
+     réservé au texte légal/copyright du footer sur fond anthracite-950
+     (.footer__bottom), dont --color-gray-500 ne donnait que 3,96:1 (< 4,5:1
+     requis). #78808f mesure 4,82:1 sur ce fond exact. Volontairement PAS un
+     changement de --color-gray-500/--color-muted lui-même : ce token sert
+     aussi les sous-titres de section sur fond clair ailleurs sur le site,
+     où il n'y a aucun problème de contraste à corriger — modifier sa valeur
+     aurait changé leur rendu sans nécessité. Reste plus sombre que
+     --color-gray-300 (utilisé par les liens de navigation du footer) pour
+     préserver la hiérarchie visuelle secondaire du texte légal. */
+  --color-gray-400: #78808f;
+  --color-gray-700: #3c4250;
+
+  /* Rôles sémantiques (alias rétrocompatibles avec le socle technique) */
+  --color-bg: var(--color-white);
+  --color-text: var(--color-anthracite-900);
+  --color-muted: var(--color-gray-500);
+  --color-primary: var(--color-orange-600);
+  --color-primary-contrast: var(--color-white);
+  --color-border: var(--color-gray-300);
+  --color-focus: var(--color-orange-700);
+
+  /* Typographie */
+  --font-heading:
+    'Sora', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-sans:
+    'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  /* Formes */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  /* Ombres — contenues, pas de glassmorphism */
+  --shadow-sm: 0 1px 2px rgba(13, 15, 20, 0.08);
+  --shadow-md: 0 8px 24px rgba(13, 15, 20, 0.12);
+  --shadow-lg: 0 20px 45px rgba(13, 15, 20, 0.2);
+
+  /* Espacements */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.5rem;
+  --space-6: 4rem;
+  --space-7: 6rem;
+
+  --touch-target-min: 44px;
+  --container-max: 75rem;
+
+  --z-availability-bar: 60;
+  --z-navbar: 50;
+  --z-drawer: 70;
+  --z-call-bar: 40;
+
+  /*
+   * Hauteur réelle de l'en-tête (bande de disponibilité + navbar), mesurée
+   * en navigateur avant la retouche 03 (01/09/2026) à 1440×900 :
+   * 31.375px + 69.75px = 101.125px. Utilisé pour que le Hero remplisse
+   * exactement l'espace visible sous l'en-tête (`min-height`) et pour que
+   * les ancres ciblées par ses liens métiers ne soient jamais masquées sous
+   * la navbar sticky (`scroll-margin-top`). Centralisé ici pour n'être
+   * mesuré/documenté qu'une seule fois.
+   */
+  --header-total-height: 101.125px;
+
+  /*
+   * Hauteur réelle de la barre d'appel sticky mobile (MobileCallBar.astro),
+   * mesurée en navigateur à 390px avant la retouche « footer responsive
+   * compact deux colonnes » (01/09/2026) : 70px. Cette valeur inclut déjà le
+   * padding-bottom propre de la barre — qui gère elle-même son propre
+   * env(safe-area-inset-bottom) — donc ne jamais rajouter ce safe-area une
+   * seconde fois côté footer avec ce token, sous peine de double marge sur
+   * les appareils à encoche. Centralisé ici pour n'être mesuré/documenté
+   * qu'une seule fois, réutilisable par tout composant devant réserver de
+   * la place sous la barre.
+   */
+  --mobile-callbar-height: 70px;
+}
+
+/* En dessous de 46rem, la navbar est plus basse (CTA masqués, cf. retouche
+   02) : 31.375px + 64.1875px = 95.5625px, mesuré au même endroit. */
+@media (max-width: 46rem) {
+  :root {
+    --header-total-height: 95.5625px;
+  }
+}

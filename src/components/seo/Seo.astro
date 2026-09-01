@@ -1,0 +1,52 @@
+---
+import type { JsonLdSchema, OpenGraphType, RobotsDirective } from '../../types/seo';
+
+interface Props {
+  title: string;
+  description: string;
+  canonicalUrl: string;
+  robots: RobotsDirective;
+  ogImage: string;
+  siteName: string;
+  ogType?: OpenGraphType;
+  /** Schémas JSON-LD à injecter (vide par défaut : aucune donnée inventée). */
+  structuredData?: JsonLdSchema[];
+}
+
+const {
+  title,
+  description,
+  canonicalUrl,
+  robots,
+  ogImage,
+  siteName,
+  ogType = 'website',
+  structuredData = [],
+} = Astro.props;
+
+const robotsContent = `${robots.index ? 'index' : 'noindex'}, ${robots.follow ? 'follow' : 'nofollow'}`;
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonicalUrl} />
+<meta name="robots" content={robotsContent} />
+
+<meta property="og:type" content={ogType} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:site_name" content={siteName} />
+<meta property="og:locale" content="fr_FR" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+
+{
+  structuredData.map((schema) => (
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(schema)} />
+  ))
+}

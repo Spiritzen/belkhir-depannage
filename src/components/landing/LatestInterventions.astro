@@ -1,0 +1,137 @@
+---
+/**
+ * Dernières interventions (section 17 du prompt de mission). Trois cartes
+ * de démonstration maximum, données explicitement mock, photographies
+ * réelles issues de l'ancienne landing (dossiers 2025/09 et 2025/10).
+ */
+import { Image } from 'astro:assets';
+import img1 from '../../assets/legacy/activite-recente-2.jpg';
+import img2 from '../../assets/legacy/activite-recente-3.jpg';
+import img3 from '../../assets/legacy/activite-recente-5.jpg';
+import { interventionsPreview } from '../../data/landing';
+
+const images = { 'latest-1': img1, 'latest-2': img2, 'latest-3': img3 } as const;
+---
+
+<section class="latest" id="interventions-recentes" aria-labelledby="latest-title">
+  <div class="container">
+    <div class="section-heading" data-reveal="up">
+      <h2 id="latest-title">Dernières interventions</h2>
+      <p class="latest__mock-note">
+        Exemples de présentation — contenus réels à connecter (Content Collections).
+      </p>
+    </div>
+
+    <div class="latest__grid" data-reveal-group="latest">
+      {
+        interventionsPreview.map((item) => (
+          <article class="latest__card" data-reveal="up">
+            <Image
+              src={images[item.imageId]}
+              alt=""
+              class="latest__img"
+              widths={[320, 480, 640]}
+              sizes="(max-width: 56rem) 100vw, 30vw"
+            />
+            <div class="latest__body">
+              <p class="latest__service">{item.serviceLabel}</p>
+              <p class="latest__title">{item.title}</p>
+              <p class="latest__zone">{item.zoneMention}</p>
+              <p class="latest__desc">{item.description}</p>
+              <span class="latest__link">Voir l’intervention</span>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .latest {
+    padding-block: var(--space-7);
+    /* Fond blanc abricot déjà validé pour « Votre sécurité d'abord »
+       (EmergencySelector.astro), « Avis Google » (Reviews.astro) et
+       « Pourquoi choisir Belkhir Dépannage ? » (WhyUs.astro) — aucun token
+       centralisé n'existe pour ce dégradé (vérifié avant modification),
+       valeur réutilisée telle quelle pour rester strictement identique. */
+    background: radial-gradient(circle at 20% 0%, rgba(255, 105, 0, 0.1), transparent 34%), #fff7f0;
+  }
+
+  .latest__mock-note {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+    font-style: italic;
+  }
+
+  .latest__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+  }
+
+  .latest__card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--color-white);
+    box-shadow: var(--shadow-sm);
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+
+  .latest__card:hover,
+  .latest__card:focus-within {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .latest__img {
+    width: 100%;
+    height: 12rem;
+    object-fit: cover;
+  }
+
+  .latest__body {
+    padding: var(--space-3);
+  }
+
+  .latest__service {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-orange-700);
+    font-weight: 700;
+  }
+
+  .latest__title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    margin-block: 0.25rem;
+  }
+
+  .latest__zone {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+  }
+
+  .latest__desc {
+    font-size: 0.85rem;
+    margin-top: 0.4rem;
+  }
+
+  .latest__link {
+    display: inline-block;
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-orange-700);
+  }
+
+  @media (max-width: 56rem) {
+    .latest__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

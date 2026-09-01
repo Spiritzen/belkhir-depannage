@@ -1,0 +1,124 @@
+---
+/** FAQ accessible (section 19 du prompt de mission). */
+import Icon from '../ui/Icon.astro';
+import { faqItems } from '../../data/landing';
+---
+
+<section class="faq" id="faq" aria-labelledby="faq-title">
+  <div class="container">
+    <div class="section-heading" data-reveal="up">
+      <h2 id="faq-title">Questions fréquentes</h2>
+    </div>
+
+    <div class="faq__list" data-reveal-group="faq">
+      {
+        faqItems.map((item, index) => (
+          <div class="faq__item" data-reveal="up">
+            <h3 class="faq__heading">
+              <button
+                type="button"
+                class="faq__trigger"
+                aria-expanded="false"
+                aria-controls={`faq-panel-${index}`}
+                id={`faq-trigger-${index}`}
+              >
+                <span>{item.question}</span>
+                <Icon name="chevron-down" class="faq__chevron" />
+              </button>
+            </h3>
+            <div
+              id={`faq-panel-${index}`}
+              role="region"
+              aria-labelledby={`faq-trigger-${index}`}
+              class="faq__panel"
+              hidden
+            >
+              <p>{item.answer}</p>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<script>
+  const triggers = document.querySelectorAll<HTMLButtonElement>('.faq__trigger');
+
+  for (const trigger of triggers) {
+    trigger.addEventListener('click', () => {
+      const expanded = trigger.getAttribute('aria-expanded') === 'true';
+      const panel = document.getElementById(trigger.getAttribute('aria-controls') ?? '');
+
+      trigger.setAttribute('aria-expanded', String(!expanded));
+      if (panel) {
+        panel.hidden = expanded;
+      }
+    });
+  }
+</script>
+
+<style>
+  .faq {
+    padding-block: var(--space-7);
+    /* Fond blanc abricot déjà validé pour « Votre sécurité d'abord »
+       (EmergencySelector.astro), « Avis Google » (Reviews.astro) et
+       « Pourquoi choisir Belkhir Dépannage ? » (WhyUs.astro) — aucun token
+       centralisé n'existe pour ce dégradé (vérifié avant modification),
+       valeur réutilisée telle quelle pour rester strictement identique. */
+    background: radial-gradient(circle at 20% 0%, rgba(255, 105, 0, 0.1), transparent 34%), #fff7f0;
+  }
+
+  .faq__list {
+    max-width: 44rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .faq__heading {
+    margin: 0;
+  }
+
+  .faq__item {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .faq__trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-white);
+    border: none;
+    text-align: left;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .faq__chevron {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+    color: var(--color-orange-600);
+    transition: transform 0.25s ease;
+  }
+
+  .faq__trigger[aria-expanded='true'] .faq__chevron {
+    transform: rotate(180deg);
+  }
+
+  .faq__panel {
+    padding: 0 var(--space-4) var(--space-4);
+    color: var(--color-muted);
+    font-size: 0.92rem;
+  }
+
+  .faq__panel[hidden] {
+    display: none;
+  }
+</style>

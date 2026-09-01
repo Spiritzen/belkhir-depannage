@@ -1,0 +1,317 @@
+---
+/**
+ * Niveau 2 de la navbar : logo, navigation, deux CTA téléphone, hamburger
+ * mobile. Flottante, devient opaque avec une ombre après le premier scroll
+ * (reproduction légère du comportement observé sur l'ancienne landing).
+ */
+import { Image } from 'astro:assets';
+import logoSrc from '../../assets/legacy/logo-belkhir-depannage.png';
+import Icon from '../ui/Icon.astro';
+import PhoneCta from '../ui/PhoneCta.astro';
+import { siteConfig } from '../../lib/site-config';
+import { getPhoneCta, NAVBAR_PHONE_PREVIEW } from '../../lib/phone';
+import { navLinks } from '../../data/landing';
+
+const standardCta = getPhoneCta(siteConfig.standardPhone);
+const emergencyCta = getPhoneCta(siteConfig.emergencyPhone);
+---
+
+<header class="navbar" id="navbar">
+  <div class="container navbar__inner">
+    <a class="navbar__brand" href="#accueil" aria-label={`${siteConfig.siteName} — Accueil`}>
+      <Image
+        src={logoSrc}
+        alt={`Logo ${siteConfig.siteName}`}
+        width={44}
+        height={44}
+        class="navbar__logo"
+      />
+      <span class="navbar__brand-text"
+        ><span class="navbar__brand-initial">B</span>elkhir <strong
+          ><span class="navbar__brand-initial">D</span>épannage</strong
+        ></span
+      >
+    </a>
+
+    <nav class="navbar__nav" aria-label="Navigation principale">
+      <ul>
+        {
+          navLinks.map((link) => (
+            <li>
+              <a href={link.href}>{link.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="navbar__actions">
+      <PhoneCta
+        cta={standardCta}
+        variant="solid"
+        size="md"
+        showSubLabel={false}
+        previewOverride={NAVBAR_PHONE_PREVIEW.standard}
+        class="navbar__phone navbar__phone--standard"
+      />
+      <PhoneCta
+        cta={emergencyCta}
+        variant="solid"
+        size="md"
+        showSubLabel={false}
+        previewOverride={NAVBAR_PHONE_PREVIEW.emergency}
+        class="navbar__phone navbar__phone--emergency"
+      />
+      <button
+        type="button"
+        id="menu-toggle"
+        class="navbar__toggle bob-hover"
+        aria-expanded="false"
+        aria-controls="mobile-drawer"
+      >
+        <Icon name="menu" class="navbar__toggle-icon" />
+        <span class="visually-hidden">Ouvrir le menu</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  const navbar = document.getElementById('navbar');
+
+  if (navbar) {
+    const updateScrolledState = (): void => {
+      navbar.classList.toggle('is-scrolled', window.scrollY > 12);
+    };
+
+    updateScrolledState();
+    window.addEventListener('scroll', updateScrolledState, { passive: true });
+  }
+</script>
+
+<style>
+  /*
+   * Retouche 01 — verre blanc dépoli léger : fond blanc translucide + flou,
+   * contenu (logo/liens/numéros) toujours à 100 % d'opacité, ombre basse
+   * presque imperceptible. `position: sticky` dépend d'un seul ancêtre
+   * scrollable cohérent (voir la correction dans src/styles/global.css :
+   * `overflow-x: hidden` ne doit être déclaré que sur <html>, jamais aussi
+   * sur <body>, sous peine de casser le sticky — c'était la cause exacte du
+   * défaut signalé dans cette retouche).
+   */
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-navbar);
+    /* Ajustement suite au retour visuel de Sébastien (31/08/2026) : le fond
+       restait trop opaque même après la retouche 02 (0.78 → 0.84). Fond
+       encore éclairci (0.55 → 0.65) et flou légèrement renforcé (24 → 28px)
+       pour que le contenu flouté défilant derrière la navbar reste
+       clairement perceptible. Le contenu de la navbar (logo, liens, CTA)
+       reste à opacity: 1. */
+    background-color: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(28px) saturate(120%);
+    -webkit-backdrop-filter: blur(28px) saturate(120%);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+    transition:
+      background-color 220ms ease,
+      box-shadow 220ms ease;
+  }
+
+  /* Repli si le navigateur ne supporte pas backdrop-filter : sans flou, un
+     fond aussi transparent que 0.55 ferait perdre le contraste du texte —
+     un blanc plus présent (0.92) compense l'absence de flou. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .navbar {
+      background-color: rgba(255, 255, 255, 0.92);
+    }
+  }
+
+  .navbar.is-scrolled {
+    background-color: rgba(255, 255, 255, 0.65);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.09);
+  }
+
+  .navbar__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-block: 0.6rem;
+  }
+
+  .navbar__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    color: var(--color-anthracite-900);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+    opacity: 1;
+  }
+
+  .navbar__logo {
+    width: 2.3rem;
+    height: 2.3rem;
+    border-radius: var(--radius-sm);
+    /* Retour en douceur à la position d'origine dès que le hover cesse
+       (l'animation ci-dessous ne joue plus, ce transform ramène le logo
+       proprement plutôt que de le figer brutalement à sa dernière valeur). */
+    transition: transform 200ms ease;
+  }
+
+  /* Retouche 02 : va-et-vient vertical continu du logo tant que la marque
+     est survolée, uniquement sur les pointeurs qui supportent réellement le
+     hover (souris/trackpad). Animation nommée et scoped à ce composant :
+     ne remplace pas la classe .bob-hover partagée par d'autres éléments
+     (hamburger, CTA téléphone ailleurs sur le site), qui reste inchangée. */
+  @keyframes navbar-logo-hover-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .navbar__brand:hover .navbar__logo {
+      animation: navbar-logo-hover-bob 850ms ease-in-out infinite;
+    }
+  }
+
+  /* Le texte de la marque ne bouge jamais ; seules les initiales B et D
+     portent la couleur phare de Belkhir Dépannage (voir tokens.css). */
+  .navbar__brand-initial {
+    color: var(--color-brand);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .navbar__brand:hover .navbar__logo,
+    .navbar__brand:focus-visible .navbar__logo {
+      animation: none;
+      transform: none;
+    }
+  }
+
+  .navbar__nav ul {
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .navbar__nav a {
+    display: inline-block;
+    text-decoration: none;
+    color: var(--color-anthracite-700);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding-block: 0.3rem;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    flex-shrink: 0;
+    opacity: 1;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .navbar__nav a:hover,
+  .navbar__nav a:focus-visible {
+    color: var(--color-orange-600);
+    border-color: var(--color-orange-600);
+  }
+
+  .navbar__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-shrink: 0;
+  }
+
+  /* CTA compacts propres à la navbar (section 9 de la retouche 01) : le
+     texte, les icônes et les numéros restent nets à 100 % d'opacité, seul
+     le fond de la navbar est translucide. Spécificité volontairement élevée
+     (`.navbar .navbar__phone`) pour l'emporter de façon fiable sur les
+     styles partagés de PhoneCta.astro, quel que soit l'ordre de bundling. */
+  .navbar .navbar__phone {
+    min-height: 48px;
+    padding: 0.5rem 1.05rem;
+    gap: 0.4rem;
+    opacity: 1;
+  }
+
+  .navbar .navbar__phone :global(.phone-cta__icon) {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  .navbar .navbar__phone :global(.phone-cta__label) {
+    font-size: 0.62rem;
+  }
+
+  .navbar .navbar__phone :global(.phone-cta__display) {
+    font-size: 0.92rem;
+    /* Le format compact "03 XX XX XX XX" / "06 XX XX XX XX" (ou un vrai
+       numéro court) tient toujours sans troncature : pas d'ellipsis ici. */
+    max-width: none;
+    overflow: visible;
+    white-space: nowrap;
+  }
+
+  .navbar__toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: var(--touch-target-min);
+    height: var(--touch-target-min);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-white);
+    color: var(--color-anthracite-900);
+  }
+
+  .navbar__toggle-icon {
+    width: 1.4rem;
+    height: 1.4rem;
+  }
+
+  /*
+   * Retouche 01 : le hamburger s'affiche désormais dès que la navigation
+   * desktop disparaît (74rem), et non plus seulement en dessous de 46rem.
+   * Entre 46rem et 74rem, ni la nav ni le hamburger n'étaient auparavant
+   * visibles : un utilisateur sur cette plage de largeur ne pouvait
+   * atteindre aucun lien de navigation. Avant : hamburger visible seulement
+   * sous 46rem (736px) ; après : visible sous 74rem (1184px), aligné sur le
+   * seuil où la nav desktop se masque — plus de zone morte.
+   */
+  @media (max-width: 74rem) {
+    .navbar__nav {
+      display: none;
+    }
+
+    .navbar__toggle {
+      display: inline-flex;
+    }
+  }
+
+  /* Retour visuel de Sébastien (31/08/2026) : en dessous de 46rem, les deux
+     CTA téléphone de la navbar (y compris le badge rouge « urgence ») sont
+     retirés — la barre d'appel mobile fixe (MobileCallBar) offre déjà en
+     permanence les deux numéros en bas d'écran, le badge devenait
+     redondant. À la place, le nom « Belkhir Dépannage » (B et D en orange)
+     redevient visible juste à droite du logo, comme sur desktop. */
+  @media (max-width: 46rem) {
+    .navbar__phone {
+      display: none;
+    }
+  }
+</style>

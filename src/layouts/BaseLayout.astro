@@ -1,0 +1,105 @@
+---
+import Seo from '../components/seo/Seo.astro';
+import { siteConfig } from '../lib/site-config';
+import { buildCanonicalUrl, withBase } from '../lib/url';
+import type { JsonLdSchema, RobotsDirective } from '../types/seo';
+import '../styles/tokens.css';
+import '../styles/fonts.css';
+import '../styles/animations.css';
+import '../styles/global.css';
+
+interface Props {
+  /** Titre unique de la page (balise <title> et Open Graph). */
+  title: string;
+  /** Meta description unique de la page. */
+  description: string;
+  /** Chemin de la page (ex. "/", "/mentions-legales"), utilisé pour l'URL canonique. */
+  path: string;
+  /** Directives robots spécifiques à la page ; par défaut, reflète siteConfig.allowIndexing. */
+  robots?: RobotsDirective;
+  /** Image Open Graph spécifique à la page ; par défaut, l'image OG globale. */
+  ogImage?: string;
+  /** Schémas JSON-LD spécifiques à la page (vide par défaut). */
+  structuredData?: JsonLdSchema[];
+  /** Réserve l'espace bas de page occupé par la barre d'appel mobile fixe. */
+  hasMobileCallBar?: boolean;
+}
+
+const {
+  title,
+  description,
+  path,
+  robots = { index: siteConfig.allowIndexing, follow: siteConfig.allowIndexing },
+  ogImage = siteConfig.defaultOgImage,
+  structuredData = [],
+  hasMobileCallBar = false,
+} = Astro.props;
+
+const canonicalUrl = buildCanonicalUrl(siteConfig.siteUrl, path);
+
+// Favicons servis tels quels depuis `public/` : référencés par une chaîne
+// littérale, ils ne passent pas par le pipeline `astro:assets`/Vite qui
+// applique `base` automatiquement — il faut donc les préfixer nous-mêmes
+// avec `import.meta.env.BASE_URL` (correctif PREPUB-002, 01/09/2026).
+const faviconPngHref = withBase(import.meta.env.BASE_URL, 'favicon-legacy.png');
+const faviconSvgHref = withBase(import.meta.env.BASE_URL, 'favicon.svg');
+---
+
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--
+      Verrouillage de la palette (sprint « mode sombre mobile », 01/09/2026) :
+      la maquette n'a qu'une seule palette et ne doit jamais être recolorée
+      par un auto-darkening système (Chrome Android, Safari iOS, Firefox
+      mobile). `color-scheme` double la déclaration CSS `only light` de
+      tokens.css (le HTML compilé doit porter les deux). `supported-color-
+      schemes` est la métadonnée de compatibilité historique WebKit pour le
+      même effet sur des versions plus anciennes de Safari ; ajoutée par
+      prudence, sans dupliquer de valeur contradictoire. `theme-color`
+      reprend exactement --color-anthracite-950 (#0d0f14) de tokens.css,
+      couleur déjà utilisée par AvailabilityBar.astro (niveau 1 du shell,
+      tout en haut de chaque page) — aucune valeur inventée. -->
+    <meta name="color-scheme" content="only light" />
+    <meta name="supported-color-schemes" content="light" />
+    <meta name="theme-color" content="#0d0f14" />
+    <link rel="icon" type="image/png" href={faviconPngHref} sizes="32x32" />
+    <link rel="icon" type="image/svg+xml" href={faviconSvgHref} />
+    <Seo
+      title={title}
+      description={description}
+      canonicalUrl={canonicalUrl}
+      robots={robots}
+      ogImage={ogImage}
+      siteName={siteConfig.siteName}
+      structuredData={structuredData}
+    />
+  </head>
+  <body class={hasMobileCallBar ? 'has-mobile-call-bar' : ''}>
+    <a class="skip-link" href="#contenu-principal">Aller au contenu principal</a>
+
+    <slot name="header" />
+
+    <main id="contenu-principal">
+      <slot />
+    </main>
+
+    <slot name="footer" />
+    <slot name="mobile-call-bar" />
+
+    <script src="../scripts/reveal.ts"></script>
+  </body>
+</html>
+
+<style>
+  body.has-mobile-call-bar {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  }
+
+  @media (min-width: 64rem) {
+    body.has-mobile-call-bar {
+      padding-bottom: 0;
+    }
+  }
+</style>

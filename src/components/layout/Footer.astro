@@ -1,0 +1,239 @@
+---
+import { Image } from 'astro:assets';
+import logoSrc from '../../assets/legacy/logo-belkhir-depannage.png';
+import PhoneCta from '../ui/PhoneCta.astro';
+import { siteConfig } from '../../lib/site-config';
+import { getPhoneCta } from '../../lib/phone';
+import { navLinks, services } from '../../data/landing';
+
+const standardCta = getPhoneCta(siteConfig.standardPhone);
+const emergencyCta = getPhoneCta(siteConfig.emergencyPhone);
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer" id="site-footer">
+  <div class="container footer__grid">
+    <div class="footer__brand">
+      <a href="#accueil" class="footer__brand-link">
+        <Image
+          src={logoSrc}
+          alt={`Logo ${siteConfig.siteName}`}
+          width={44}
+          height={44}
+          class="footer__logo"
+        />
+        <span
+          ><span class="footer__brand-initial">B</span>elkhir <strong
+            ><span class="footer__brand-initial">D</span>épannage</strong
+          ></span
+        >
+      </a>
+      <p class="footer__tagline">Dépannage d’urgence 24h/24 et 7j/7 — {siteConfig.region}.</p>
+    </div>
+
+    <nav class="footer__col footer__col--metiers" aria-label="Métiers">
+      <h2>Métiers</h2>
+      <ul>
+        {
+          services.map((service) => (
+            <li>
+              <a href={`#${service.anchor}`}>{service.title}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <nav class="footer__col footer__col--navigation" aria-label="Navigation">
+      <h2>Navigation</h2>
+      <ul>
+        {
+          navLinks.map((link) => (
+            <li>
+              <a href={link.href}>{link.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="footer__col footer__calls">
+      <h2>Nous appeler</h2>
+      <PhoneCta cta={standardCta} variant="solid" size="md" class="footer__phone" />
+      <PhoneCta cta={emergencyCta} variant="solid" size="md" class="footer__phone" />
+    </div>
+  </div>
+
+  <div class="container footer__bottom">
+    <p>© {year} {siteConfig.siteName}. Maquette de prévisualisation — non indexée.</p>
+    <ul class="footer__legal">
+      <li><span>Mentions légales — page à venir</span></li>
+      <li><span>Confidentialité — page à venir</span></li>
+    </ul>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--color-anthracite-950);
+    color: var(--color-gray-300);
+  }
+
+  .footer__grid {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: var(--space-5);
+    padding-block: var(--space-6);
+  }
+
+  .footer__brand-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    color: var(--color-white);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+
+  /* Signature de marque officielle (déjà utilisée dans la navbar, voir
+     .navbar__brand-initial) : seuls B et D colorés, le reste du nom reste
+     blanc. --color-brand est l'alias sémantique déjà centralisé pour
+     l'orange de marque (tokens.css) — jamais une nouvelle valeur hex. Un
+     simple <span> inline dans le texte ne fragmente pas la lecture
+     accessible : un lecteur d'écran annonce toujours « Belkhir Dépannage »
+     en continu. */
+  .footer__brand-initial {
+    color: var(--color-brand);
+  }
+
+  .footer__logo {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-sm);
+    background: var(--color-white);
+    padding: 2px;
+  }
+
+  .footer__tagline {
+    margin-top: var(--space-3);
+    max-width: 22rem;
+    color: var(--color-gray-300);
+    font-size: 0.92rem;
+  }
+
+  .footer__col h2 {
+    color: var(--color-white);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-3);
+  }
+
+  .footer__col ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .footer__col a {
+    text-decoration: none;
+    color: var(--color-gray-300);
+    font-size: 0.9rem;
+  }
+
+  .footer__col a:hover,
+  .footer__col a:focus-visible {
+    color: var(--color-orange-500);
+  }
+
+  .footer__calls {
+    display: flex;
+    flex-direction: column;
+    /* Espacement élégant entre les deux boutons d'appel (micro-retouche
+       01/09/2026) — var(--space-3) vaut exactement 16px, valeur demandée. */
+    gap: var(--space-3);
+  }
+
+  .footer__phone {
+    width: fit-content;
+  }
+
+  .footer__bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-block: var(--space-3);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    font-size: 0.78rem;
+    /* --color-gray-400 (correctif PREPUB-008, 01/09/2026) : --color-gray-500
+       ne mesurait que 3,96:1 sur ce fond --color-anthracite-950 (< 4,5:1
+       requis). --color-gray-400 mesure 4,82:1, tout en restant plus discret
+       que --color-gray-300 (liens de navigation du footer) pour conserver
+       la hiérarchie visuelle secondaire du copyright/des mentions légales. */
+    color: var(--color-gray-400);
+  }
+
+  .footer__legal {
+    list-style: none;
+    display: flex;
+    gap: var(--space-4);
+    padding: 0;
+    margin: 0;
+  }
+
+  @media (max-width: 62rem) {
+    .footer__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* Mobile compact : identité pleine largeur, puis Métiers/Navigation côte
+     à côte sur une même ligne (au lieu de 4 blocs empilés en pleine
+     hauteur), puis Nous appeler pleine largeur — sans toucher l'ordre DOM
+     (retouche « footer responsive compact deux colonnes », 01/09/2026).
+     minmax(0, 1fr) évite tout débordement horizontal si un intitulé de
+     lien est long. */
+  @media (max-width: 32rem) {
+    .footer__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-areas:
+        'brand brand'
+        'metiers navigation'
+        'calls calls';
+      column-gap: 20px;
+      row-gap: 28px;
+      padding-top: 40px;
+      padding-bottom: 8px;
+    }
+
+    .footer__brand {
+      grid-area: brand;
+    }
+
+    .footer__col--metiers {
+      grid-area: metiers;
+    }
+
+    .footer__col--navigation {
+      grid-area: navigation;
+    }
+
+    .footer__calls {
+      grid-area: calls;
+    }
+
+    /* Réserve l'espace sous la barre d'appel sticky mobile pour que les
+       mentions légales ne soient jamais masquées derrière elle (la barre
+       gère déjà son propre safe-area-inset-bottom, non dupliqué ici). */
+    .footer__bottom {
+      padding-bottom: calc(var(--mobile-callbar-height) + 24px);
+    }
+  }
+</style>

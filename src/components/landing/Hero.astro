@@ -1,0 +1,606 @@
+---
+/**
+ * Hero — fond photographique fidèle à l'ancienne landing (copie locale
+ * obligatoire de 2151015241.jpg, inchangée). Recomposition « plein écran,
+ * large et hiérarchisé » (retouche 03 V2, 01/09/2026) : le contenu exploite
+ * enfin la largeur du conteneur central du site au lieu d'être comprimé
+ * dans une colonne étroite.
+ *
+ * V2 (retouche 03) : aucun CTA téléphonique dans le Hero. Les deux lignes
+ * d'appel restent disponibles en permanence dans la navbar sticky
+ * (inchangée) ; les répéter ici aurait fait doublon avec le premier écran.
+ *
+ * Retouche 04 (01/09/2026) : le H1 est réduit d'environ 8–10 % (plafond
+ * desktop ramené de 4.15rem à 3.8rem) et composé en deux groupes de ligne
+ * pour éviter la troisième ligne déséquilibrée observée à 1920px lors de la
+ * revue visuelle. Une ligne de conversion est ajoutée sous le paragraphe :
+ * un unique bouton « Demander un devis gratuit » et un badge de confiance
+ * Google sur mesure (Excellent / 4,7/5 / 277 avis), tous deux redessinés
+ * dans la direction artistique du site — aucun widget Trustindex, aucune
+ * iframe.
+ *
+ * Ordre du contenu (imposé, reflète l'ordre visuel — aucun `order` CSS) :
+ *   1. signature orange centrée
+ *   2. cinq métiers, liens pleine largeur vers les panneaux réels de
+ *      l'accordéon (jamais de route factice)
+ *   3. groupe éditorial (H1 + paragraphe + ligne de conversion), placé dans
+ *      l'espace restant
+ */
+import { Image } from 'astro:assets';
+import heroImg from '../../assets/legacy/hero-intervention-urgence.jpg';
+import Icon from '../ui/Icon.astro';
+import { services, type ServiceId, googleReviewSummary } from '../../data/landing';
+import { siteConfig } from '../../lib/site-config';
+import { getPhoneCta } from '../../lib/phone';
+
+// Les cinq métiers du Hero réutilisent les données déjà centralisées pour
+// l'accordéon (`services` dans src/data/landing.ts) plutôt que de dupliquer
+// une seconde liste : même libellé, même ancre réelle, une seule source de
+// vérité. « Fuites et anomalies » (6e panneau de l'accordéon) n'apparaît pas
+// ici, conformément à la liste des cinq métiers de la section 1 du prompt.
+const heroTradeOrder: ServiceId[] = [
+  'plomberie',
+  'chauffage',
+  'serrurerie',
+  'vitrerie',
+  'rideaux-metalliques',
+];
+const heroTrades = heroTradeOrder
+  .map((id) => services.find((service) => service.id === id))
+  .filter((service): service is (typeof services)[number] => Boolean(service));
+
+// Micro-retouche suppression FinalCta (01/09/2026) : le bouton de devis
+// pointait vers #contact (FinalCta.astro), désormais supprimé. Il devient un
+// CTA vers la ligne standard centralisée, avec le même garde-fou que
+// PhoneCta : un vrai lien `tel:` si le numéro est valide, un bouton non
+// appelable (jamais de faux `tel:`) tant qu'il reste provisoire. Le libellé
+// visuel ne change pas ; seule la destination réelle du clic change.
+const standardCta = getPhoneCta(siteConfig.standardPhone);
+
+// Badge de confiance Google : `siteConfig.googleReviewsUrl` reste `null`
+// tant qu'aucune fiche Google Business n'est validée par le client (voir
+// src/lib/site-config.ts). Sans URL réelle, le badge pointe vers l'ancre
+// réelle des avis de la landing (Reviews.astro, id="avis") plutôt que vers
+// une URL inventée ou un `href="#"`.
+const googleHref = siteConfig.googleReviewsUrl ?? '#avis';
+const googleRatingDisplay = googleReviewSummary.rating.toFixed(1).replace('.', ',');
+const googleAccessibleLabel = `${googleReviewSummary.label}, note de ${googleRatingDisplay} sur 5 basée sur ${googleReviewSummary.reviewCount} avis ${googleReviewSummary.platform}`;
+---
+
+<section class="hero" id="accueil" aria-label="Présentation de Belkhir Dépannage">
+  <Image
+    src={heroImg}
+    alt=""
+    class="hero__bg"
+    widths={[640, 960, 1280, 1920]}
+    sizes="100vw"
+    loading="eager"
+    fetchpriority="high"
+  />
+  <div class="hero__overlay" aria-hidden="true"></div>
+  <div class="hero__texture" aria-hidden="true"></div>
+
+  <div class="hero__container">
+    <p class="hero__eyebrow" data-reveal="down">
+      <span class="hero__eyebrow-group">DÉPANNAGE D’URGENCE</span> · <span
+        class="hero__eyebrow-group">{siteConfig.region.toUpperCase()}</span
+      > · <span class="hero__eyebrow-group">24H/24</span> · <span class="hero__eyebrow-group"
+        >7J/7</span
+      >
+    </p>
+
+    <nav class="hero__trades" aria-label="Métiers pris en charge" data-reveal-group="hero-trades">
+      {
+        heroTrades.map((service) => (
+          <a href={`#${service.anchor}`} class="hero__trade" data-reveal="up">
+            {service.title}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="hero__message">
+      <h1 class="hero__title" data-reveal="left">
+        <span class="hero__title-line"
+          ><span class="hero__title-accent">Dépannage d’urgence</span> 24h/24</span
+        >{' '}<span class="hero__title-line"
+          >et 7j/7 dans les <span class="hero__title-accent hero__title-region"
+            >Hauts-de-France</span
+          ></span
+        >
+      </h1>
+
+      <p class="hero__lead" data-reveal="left">
+        Plomberie, chauffage, serrurerie, vitrerie et rideaux métalliques : notre équipe répond à
+        votre urgence, de jour comme de nuit. Fuite, panne de chauffage, porte bloquée, vitre cassée
+        ou rideau métallique immobilisé : nous qualifions votre situation dès l’appel afin
+        d’organiser la réponse adaptée.
+      </p>
+
+      <div class="hero__conversion-row" data-reveal="up">
+        {
+          standardCta.kind === 'link' ? (
+            <a class="hero__quote-cta" href={standardCta.href} data-phone-role={standardCta.role}>
+              Demander un devis gratuit
+              <Icon name="arrow-right" class="hero__quote-cta-icon" />
+            </a>
+          ) : (
+            <button
+              type="button"
+              class="hero__quote-cta"
+              disabled
+              aria-describedby="hero-quote-note"
+              data-phone-role={standardCta.role}
+            >
+              Demander un devis gratuit
+              <Icon name="arrow-right" class="hero__quote-cta-icon" />
+              <span id="hero-quote-note" class="visually-hidden">
+                Numéro standard non encore renseigné dans cette maquette.
+              </span>
+            </button>
+          )
+        }
+
+        <a class="hero__google-proof" href={googleHref} aria-label={googleAccessibleLabel}>
+          <span class="hero__google-proof-top">
+            <span class="hero__google-proof-stars" aria-hidden="true">
+              {
+                Array.from({ length: 5 }).map(() => (
+                  <Icon name="star" class="hero__google-proof-star" />
+                ))
+              }
+            </span>
+            <span class="hero__google-proof-rating">{googleRatingDisplay}/5</span>
+          </span>
+          <span class="hero__google-proof-meta"
+            >{googleReviewSummary.label} · {googleReviewSummary.reviewCount} avis {
+              googleReviewSummary.platform
+            }</span
+          >
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /*
+   * Retouche 03 : hauteur du Hero calée sur l'espace réellement visible sous
+   * l'en-tête (bande de disponibilité + navbar), mesuré en navigateur avant
+   * modification — voir rapport-retouche-03-hero-structure-large.txt. Le
+   * token est déclaré une seule fois, dans tokens.css, et réutilisé ici et
+   * par `scroll-margin-top` sur les panneaux métiers ciblés par les liens
+   * ci-dessus.
+   */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .hero__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 38%;
+    z-index: -3;
+  }
+
+  .hero__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background:
+      linear-gradient(
+        0deg,
+        rgba(9, 10, 14, 0.92) 0%,
+        rgba(9, 10, 14, 0.72) 42%,
+        rgba(9, 10, 14, 0.35) 100%
+      ),
+      radial-gradient(60% 55% at 78% 8%, rgba(255, 105, 0, 0.35), transparent 70%);
+  }
+
+  .hero__texture {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 3.5rem 3.5rem;
+    mask-image: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.6));
+  }
+
+  /*
+   * Conteneur large : réutilise le token central --container-max (75rem =
+   * 1200px), déjà partagé par toutes les autres sections de la landing via
+   * `.container`. La cible du prompt (« environ 1280px ») est volontairement
+   * satisfaite par ce token existant plutôt que par une seconde valeur
+   * (1280px) quasi identique : un Hero à 1280px et un reste de page à
+   * 1200px désaligneraient visuellement les bords de chaque section.
+   *
+   * Grille verticale à trois rangées (signature / métiers / groupe
+   * éditorial) plutôt que `justify-content: space-between`, qui aurait pu
+   * créer un vide disproportionné sur grand écran ou écraser le contenu sur
+   * faible hauteur. La troisième rangée (1fr) absorbe l'espace restant ; le
+   * groupe éditorial y est centré verticalement.
+   */
+  .hero__container {
+    position: relative;
+    z-index: 1;
+    width: min(100%, var(--container-max));
+    margin-inline: auto;
+    box-sizing: border-box;
+    padding: 48px;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    color: var(--color-white);
+    min-height: calc(100vh - var(--header-total-height));
+    min-height: calc(100svh - var(--header-total-height));
+  }
+
+  .hero__eyebrow {
+    text-align: center;
+    font-size: clamp(0.72rem, 0.45rem + 0.55vw, 0.95rem);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.4;
+    color: var(--color-orange-500);
+  }
+
+  .hero__eyebrow-group {
+    white-space: nowrap;
+  }
+
+  .hero__trades {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.75rem;
+    width: 100%;
+    margin-top: clamp(1.25rem, 1rem + 0.6vw, 1.5rem);
+  }
+
+  .hero__trade {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 44px;
+    padding: 0.6rem 0.6rem;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    color: var(--color-white);
+    font-weight: 600;
+    font-size: 0.92rem;
+    text-decoration: none;
+    transition:
+      background-color 200ms ease,
+      border-color 200ms ease,
+      color 200ms ease,
+      transform 200ms ease,
+      box-shadow 200ms ease;
+  }
+
+  .hero__trade:hover,
+  .hero__trade:focus-visible {
+    background: var(--color-brand);
+    border-color: var(--color-brand);
+    color: var(--color-anthracite-950);
+    transform: scale(1.03);
+    box-shadow: var(--shadow-md);
+    z-index: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__trade:hover,
+    .hero__trade:focus-visible {
+      transform: none;
+    }
+  }
+
+  /*
+   * Groupe éditorial (H1 + paragraphe + ligne de conversion) : centré dans
+   * l'espace restant sous les métiers plutôt que collé au sommet ou
+   * dispersé aux extrémités. Le padding-block sert à la fois d'espace
+   * « métiers → groupe » et de respiration avant la fin du Hero (retouche
+   * 04 : plage resserrée de 40px à 64px, contre 40–88px auparavant, pour
+   * compenser l'ajout de la ligne de conversion sans faire déborder le
+   * Hero). L'espacement entre enfants n'est plus un `gap` uniforme : chaque
+   * enfant porte son propre `margin-top` pour obtenir des espaces distincts
+   * (H1 → paragraphe plus serré que paragraphe → ligne de conversion).
+   */
+  .hero__message {
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    padding-block: clamp(2.5rem, 5vh, 4rem);
+    /*
+     * Micro-retouche : léger décalage vers le bas de l'ensemble du groupe
+     * éditorial (H1, paragraphe, ligne de conversion), pour un équilibre
+     * visuel supérieur/inférieur amélioré. `transform` plutôt que `margin`
+     * ou `padding` : ce bloc est centré via `align-self: center` dans la
+     * grille du Hero (grid-template-rows: auto auto minmax(0, 1fr)) — un
+     * `margin-top` asymétrique n'y déplacerait le contenu que de la moitié
+     * de sa valeur (le centrage répartit l'espace ajouté de part et
+     * d'autre), et changerait la hauteur de la boîte prise en compte par le
+     * calcul de centrage. `transform: translateY()` est un décalage de
+     * peinture pur : il ne participe pas au calcul de mise en page ni à la
+     * hauteur du Hero (inchangée), n'affecte aucun autre élément (métiers,
+     * navbar, QuickAnswers) et se compose proprement avec les animations
+     * `data-reveal` existantes, qui appliquent leur propre `transform` sur
+     * les enfants (H1, paragraphe, ligne de conversion) indépendamment de
+     * celui posé ici sur leur parent commun.
+     */
+    transform: translateY(20px);
+  }
+
+  /* Tablette (sous 1024px) : décalage réduit à 11px (plage cible 10–12px). */
+  @media (max-width: 63.9375rem) {
+    .hero__message {
+      transform: translateY(11px);
+    }
+  }
+
+  /* Mobile (sous 768px) : aucun décalage supplémentaire. */
+  @media (max-width: 47.9375rem) {
+    .hero__message {
+      transform: none;
+    }
+  }
+
+  .hero__title {
+    max-width: 66rem;
+    /* Retouche 04 : réduction maîtrisée d'environ 8–10 % du plafond desktop
+       (4.15rem → 3.8rem, soit 66,4px → 60,8px mesurés à 1920px) pour que le
+       H1 ne domine plus le Hero au point d'écraser les métiers et le
+       nouveau bloc de conversion, tout en restant le point focal
+       principal. */
+    font-size: clamp(2.25rem, 1.65rem + 2.2vw, 3.8rem);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.02;
+  }
+
+  /* Composition en deux groupes de ligne (section 7 du prompt de la
+     retouche 04) : chaque groupe est un bloc, ce qui force la coupure
+     « Dépannage d'urgence 24h/24 » / « et 7j/7 dans les Hauts-de-France »
+     sur desktop plutôt que de dépendre d'un retour naturel instable — la
+     capture de revue à 1920px montrait une troisième ligne composée
+     uniquement de « Hauts-de-France ». Chaque groupe reste libre de
+     revenir à la ligne intérieurement sur viewport plus étroit (aucun
+     `<br>` interne). Les deux `<span class="hero__title-line">` sont
+     écrits sur la même ligne source, séparés par une seule espace
+     littérale : un retour à la ligne source suivi d'indentation est
+     davantage rogné par Astro et ferait disparaître cette espace dans le
+     texte accessible réellement rendu (voir historique du composant). */
+  .hero__title-line {
+    display: block;
+  }
+
+  .hero__title-accent {
+    color: var(--color-orange-500);
+  }
+
+  .hero__title-region {
+    white-space: nowrap;
+  }
+
+  .hero__lead {
+    max-width: 56.25rem;
+    font-size: clamp(1.0625rem, 0.95rem + 0.35vw, 1.25rem);
+    line-height: 1.65;
+    color: var(--color-gray-100);
+    /* Cible 20–24px. */
+    margin-top: clamp(1.25rem, 1.15rem + 0.2vw, 1.5rem);
+  }
+
+  /*
+   * Ligne de conversion (retouche 04, section 9 du prompt) : un bouton de
+   * devis unique et un badge de confiance Google, alignés à gauche,
+   * horizontaux tant que l'espace le permet (`flex-wrap` gère les cas
+   * intermédiaires avant le passage forcé en colonne sur mobile).
+   */
+  .hero__conversion-row {
+    /* Cible 28–32px. */
+    margin-top: clamp(1.75rem, 1.65rem + 0.2vw, 2rem);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    /* Cible 16–20px. */
+    gap: clamp(1rem, 0.9rem + 0.3vw, 1.25rem);
+  }
+
+  .hero__quote-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 52px;
+    padding: 0.9rem 1.75rem;
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--color-brand);
+    color: var(--color-anthracite-950);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition:
+      background-color 200ms ease,
+      transform 200ms ease,
+      box-shadow 200ms ease;
+  }
+
+  .hero__quote-cta:hover,
+  .hero__quote-cta:focus-visible {
+    background: var(--color-orange-700);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Garde-fou numéro provisoire (voir le commentaire du frontmatter) : bouton
+     non appelable, jamais de faux `tel:`. */
+  .hero__quote-cta:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .hero__quote-cta-icon {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  /*
+   * Badge Google sur mesure (section 12 du prompt) : verre fumé sombre
+   * intégré au Hero, jamais le rectangle blanc de l'ancien widget
+   * Trustindex. Fallback opaque si `backdrop-filter` n'est pas supporté,
+   * même logique que la navbar (voir Navbar.astro).
+   */
+  .hero__google-proof {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.3rem;
+    min-height: 56px;
+    padding: 0.7rem 1.1rem;
+    border-radius: var(--radius-md);
+    background: rgba(15, 20, 26, 0.68);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(14px) saturate(115%);
+    -webkit-backdrop-filter: blur(14px) saturate(115%);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+    text-decoration: none;
+    color: var(--color-white);
+    transition:
+      border-color 200ms ease,
+      transform 200ms ease;
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .hero__google-proof {
+      background: rgba(13, 15, 20, 0.92);
+    }
+  }
+
+  .hero__google-proof:hover,
+  .hero__google-proof:focus-visible {
+    border-color: rgba(255, 255, 255, 0.32);
+    transform: translateY(-1px);
+  }
+
+  .hero__google-proof-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .hero__google-proof-stars {
+    display: inline-flex;
+    gap: 0.15rem;
+  }
+
+  .hero__google-proof-star {
+    width: 0.9rem;
+    height: 0.9rem;
+    /* Ambre décoratif, volontairement distinct de l'orange de marque
+       (section 13 du prompt) pour ne jamais laisser croire que l'étoile
+       est un élément de marque plutôt qu'une notation Google. */
+    color: #ffb400;
+    fill: #ffb400;
+  }
+
+  .hero__google-proof-rating {
+    font-weight: 800;
+    font-size: 0.95rem;
+  }
+
+  .hero__google-proof-meta {
+    font-size: 0.78rem;
+    color: var(--color-gray-100);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__quote-cta:hover,
+    .hero__quote-cta:focus-visible,
+    .hero__google-proof:hover,
+    .hero__google-proof:focus-visible {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 64rem) {
+    .hero__trades {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 56rem) {
+    .hero__container {
+      padding: 32px;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .hero__trades {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .hero__container {
+      padding: 24px;
+    }
+
+    /* Retouche 04 (section 9 du prompt) : sous 40rem, la ligne de
+       conversion s'empile proprement — bouton puis badge, chacun sur
+       toute la largeur disponible — plutôt que de dépendre du seul
+       `flex-wrap`, dont le rendu intermédiaire (badge à côté du bouton
+       mais tronqué) ne serait ni lisible ni compact. */
+    .hero__conversion-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .hero__quote-cta,
+    .hero__google-proof {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 23rem) {
+    .hero__container {
+      padding: 20px;
+    }
+
+    .hero__trades {
+      grid-template-columns: 1fr;
+    }
+
+    /*
+     * Retouche 04 : défaut préexistant découvert pendant la vérification
+     * navigateur de cette mission, non introduit par la réduction du H1
+     * (le plancher 2.25rem du clamp était identique avant et après —
+     * seul le plafond desktop a changé). En dessous de 23rem (368px, ce qui
+     * couvre le petit mobile 320px exigé par la revue), le plancher
+     * 2.25rem (36px) du H1 rendait « Hauts-de-France », en `white-space:
+     * nowrap`, plus large que le conteneur (313,9px mesurés pour ~280px
+     * disponibles à 320px) : le texte était silencieusement rogné par
+     * `overflow-x: clip` sur <body> plutôt que de déborder visiblement.
+     * Une taille fixe et plus petite, réservée à cette tranche étroite
+     * uniquement, restaure un H1 entièrement visible sans toucher au
+     * plancher du clamp principal ni aux tailles à 390px et au-delà
+     * (390px > 368px = 23rem, donc hors de ce bloc).
+     */
+    .hero__title {
+      font-size: 1.85rem;
+    }
+  }
+</style>

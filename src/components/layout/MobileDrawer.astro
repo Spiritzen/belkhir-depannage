@@ -1,0 +1,245 @@
+---
+/**
+ * Drawer mobile plein écran : navigation, deux lignes d'appel, piège de
+ * focus, fermeture Escape, restauration du focus, blocage du scroll
+ * arrière-plan (section 6 du prompt de mission).
+ */
+import Icon from '../ui/Icon.astro';
+import PhoneCta from '../ui/PhoneCta.astro';
+import { siteConfig } from '../../lib/site-config';
+import { getPhoneCta } from '../../lib/phone';
+import { navLinks } from '../../data/landing';
+
+const standardCta = getPhoneCta(siteConfig.standardPhone);
+const emergencyCta = getPhoneCta(siteConfig.emergencyPhone);
+---
+
+<div
+  id="mobile-drawer"
+  class="mobile-drawer"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Menu de navigation"
+  hidden
+>
+  <div class="mobile-drawer__panel">
+    <div class="mobile-drawer__header">
+      <p class="mobile-drawer__title">Menu</p>
+      <button type="button" id="drawer-close" class="mobile-drawer__close">
+        <Icon name="x" class="mobile-drawer__close-icon" />
+        <span class="visually-hidden">Fermer le menu</span>
+      </button>
+    </div>
+
+    <nav aria-label="Navigation">
+      <ul class="mobile-drawer__nav">
+        {
+          navLinks.map((link) => (
+            <li>
+              <a href={link.href} class="mobile-drawer__nav-link" data-drawer-link>
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="mobile-drawer__calls">
+      <p class="mobile-drawer__calls-title">Choisissez le numéro adapté à votre situation</p>
+      <PhoneCta cta={standardCta} variant="solid" size="lg" class="mobile-drawer__phone" />
+      <PhoneCta cta={emergencyCta} variant="solid" size="lg" class="mobile-drawer__phone" />
+    </div>
+  </div>
+
+  <button
+    type="button"
+    class="mobile-drawer__backdrop"
+    id="drawer-backdrop"
+    aria-hidden="true"
+    tabindex="-1"
+  >
+    <span class="visually-hidden">Fermer le menu</span>
+  </button>
+</div>
+
+<script>
+  const toggle = document.getElementById('menu-toggle');
+  const drawer = document.getElementById('mobile-drawer');
+  const closeButton = document.getElementById('drawer-close');
+  const backdrop = document.getElementById('drawer-backdrop');
+
+  if (toggle && drawer && closeButton && backdrop) {
+    let lastFocused: HTMLElement | null = null;
+
+    const getFocusable = (): HTMLElement[] =>
+      Array.from(
+        drawer.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.offsetParent !== null);
+
+    const openDrawer = (): void => {
+      lastFocused = document.activeElement as HTMLElement | null;
+      drawer.hidden = false;
+      document.documentElement.classList.add('drawer-open');
+      toggle.setAttribute('aria-expanded', 'true');
+      closeButton.focus();
+      document.addEventListener('keydown', onKeydown);
+    };
+
+    const closeDrawer = (): void => {
+      drawer.hidden = true;
+      document.documentElement.classList.remove('drawer-open');
+      toggle.setAttribute('aria-expanded', 'false');
+      document.removeEventListener('keydown', onKeydown);
+      (lastFocused ?? toggle).focus();
+    };
+
+    const onKeydown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeDrawer();
+        return;
+      }
+
+      if (event.key !== 'Tab') {
+        return;
+      }
+
+      const focusable = getFocusable();
+      if (focusable.length === 0) {
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    toggle.addEventListener('click', openDrawer);
+    closeButton.addEventListener('click', closeDrawer);
+    backdrop.addEventListener('click', closeDrawer);
+
+    for (const link of drawer.querySelectorAll<HTMLAnchorElement>('[data-drawer-link]')) {
+      link.addEventListener('click', closeDrawer);
+    }
+  }
+</script>
+
+<style is:global>
+  html.drawer-open {
+    overflow: hidden;
+  }
+</style>
+
+<style>
+  .mobile-drawer {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-drawer);
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .mobile-drawer[hidden] {
+    display: none;
+  }
+
+  .mobile-drawer__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(13, 15, 20, 0.55);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .mobile-drawer__panel {
+    position: relative;
+    z-index: 1;
+    width: min(22rem, 92vw);
+    height: 100%;
+    background: var(--color-white);
+    box-shadow: var(--shadow-lg);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    overflow-y: auto;
+  }
+
+  .mobile-drawer__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .mobile-drawer__title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .mobile-drawer__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--touch-target-min);
+    height: var(--touch-target-min);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    background: var(--color-white);
+  }
+
+  .mobile-drawer__close-icon {
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+
+  .mobile-drawer__nav {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mobile-drawer__nav-link {
+    display: flex;
+    align-items: center;
+    min-height: var(--touch-target-min);
+    text-decoration: none;
+    color: var(--color-anthracite-900);
+    font-weight: 700;
+    font-size: 1.05rem;
+    border-bottom: 1px solid var(--color-gray-100);
+  }
+
+  .mobile-drawer__calls {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-gray-100);
+  }
+
+  .mobile-drawer__calls-title {
+    font-size: 0.85rem;
+    color: var(--color-muted);
+    font-weight: 600;
+  }
+
+  .mobile-drawer__phone {
+    width: 100%;
+    justify-content: center;
+  }
+</style>

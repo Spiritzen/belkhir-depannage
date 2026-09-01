@@ -1,0 +1,39 @@
+# Dépendances
+node_modules/
+
+# Build Astro
+dist/
+.astro/
+
+# Variables d'environnement (contiennent potentiellement des valeurs réelles à ne pas versionner)
+.env
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+*.log
+
+# Couverture de tests
+coverage/
+
+# Documentation de travail interne (prompts de mission, rapports, preuves
+# d'audit) — jamais publiée sur le dépôt public (correctif PREPUB-003,
+# 01/09/2026 ; règle client impérative).
+/docs/
+
+# Rapports/artefacts d'outils E2E éventuels (non utilisés à ce jour par ce
+# projet — Vitest seul est en place — ajoutés par prudence si un outil de
+# ce type est introduit plus tard).
+playwright-report/
+test-results/
+
+# Éditeurs / OS
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Fichiers de configuration temporaires générés par Vite au démarrage.
+*.timestamp-*.mjs

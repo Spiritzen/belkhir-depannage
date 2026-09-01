@@ -1,0 +1,61 @@
+---
+/**
+ * Barre d'appel mobile fixe (section 21 du prompt de mission) : deux
+ * actions, standard et urgence extrême, masquée uniquement à l'approche du
+ * footer pour ne jamais recouvrir le contenu final.
+ */
+import PhoneCta from '../ui/PhoneCta.astro';
+import { siteConfig } from '../../lib/site-config';
+import { getPhoneCta } from '../../lib/phone';
+
+const standardCta = getPhoneCta(siteConfig.standardPhone);
+const emergencyCta = getPhoneCta(siteConfig.emergencyPhone);
+---
+
+<div class="mobile-call-bar" id="mobile-call-bar">
+  <PhoneCta cta={standardCta} variant="bar" size="md" showSubLabel={false} />
+  <PhoneCta cta={emergencyCta} variant="bar" size="md" showSubLabel={false} pulseOnce />
+</div>
+
+<script>
+  const bar = document.getElementById('mobile-call-bar');
+  const footer = document.getElementById('site-footer');
+
+  if (bar && footer && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        bar.classList.toggle('is-hidden', entry.isIntersecting);
+      },
+      { rootMargin: '0px 0px -10% 0px' },
+    );
+    observer.observe(footer);
+  }
+</script>
+
+<style>
+  .mobile-call-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-call-bar);
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+    background: var(--color-white);
+    border-top: 1px solid var(--color-border);
+    box-shadow: var(--shadow-lg);
+    transition: transform 0.3s ease;
+  }
+
+  .mobile-call-bar.is-hidden {
+    transform: translateY(100%);
+  }
+
+  @media (min-width: 64rem) {
+    .mobile-call-bar {
+      display: none;
+    }
+  }
+</style>

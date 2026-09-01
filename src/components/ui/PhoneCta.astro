@@ -1,0 +1,259 @@
+---
+/**
+ * CTA téléphonique unique, réutilisé partout (hero, bloc 24h/24, CTA final,
+ * barre d'appel mobile, drawer, navbar). Centralise le rendu à partir d'un
+ * `PhoneCta` (voir `src/lib/phone.ts`) : jamais de numéro recopié à la main
+ * dans un composant, jamais de faux lien `tel:` si le numéro est incomplet
+ * (section 7 du prompt de mission).
+ */
+import Icon from './Icon.astro';
+import type { PhoneCta } from '../../lib/phone';
+
+interface Props {
+  cta: PhoneCta;
+  /** "solid" = fond plein, "outline" = contour, "bar" = barre d'appel mobile compacte. */
+  variant?: 'solid' | 'outline' | 'bar';
+  size?: 'md' | 'lg';
+  showSubLabel?: boolean;
+  pulseOnce?: boolean;
+  class?: string;
+  /**
+   * Aperçu visuel compact réservé à des emplacements exigus (navbar). Ne
+   * s'applique qu'à l'état placeholder — sans effet dès qu'un vrai numéro
+   * est fourni (cta.kind === 'link'), qui garde toujours son vrai lien
+   * `tel:` et son vrai libellé. Voir `NAVBAR_PHONE_PREVIEW` dans
+   * `src/lib/phone.ts` pour la valeur centralisée.
+   */
+  previewOverride?: { label: string; display: string; note: string };
+}
+
+const {
+  cta,
+  variant = 'solid',
+  size = 'md',
+  showSubLabel = true,
+  pulseOnce = false,
+  class: className = '',
+  previewOverride,
+  ...rest
+} = Astro.props;
+
+const isOverriddenPlaceholder = cta.kind === 'placeholder' && Boolean(previewOverride);
+// Sprint d'activation du numéro d'urgence (01/09/2026) : le libellé compact
+// (ex. « APPEL URGENCE ») reste affiché dans la navbar même une fois le
+// numéro réel configuré — seule la VALEUR affichée bascule alors sur le vrai
+// numéro (déjà assez courte pour tenir sans troncature, voir
+// `.navbar .navbar__phone :global(.phone-cta__display)` dans Navbar.astro).
+// Avant ce changement, `previewOverride` ne s'appliquait qu'à l'état
+// placeholder ; passer de « APPEL URGENCE » à « Urgence extrême » dès que le
+// numéro devenait réel n'est plus le comportement souhaité.
+const displayLabel = previewOverride
+  ? (previewOverride as NonNullable<typeof previewOverride>).label
+  : cta.label;
+const displayValue = isOverriddenPlaceholder
+  ? (previewOverride as NonNullable<typeof previewOverride>).display
+  : cta.display;
+const placeholderNote = isOverriddenPlaceholder
+  ? (previewOverride as NonNullable<typeof previewOverride>).note
+  : 'Numéro non encore renseigné dans cette maquette.';
+
+const roleClass = cta.role === 'emergency' ? 'phone-cta--emergency' : 'phone-cta--standard';
+const classes = [
+  'phone-cta',
+  `phone-cta--${variant}`,
+  `phone-cta--${size}`,
+  roleClass,
+  'bob-hover',
+  pulseOnce && cta.kind === 'link' ? 'pulse-once' : '',
+  className,
+]
+  .filter(Boolean)
+  .join(' ');
+
+const placeholderNoteId = `${cta.role}-phone-note`;
+---
+
+{
+  cta.kind === 'link' ? (
+    <a {...rest} class={classes} href={cta.href} data-phone-role={cta.role}>
+      <Icon name="phone" class="phone-cta__icon" />
+      <span class="phone-cta__text">
+        <span class="phone-cta__label">{displayLabel}</span>
+        <span class="phone-cta__display">{displayValue}</span>
+        {showSubLabel && <span class="phone-cta__sub">{cta.subLabel}</span>}
+      </span>
+    </a>
+  ) : (
+    <button
+      {...rest}
+      type="button"
+      class={classes}
+      disabled
+      aria-describedby={placeholderNoteId}
+      data-phone-role={cta.role}
+    >
+      <Icon name="phone" class="phone-cta__icon" />
+      <span class="phone-cta__text">
+        <span class="phone-cta__label">{displayLabel}</span>
+        <span class="phone-cta__display">{displayValue}</span>
+        {showSubLabel && <span class="phone-cta__sub">{cta.subLabel}</span>}
+      </span>
+      <span id={placeholderNoteId} class="visually-hidden">
+        {placeholderNote}
+      </span>
+    </button>
+  )
+}
+
+<style>
+  .phone-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--touch-target-min);
+    padding: 0.7rem 1.25rem;
+    border-radius: var(--radius-pill);
+    border: 2px solid transparent;
+    text-decoration: none;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease,
+      background-color 0.25s ease,
+      color 0.25s ease,
+      border-color 0.25s ease;
+  }
+
+  .phone-cta:hover,
+  .phone-cta:focus-visible {
+    transform: translateY(-2px);
+  }
+
+  .phone-cta:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+  }
+
+  .phone-cta__icon {
+    width: 1.2em;
+    height: 1.2em;
+    flex-shrink: 0;
+  }
+
+  .phone-cta__text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+    text-align: left;
+  }
+
+  .phone-cta__label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.85;
+  }
+
+  .phone-cta__display {
+    font-size: 1rem;
+    font-family: var(--font-heading);
+  }
+
+  /* Les libellés placeholder ("NUMÉRO STANDARD À RENSEIGNER") sont plus longs
+     qu'un vrai numéro : tronquer proprement dans les contextes compacts
+     (navbar, footer, barre d'appel mobile) pour ne jamais casser la mise en
+     page. Les CTA "lg" (hero, bloc 24h/24, CTA final, drawer) gardent assez
+     de place pour afficher le libellé complet. */
+  .phone-cta--md .phone-cta__display,
+  .phone-cta--bar .phone-cta__display {
+    display: block;
+    max-width: 11rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .phone-cta--bar .phone-cta__display {
+    max-width: 8rem;
+  }
+
+  .phone-cta__sub {
+    font-size: 0.72rem;
+    font-weight: 500;
+    opacity: 0.8;
+  }
+
+  /* Rôle : standard (orange) vs urgence extrême (rouge) — distinction non fondée uniquement sur la couleur */
+  .phone-cta--standard.phone-cta--solid {
+    background: var(--color-orange-600);
+    color: var(--color-white);
+    box-shadow: var(--shadow-sm);
+  }
+  .phone-cta--standard.phone-cta--solid:hover,
+  .phone-cta--standard.phone-cta--solid:focus-visible {
+    background: var(--color-orange-700);
+  }
+
+  .phone-cta--emergency.phone-cta--solid {
+    background: var(--color-red-600);
+    color: var(--color-white);
+    box-shadow: var(--shadow-sm);
+  }
+  .phone-cta--emergency.phone-cta--solid:hover,
+  .phone-cta--emergency.phone-cta--solid:focus-visible {
+    background: var(--color-red-700);
+  }
+
+  .phone-cta--standard.phone-cta--outline {
+    background: transparent;
+    color: var(--color-white);
+    border-color: rgba(255, 255, 255, 0.55);
+  }
+  .phone-cta--standard.phone-cta--outline:hover,
+  .phone-cta--standard.phone-cta--outline:focus-visible {
+    border-color: var(--color-orange-500);
+    background: rgba(255, 105, 0, 0.12);
+  }
+
+  .phone-cta--emergency.phone-cta--outline {
+    background: transparent;
+    color: var(--color-white);
+    border-color: rgba(255, 255, 255, 0.55);
+  }
+  .phone-cta--emergency.phone-cta--outline:hover,
+  .phone-cta--emergency.phone-cta--outline:focus-visible {
+    border-color: var(--color-red-600);
+    /* Teinte de survol alignée sur --color-red-600 (correctif PREPUB-007,
+       01/09/2026) — simple filet de sécurité de cohérence : ce variant
+       "outline" n'est actuellement utilisé nulle part dans le projet. */
+    background: rgba(215, 49, 39, 0.14);
+  }
+
+  .phone-cta--bar {
+    flex: 1;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.75rem;
+  }
+  .phone-cta--bar .phone-cta__text {
+    align-items: center;
+    text-align: center;
+  }
+  .phone-cta--bar.phone-cta--standard {
+    background: var(--color-orange-600);
+    color: var(--color-white);
+  }
+  .phone-cta--bar.phone-cta--emergency {
+    background: var(--color-red-600);
+    color: var(--color-white);
+  }
+
+  .phone-cta--lg {
+    padding: 0.9rem 1.6rem;
+  }
+  .phone-cta--lg .phone-cta__display {
+    font-size: 1.15rem;
+  }
+</style>

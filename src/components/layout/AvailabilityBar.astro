@@ -1,0 +1,61 @@
+---
+/**
+ * Niveau 1 de la navbar : bande de disponibilité fine, contraste fort.
+ * Aucun faux statut « technicien disponible maintenant » — un simple point
+ * discret rappelle que la ligne est active, sans invente de donnée
+ * temps réel (section 6 du prompt de mission).
+ */
+import { siteConfig } from '../../lib/site-config';
+---
+
+<div class="availability-bar">
+  <div class="container availability-bar__inner">
+    <p class="availability-bar__item">
+      <span class="availability-bar__dot" aria-hidden="true"></span>
+      Dépannage d’urgence 24h/24 · 7j/7
+    </p>
+    <p class="availability-bar__item availability-bar__region">{siteConfig.region}</p>
+  </div>
+</div>
+
+<style>
+  .availability-bar {
+    background: var(--color-anthracite-950);
+    color: var(--color-white);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    position: relative;
+    z-index: var(--z-availability-bar);
+  }
+
+  .availability-bar__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-block: 0.4rem;
+  }
+
+  .availability-bar__item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .availability-bar__dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--color-orange-500);
+    flex-shrink: 0;
+  }
+
+  .availability-bar__region {
+    color: var(--color-gray-300);
+    font-weight: 500;
+  }
+</style>

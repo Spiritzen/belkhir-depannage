@@ -1,0 +1,119 @@
+/*
+ * Familles d'effets reproduites depuis l'ancienne landing (section 22 du
+ * prompt de mission), réimplémentées en CSS natif — aucune classe ni
+ * feuille Elementor/HappyAddons copiée.
+ *
+ * `[data-reveal]` : apparitions directionnelles au scroll (fadeInUp,
+ * fadeInLeft, fadeInRight, fadeInDown, zoomIn), pilotées par un petit
+ * script IntersectionObserver (voir `src/scripts/reveal.ts`). Par défaut
+ * (sans JavaScript, ou avant hydratation), tout le contenu reste visible :
+ * seule la classe `.js-reveal-ready` posée par le script active l'état
+ * caché initial ci-dessous.
+ */
+
+[data-reveal] {
+  opacity: 1;
+  transform: none;
+}
+
+.js-reveal-ready [data-reveal] {
+  opacity: 0;
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s ease;
+}
+
+.js-reveal-ready [data-reveal='up'] {
+  transform: translateY(24px);
+}
+.js-reveal-ready [data-reveal='down'] {
+  transform: translateY(-24px);
+}
+.js-reveal-ready [data-reveal='left'] {
+  transform: translateX(-32px);
+}
+.js-reveal-ready [data-reveal='right'] {
+  transform: translateX(32px);
+}
+.js-reveal-ready [data-reveal='zoom'] {
+  transform: scale(0.94);
+}
+
+.js-reveal-ready [data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Entrée séquentielle : décalage croissant appliqué via --reveal-delay inline. */
+[data-reveal] {
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+/* Effet "bob" : flottement discret au survol/focus du logo et des CTA. */
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.bob-hover:hover,
+.bob-hover:focus-visible {
+  animation: bob 0.7s ease-in-out;
+}
+
+/* Pulsation unique du CTA urgence au premier affichage — jamais en boucle. */
+@keyframes pulse-once {
+  0% {
+    box-shadow: 0 0 0 0 rgba(229, 52, 42, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 16px rgba(229, 52, 42, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(229, 52, 42, 0);
+  }
+}
+
+.pulse-once {
+  animation: pulse-once 1.8s ease-out 1;
+}
+
+/* Effet "hover-from-left" : remplissage de fond au survol/focus. */
+.fill-hover {
+  position: relative;
+  isolation: isolate;
+}
+
+.fill-hover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-orange-600);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.35s ease;
+  z-index: -1;
+}
+
+.fill-hover:hover::before,
+.fill-hover:focus-visible::before {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js-reveal-ready [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition-duration: 0.001ms;
+  }
+
+  .bob-hover:hover,
+  .bob-hover:focus-visible,
+  .pulse-once {
+    animation: none;
+  }
+}

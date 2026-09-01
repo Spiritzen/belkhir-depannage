@@ -1,0 +1,98 @@
+---
+/**
+ * Avis clients (section 18 du prompt de mission). Grille sobre, aucun faux
+ * nom ni faux commentaire présenté comme réel — blocs « Avis Google à
+ * connecter » explicitement mock. Pas d'intégration de l'API Google dans ce
+ * sprint.
+ */
+import Icon from '../ui/Icon.astro';
+import { reviewsPreview } from '../../data/landing';
+---
+
+<section class="reviews" id="avis" aria-labelledby="reviews-title">
+  <div class="container">
+    <div class="section-heading" data-reveal="up">
+      <h2 id="reviews-title">Avis clients</h2>
+      <p>Emplacement réservé à connecter à notre fiche Google — aucun avis n’est inventé ici.</p>
+    </div>
+
+    <div class="reviews__grid" data-reveal-group="reviews">
+      {
+        reviewsPreview.map(() => (
+          <article class="reviews__card" data-reveal="up" aria-label="Avis Google à connecter">
+            <span class="reviews__stars" aria-hidden="true">
+              {Array.from({ length: 5 }).map(() => (
+                <Icon name="star" class="reviews__star" />
+              ))}
+            </span>
+            <p class="reviews__placeholder">Avis Google à connecter</p>
+            <p class="reviews__date">Date à venir</p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .reviews {
+    /* Retouche 04 (Hero) : le badge Google du Hero pointe vers cette section
+       (id="avis", déjà réelle) tant qu'aucune URL Google Business validée
+       n'est disponible. scroll-margin-top garantit qu'un clic ne laisse pas
+       la section masquée sous la navbar sticky — seul ajout, aucun
+       changement visuel de cette section. */
+    scroll-margin-top: var(--header-total-height);
+    padding-block: var(--space-7);
+    /* Réordonnancement (01/09/2026) : la section occupe désormais la place
+       narrative de l'ancien AvailabilityBlock, juste après « Nos domaines
+       d'intervention » (fond anthracite très sombre). Fond blanc abricot
+       identique à celui de « Quelle est votre urgence ? » (même valeur,
+       aucun token centralisé n'existant pour cette teinte — voir
+       EmergencySelector.astro) plutôt que le gris neutre précédent, pour
+       une transition franche et cohérente entre les deux ambiances. */
+    background: radial-gradient(circle at 20% 0%, rgba(255, 105, 0, 0.1), transparent 34%), #fff7f0;
+  }
+
+  .reviews__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3);
+  }
+
+  .reviews__card {
+    background: var(--color-white);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    text-align: center;
+  }
+
+  .reviews__stars {
+    display: inline-flex;
+    gap: 0.15rem;
+    margin-bottom: var(--space-2);
+  }
+
+  .reviews__star {
+    width: 1.1rem;
+    height: 1.1rem;
+    color: var(--color-gray-300);
+  }
+
+  .reviews__placeholder {
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+
+  .reviews__date {
+    font-size: 0.78rem;
+    color: var(--color-gray-500);
+    margin-top: 0.3rem;
+  }
+
+  @media (max-width: 56rem) {
+    .reviews__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

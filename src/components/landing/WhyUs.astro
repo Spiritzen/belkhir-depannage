@@ -1,0 +1,464 @@
+---
+/**
+ * Pourquoi choisir Belkhir Dépannage (section 15 du prompt de mission).
+ * Présente la marque et l'équipe, jamais Fouad en tant qu'individu :
+ * photographie technicien issue de l'ancienne landing (53082.jpg),
+ * aucun portrait, aucune statistique inventée.
+ *
+ * Micro-sprint animations/compteurs (PROMPT_CLAUDE_CODE_POURQUOI_CHOISIR_
+ * ANIMATIONS_COMPTEURS.txt) : ajout de trois compteurs de preuve sous la
+ * photographie (comptage 0 → cible) et d'une arrivée séquentielle des six
+ * arguments, avec réinitialisation/rejeu complet à chaque sortie/entrée
+ * totale du viewport. Composition, photo et six arguments inchangés.
+ */
+import { Image } from 'astro:assets';
+import whyUsImg from '../../assets/legacy/technicien-intervention-1.jpg';
+import Icon from '../ui/Icon.astro';
+import { whyUsValues, whyUsStats } from '../../data/landing';
+---
+
+<section class="why-us" aria-labelledby="why-us-title">
+  <div class="container why-us__grid">
+    <div class="why-us__left">
+      <div class="why-us__media" data-reveal="left">
+        <Image
+          src={whyUsImg}
+          alt="Technicien de l’équipe Belkhir Dépannage en intervention sur une installation de chauffage"
+          class="why-us__img"
+          widths={[400, 640, 960]}
+          sizes="(max-width: 56rem) 100vw, 40vw"
+        />
+      </div>
+
+      <!--
+        Les valeurs finales sont présentes dans le HTML statique (section 9
+        du prompt) : sans JavaScript, "20+", "500+" et "98 %" restent
+        directement lisibles. Le script ne les ramène à zéro que juste avant
+        de jouer une animation autorisée (voir le <script> plus bas).
+      -->
+      <div class="why-us__stats">
+        {
+          whyUsStats.map((stat) => (
+            <div class="why-us__stat">
+              <p class="why-us__stat-value" aria-hidden="true">
+                <span class="why-us__stat-number" data-why-us-counter={stat.target}>
+                  {stat.target}
+                </span>
+                <span class="why-us__stat-suffix">{stat.suffix}</span>
+              </p>
+              <p class="why-us__stat-label" aria-hidden="true">
+                {stat.label}
+              </p>
+              <span class="visually-hidden">{stat.accessibleLabel}</span>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+
+    <div class="why-us__content">
+      <h2 id="why-us-title" data-reveal="right">Pourquoi choisir Belkhir Dépannage ?</h2>
+      <ul class="why-us__list">
+        {
+          whyUsValues.map((value) => (
+            <li class="why-us__item fill-hover">
+              <Icon name="check" class="why-us__check" />
+              <div>
+                <p class="why-us__item-title">{value.title}</p>
+                <p class="why-us__item-desc">{value.description}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Compteurs + arrivée séquentielle des arguments, avec réinitialisation
+  // complète à chaque sortie totale du viewport et rejeu à chaque retour
+  // (section 13 du prompt de mission). Volontairement indépendant du
+  // mécanisme partagé `reveal.ts` : celui-ci ne rejoue jamais (un seul
+  // `observer.unobserve` par cible), ce qui ne convient pas au comportement
+  // demandé ici. Un seul IntersectionObserver pour toute la section.
+  import { computeCounterValue } from '../../scripts/why-us-motion';
+
+  const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const section = document.querySelector<HTMLElement>('.why-us');
+
+  if (section && !REDUCED_MOTION && 'IntersectionObserver' in window) {
+    const stats = Array.from(section.querySelectorAll<HTMLElement>('.why-us__stat'));
+    const counters = Array.from(section.querySelectorAll<HTMLElement>('[data-why-us-counter]'));
+    const items = Array.from(section.querySelectorAll<HTMLElement>('.why-us__item'));
+
+    // Pose l'état de départ (opacity 0, flou, décalage) uniquement une fois
+    // le script confirmé actif : sans JavaScript, la règle CSS par défaut de
+    // .why-us__stat / .why-us__item reste pleinement visible (section 14 du
+    // prompt, même principe que `.js-reveal-ready` dans animations.css).
+    section.setAttribute('data-why-us-armed', '');
+
+    // Les durées de transition (700ms pour les blocs, 750ms pour les
+    // arguments) vivent dans le CSS ci-dessous ; seuls les délais de
+    // déclenchement sont pilotés ici.
+    //
+    // Micro-retouche vitesse (01/09/2026) : stagger des blocs porté de 90ms
+    // à 300ms pour une apparition nettement plus distincte l'un après
+    // l'autre ; durée de comptage doublée (1200ms -> 2400ms, voir
+    // `why-us-motion.ts` pour le changement d'easing associé).
+    const STAT_STAGGER_MS = 300;
+    const ARG_BASE_DELAY_MS = 200;
+    const ARG_STAGGER_MS = 130;
+    const COUNTER_DURATION_MS = 2400;
+
+    let played = false;
+    const pendingTimeouts = new Set<number>();
+    const activeFrames = new Map<HTMLElement, number>();
+
+    function clearPending(): void {
+      for (const id of pendingTimeouts) {
+        window.clearTimeout(id);
+      }
+      pendingTimeouts.clear();
+      for (const frameId of activeFrames.values()) {
+        window.cancelAnimationFrame(frameId);
+      }
+      activeFrames.clear();
+    }
+
+    function schedule(delay: number, run: () => void): void {
+      const id = window.setTimeout(() => {
+        pendingTimeouts.delete(id);
+        run();
+      }, delay);
+      pendingTimeouts.add(id);
+    }
+
+    // `will-change` posé juste avant l'animation, retiré dès la fin de la
+    // transition (section 17 du prompt : parcimonie, jamais permanent).
+    function enterWithWillChange(el: HTMLElement, properties: string): void {
+      el.style.willChange = properties;
+      el.classList.add('is-visible');
+      const onEnd = (event: TransitionEvent) => {
+        if (event.target !== el) return;
+        el.style.willChange = 'auto';
+        el.removeEventListener('transitionend', onEnd);
+      };
+      el.addEventListener('transitionend', onEnd);
+    }
+
+    function animateCounter(el: HTMLElement): void {
+      const target = Number(el.dataset.whyUsCounter) || 0;
+      const start = performance.now();
+      const tick = (now: number) => {
+        const elapsed = now - start;
+        el.textContent = String(computeCounterValue(target, elapsed, COUNTER_DURATION_MS));
+        if (elapsed < COUNTER_DURATION_MS) {
+          activeFrames.set(el, window.requestAnimationFrame(tick));
+        } else {
+          activeFrames.delete(el);
+        }
+      };
+      activeFrames.set(el, window.requestAnimationFrame(tick));
+    }
+
+    function playSequence(): void {
+      clearPending();
+
+      stats.forEach((stat, index) => {
+        schedule(index * STAT_STAGGER_MS, () => {
+          enterWithWillChange(stat, 'transform, opacity');
+        });
+      });
+
+      counters.forEach((counter, index) => {
+        schedule(index * STAT_STAGGER_MS, () => {
+          animateCounter(counter);
+        });
+      });
+
+      items.forEach((item, index) => {
+        schedule(ARG_BASE_DELAY_MS + index * ARG_STAGGER_MS, () => {
+          enterWithWillChange(item, 'transform, opacity, filter');
+        });
+      });
+    }
+
+    function resetSequence(): void {
+      clearPending();
+
+      for (const stat of stats) {
+        stat.classList.remove('is-visible');
+        stat.style.willChange = 'auto';
+      }
+      for (const counter of counters) {
+        counter.textContent = '0';
+      }
+      for (const item of items) {
+        item.classList.remove('is-visible');
+        item.style.willChange = 'auto';
+      }
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.25) {
+            if (!played) {
+              played = true;
+              playSequence();
+            }
+          } else if (!entry.isIntersecting) {
+            // La section a réellement quitté le viewport (pas seulement
+            // repassé sous 25 % en restant partiellement visible) : on
+            // réinitialise pour permettre un rejeu complet au retour.
+            played = false;
+            resetSequence();
+          }
+        }
+      },
+      { threshold: [0, 0.25] },
+    );
+
+    observer.observe(section);
+  }
+</script>
+
+<style>
+  .why-us {
+    padding-block: var(--space-7);
+    /*
+     * Même fond blanc abricot que « Votre sécurité d'abord »
+     * (EmergencySelector.astro) et « Avis Google » (Reviews.astro) — valeur
+     * réutilisée telle quelle, aucun token centralisé n'existe encore pour
+     * ce dégradé (vérifié avant modification).
+     */
+    background: radial-gradient(circle at 20% 0%, rgba(255, 105, 0, 0.1), transparent 34%), #fff7f0;
+  }
+
+  .why-us__grid {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: var(--space-6);
+    align-items: center;
+  }
+
+  .why-us__left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .why-us__media {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+
+  .why-us__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    aspect-ratio: 4 / 3;
+  }
+
+  /*
+   * Les trois compteurs forment un seul ensemble visuel avec la photo
+   * (section 5 du prompt) : même largeur, faible espace, jamais une rangée
+   * de cartes qui semble abandonnée sous l'image.
+   */
+  .why-us__stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.55rem;
+  }
+
+  .why-us__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    padding: 0.85rem 0.4rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 105, 0, 0.2);
+    background: #fffaf5;
+    box-shadow: 0 4px 10px rgba(13, 15, 20, 0.05);
+    text-align: center;
+  }
+
+  /* État de départ : posé uniquement une fois le script confirmé actif
+     (attribut ajouté par le <script> ci-dessus). Sans JavaScript, le bloc
+     reste pleinement visible dès le rendu serveur. */
+  .why-us[data-why-us-armed] .why-us__stat {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+    transition:
+      opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .why-us[data-why-us-armed] .why-us__stat.is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .why-us__stat-value {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.06em;
+    white-space: nowrap;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: clamp(1.3rem, 1.05rem + 1vw, 1.85rem);
+    line-height: 1.1;
+    color: var(--color-brand);
+  }
+
+  .why-us__stat-suffix {
+    font-size: 0.68em;
+  }
+
+  .why-us__stat-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--color-anthracite-700);
+    overflow-wrap: break-word;
+  }
+
+  .why-us__content h2 {
+    font-size: clamp(1.6rem, 3vw, 2.1rem);
+    margin-bottom: var(--space-4);
+  }
+
+  .why-us__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .why-us__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 0.8rem 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    background: var(--color-white);
+    transition:
+      color 0.3s ease,
+      border-color 0.3s ease,
+      transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* État de départ : décalé à droite, transparent, flouté — uniquement une
+     fois le script armé (voir .why-us__stat ci-dessus pour le principe). */
+  .why-us[data-why-us-armed] .why-us__item {
+    opacity: 0;
+    filter: blur(18px);
+    transform: translateX(clamp(70px, 8vw, 130px)) scale(0.985);
+    transition:
+      opacity 750ms cubic-bezier(0.22, 1, 0.36, 1),
+      filter 750ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 750ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .why-us[data-why-us-armed] .why-us__item.is-visible {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0) scale(1);
+  }
+
+  .why-us__item:hover,
+  .why-us__item:focus-within {
+    color: var(--color-white);
+    border-color: var(--color-orange-600);
+    box-shadow: 0 10px 20px rgba(255, 105, 0, 0.16);
+    transform: translateX(0) scale(1) translateY(-3px);
+  }
+
+  /*
+   * Une fois l'entrée terminée, .why-us__item.is-visible (spécificité plus
+   * élevée : attribut + 3 classes) l'emporterait sinon sur la règle de survol
+   * ci-dessus et annulerait le léger soulèvement — égalisé explicitement ici.
+   */
+  .why-us[data-why-us-armed] .why-us__item.is-visible:hover,
+  .why-us[data-why-us-armed] .why-us__item.is-visible:focus-within {
+    transform: translateX(0) scale(1) translateY(-3px);
+  }
+
+  .why-us__check {
+    width: 1.2rem;
+    height: 1.2rem;
+    color: var(--color-orange-600);
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+  }
+
+  .why-us__item:hover .why-us__check,
+  .why-us__item:focus-within .why-us__check {
+    color: var(--color-white);
+  }
+
+  .why-us__item-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  .why-us__item-desc {
+    font-size: 0.85rem;
+    opacity: 0.85;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Filet de sécurité local : le script n'arme jamais la section quand
+       cette préférence est active, mais on protège aussi le cas où
+       l'attribut serait posé (ex. changement de préférence en cours de
+       session sur certains navigateurs). */
+    .why-us[data-why-us-armed] .why-us__stat,
+    .why-us[data-why-us-armed] .why-us__item {
+      opacity: 1;
+      transform: none;
+      filter: none;
+      transition-duration: 0.001ms;
+    }
+
+    .why-us__item:hover,
+    .why-us__item:focus-within {
+      transform: none;
+      transition-duration: 0.001ms;
+    }
+  }
+
+  @media (max-width: 56rem) {
+    .why-us__grid {
+      grid-template-columns: 1fr;
+    }
+
+    /* Distance de départ réduite sur les écrans étroits (section 16 du
+       prompt) : 130px de translation horizontale déborderait visuellement
+       une colonne pleine largeur. */
+    .why-us[data-why-us-armed] .why-us__item {
+      transform: translateX(clamp(48px, 14vw, 64px)) scale(0.985);
+    }
+  }
+
+  @media (max-width: 26rem) {
+    .why-us__stat {
+      padding: 0.7rem 0.3rem;
+    }
+
+    .why-us__stat-value {
+      font-size: 1.2rem;
+    }
+
+    .why-us__stat-label {
+      font-size: 0.65rem;
+    }
+  }
+</style>

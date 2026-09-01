@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AvailabilityBar from '../components/layout/AvailabilityBar.astro';
+import Navbar from '../components/layout/Navbar.astro';
+import MobileDrawer from '../components/layout/MobileDrawer.astro';
+import Footer from '../components/layout/Footer.astro';
+import MobileCallBar from '../components/layout/MobileCallBar.astro';
+import Hero from '../components/landing/Hero.astro';
+import EmergencySelector from '../components/landing/EmergencySelector.astro';
+import ServicesAccordion from '../components/landing/ServicesAccordion.astro';
+import Reviews from '../components/landing/Reviews.astro';
+import Process from '../components/landing/Process.astro';
+import WhyUs from '../components/landing/WhyUs.astro';
+import Coverage from '../components/landing/Coverage.astro';
+import LatestInterventions from '../components/landing/LatestInterventions.astro';
+import Faq from '../components/landing/Faq.astro';
+import { siteConfig } from '../lib/site-config';
+
+// Maquette de prévisualisation (section 28 du prompt de mission) : tant que
+// siteConfig.isPreview reste vrai, ce commentaire rappelle que les données
+// mock présentes dans src/data/landing.ts ne doivent jamais être décrites
+// comme validées dans la documentation ou le contenu commercial.
+---
+
+<BaseLayout
+  title={siteConfig.defaultSeoTitle}
+  description={siteConfig.defaultSeoDescription}
+  path="/"
+  hasMobileCallBar
+>
+  <Fragment slot="header">
+    <AvailabilityBar />
+    <Navbar />
+    <MobileDrawer />
+  </Fragment>
+
+  <Hero />
+  <EmergencySelector />
+  <ServicesAccordion />
+  <Reviews />
+  <Process />
+  <WhyUs />
+  <Coverage />
+  <LatestInterventions />
+  <Faq />
+
+  <Footer slot="footer" />
+  <MobileCallBar slot="mobile-call-bar" />
+</BaseLayout>

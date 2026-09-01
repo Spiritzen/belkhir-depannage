@@ -1,0 +1,388 @@
+---
+/**
+ * Sélecteur « Quelle est votre urgence ? » (section 10 du prompt de mission
+ * initial).
+ *
+ * Refonte « wahou » (01/09/2026, PROMPT_CLAUDE_CODE_SECTION_QUELLE_EST_
+ * VOTRE_URGENCE_WAHOU.txt) : l'ancien panneau « conseil de prudence » qui
+ * s'ouvrait en place au clic (bouton + zone de détail + deux CTA
+ * téléphoniques) est remplacé par des cartes qui sont chacune un lien réel
+ * vers une destination interne valide. « Que faire maintenant ? » remplace
+ * « Voir la solution » : le site ne répare rien en ligne, il oriente vers
+ * les premiers gestes et la suite adaptée. Aucun JavaScript n'est
+ * nécessaire au hover ni à la navigation.
+ *
+ * Micro-retouche suppression FinalCta (01/09/2026) : la carte « Autre
+ * urgence » pointait vers `#contact`, désormais supprimé. Aucune page
+ * « premiers gestes » dédiée n'existe encore pour ce cas générique
+ * (`futureRoute`, toujours centralisée dans les données, jamais exposée tant
+ * qu'elle produirait un 404) : cette carte n'est donc plus un lien
+ * (`urgencyTypes[].relatedServiceAnchor === null` pour « autre »), sans CTA
+ * « Que faire maintenant ? » — le conseil de sécurité déjà affiché sur la
+ * carte reste l'information utile. Les cinq autres cartes, qui pointent
+ * vers de vraies ancres de service dans ServicesAccordion, sont inchangées.
+ */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import Icon from '../ui/Icon.astro';
+import imgFuiteEau from '../../assets/legacy/urgences/fuite-eau.png';
+import imgChauffagePanne from '../../assets/legacy/urgences/chauffage-en-panne.png';
+import imgPorteBloquee from '../../assets/legacy/urgences/porte-bloquee.png';
+import imgVitreCassee from '../../assets/legacy/urgences/vitre-cassee.png';
+import imgRideauBloque from '../../assets/legacy/urgences/rideau-metallique-bloque.png';
+import imgAutreUrgence from '../../assets/legacy/urgences/autre-urgence.png';
+import { urgencyTypes, type UrgencyCategory } from '../../data/landing';
+
+// Six photographies fournies localement (src/assets/legacy/urgences/),
+// associées par sujet réellement observé après inspection visuelle — jamais
+// par le seul nom de fichier (section 9 du prompt). Un septième fichier,
+// chauffage2.png, offrait une seconde option pour « Chauffage en panne » ;
+// chauffage-en-panne.png a été retenu car son voyant de défaut allumé rend
+// la panne immédiatement lisible, et chauffage2.png reste donc inutilisé
+// (documenté dans le rapport, jamais réutilisé ailleurs).
+const images: Record<UrgencyCategory, ImageMetadata> = {
+  'fuite-eau': imgFuiteEau,
+  'chauffage-panne': imgChauffagePanne,
+  'porte-bloquee': imgPorteBloquee,
+  'vitre-cassee': imgVitreCassee,
+  'rideau-bloque': imgRideauBloque,
+  autre: imgAutreUrgence,
+};
+
+const icons: Record<
+  UrgencyCategory,
+  'droplet' | 'flame' | 'key' | 'window' | 'shutter' | 'alert-triangle'
+> = {
+  'fuite-eau': 'droplet',
+  'chauffage-panne': 'flame',
+  'porte-bloquee': 'key',
+  'vitre-cassee': 'window',
+  'rideau-bloque': 'shutter',
+  autre: 'alert-triangle',
+};
+---
+
+<section class="emergency-selector" id="depannages" aria-labelledby="emergency-selector-title">
+  <div class="container">
+    <div class="emergency-selector__header" data-reveal="up">
+      <p class="emergency-selector__eyebrow">
+        <span class="emergency-selector__eyebrow-bar" aria-hidden="true"></span>
+        VOTRE SÉCURITÉ D’ABORD
+      </p>
+
+      <h2 id="emergency-selector-title">
+        Quelle est votre <span class="emergency-selector__accent">urgence</span> ?
+      </h2>
+
+      <p class="emergency-selector__lead">
+        Une fuite qui s’étend, un chauffage qui s’arrête, une porte bloquée ou une vitre brisée ne
+        laissent pas toujours le temps de chercher. Choisissez la situation qui vous concerne :
+        derrière chaque carte, vous découvrirez les premiers gestes pour protéger les personnes,
+        limiter les dégâts sans vous exposer, savoir ce qu’il ne faut surtout pas faire et préparer
+        les informations utiles avant de contacter le service adapté.
+      </p>
+
+      <p class="emergency-selector__safety-note">
+        <Icon name="shield" class="emergency-selector__safety-icon" />
+        Votre sécurité passe avant tout : aucun conseil ne doit vous conduire à manipuler une installation
+        ou un mécanisme dangereux.
+      </p>
+    </div>
+
+    <div class="emergency-selector__grid" data-reveal-group="urgency-cards">
+      {
+        urgencyTypes.map((urgency) =>
+          urgency.relatedServiceAnchor ? (
+            <a href={urgency.relatedServiceAnchor} class="emergency-card" data-reveal="up">
+              <div class="emergency-card__heading">
+                <Icon name={icons[urgency.id]} class="emergency-card__icon" />
+                <h3>{urgency.label}</h3>
+              </div>
+              <div class="emergency-card__media">
+                <Image
+                  src={images[urgency.id]}
+                  alt={urgency.imageAlt}
+                  class="emergency-card__img"
+                  widths={[400, 600, 900]}
+                  sizes="(max-width: 34rem) 100vw, (max-width: 62rem) 50vw, 33vw"
+                  loading="lazy"
+                />
+              </div>
+              <div class="emergency-card__body">
+                <p>{urgency.description}</p>
+                <span class="emergency-card__cta">
+                  Que faire maintenant ?
+                  <Icon name="arrow-right" class="emergency-card__arrow" />
+                </span>
+              </div>
+            </a>
+          ) : (
+            // Aucune destination réelle pour ce cas générique (voir le
+            // commentaire d'en-tête) : carte non cliquable, sans CTA.
+            <div class="emergency-card emergency-card--static" data-reveal="up">
+              <div class="emergency-card__heading">
+                <Icon name={icons[urgency.id]} class="emergency-card__icon" />
+                <h3>{urgency.label}</h3>
+              </div>
+              <div class="emergency-card__media">
+                <Image
+                  src={images[urgency.id]}
+                  alt={urgency.imageAlt}
+                  class="emergency-card__img"
+                  widths={[400, 600, 900]}
+                  sizes="(max-width: 34rem) 100vw, (max-width: 62rem) 50vw, 33vw"
+                  loading="lazy"
+                />
+              </div>
+              <div class="emergency-card__body">
+                <p>{urgency.description}</p>
+              </div>
+            </div>
+          ),
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  /*
+   * Fond blanc abricot très léger (section 5 du prompt) : jamais de blanc
+   * pur ni de gris froid. Le dégradé radial en coin haut-gauche apporte une
+   * profondeur discrète sans ressembler à une bannière publicitaire.
+   */
+  .emergency-selector {
+    position: relative;
+    padding-block: clamp(5rem, 7vw, 7rem);
+    background: radial-gradient(circle at 20% 0%, rgba(255, 105, 0, 0.1), transparent 34%), #fff7f0;
+  }
+
+  .emergency-selector__header {
+    max-width: 56.25rem;
+  }
+
+  .emergency-selector__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--color-brand);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    margin-bottom: clamp(0.75rem, 0.6rem + 0.4vw, 1rem);
+  }
+
+  .emergency-selector__eyebrow-bar {
+    width: 28px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--color-brand);
+  }
+
+  #emergency-selector-title {
+    max-width: 40rem;
+    font-size: clamp(1.6rem, 3vw, 2.1rem);
+    color: var(--color-anthracite-900);
+    margin-bottom: clamp(1.25rem, 1rem + 0.6vw, 1.5rem);
+  }
+
+  /* Seul « urgence » devient orange (section 6 du prompt) — le reste du
+     titre, y compris le point d'interrogation, garde la couleur anthracite
+     héritée du H2. */
+  .emergency-selector__accent {
+    color: var(--color-brand);
+  }
+
+  .emergency-selector__lead {
+    max-width: 56.25rem;
+    font-size: clamp(1.0625rem, 0.95rem + 0.35vw, 1.25rem);
+    line-height: 1.6;
+    color: var(--color-anthracite-700);
+    margin-bottom: clamp(1rem, 0.85rem + 0.5vw, 1.25rem);
+  }
+
+  .emergency-selector__safety-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    max-width: 40rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--color-anthracite-700);
+    margin-bottom: clamp(2.625rem, 2.5rem + 0.5vw, 3.5rem);
+  }
+
+  .emergency-selector__safety-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+    color: var(--color-brand);
+  }
+
+  .emergency-selector__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+  }
+
+  /*
+   * Carte entière cliquable (section 10 du prompt) : un unique <a>, jamais
+   * de lien imbriqué. Bordure fine légèrement chaude, coins 18px, ombre très
+   * légère au repos — même structure et même qualité pour les six cartes.
+   */
+  .emergency-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-white);
+    border: 1px solid rgba(255, 105, 0, 0.14);
+    border-radius: 18px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 1px 2px rgba(13, 15, 20, 0.06);
+    transition:
+      border-color 220ms ease,
+      box-shadow 220ms ease,
+      transform 220ms ease;
+  }
+
+  .emergency-card:hover,
+  .emergency-card:focus-visible {
+    transform: translateY(-4px);
+    border-color: rgba(255, 105, 0, 0.4);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+  }
+
+  /* Carte « Autre urgence » non cliquable (voir le commentaire d'en-tête) :
+     aucun soulèvement ni zoom au survol, pour ne jamais suggérer une action
+     qui n'existe pas. `:focus-visible` ne s'applique de toute façon jamais
+     à une <div> sans tabindex. */
+  .emergency-card--static:hover {
+    transform: none;
+    border-color: rgba(255, 105, 0, 0.14);
+    box-shadow: 0 1px 2px rgba(13, 15, 20, 0.06);
+  }
+
+  .emergency-card__heading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.1rem 1.25rem 0;
+  }
+
+  .emergency-card__icon {
+    width: 1.3rem;
+    height: 1.3rem;
+    flex-shrink: 0;
+    color: var(--color-brand);
+  }
+
+  .emergency-card__heading h3 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--color-anthracite-900);
+  }
+
+  /* Ratio 16:9 : les six photographies sources sont au ratio 3:2 (1536×1024) ;
+     16:9 rapproche la hauteur de la carte de la cible indicative 170–210px du
+     prompt à la largeur réelle des cartes desktop (~380–400px) tout en
+     restant identique pour les six cartes. `object-fit: cover` recadre donc
+     légèrement chaque photo ; vérifié visuellement (captures) qu'aucun sujet
+     principal n'est coupé, sans nécessiter d'`object-position` particulier. */
+  .emergency-card__media {
+    margin-top: 0.9rem;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+  }
+
+  .emergency-card__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 420ms ease;
+  }
+
+  .emergency-card:hover .emergency-card__img,
+  .emergency-card:focus-visible .emergency-card__img {
+    transform: scale(1.045);
+  }
+
+  .emergency-card--static:hover .emergency-card__img {
+    transform: none;
+  }
+
+  .emergency-card__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1rem 1.25rem 1.25rem;
+  }
+
+  .emergency-card__body p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--color-anthracite-700);
+  }
+
+  .emergency-card__cta {
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: var(--color-orange-700);
+  }
+
+  .emergency-card:hover .emergency-card__cta,
+  .emergency-card:focus-visible .emergency-card__cta {
+    color: var(--color-brand);
+  }
+
+  .emergency-card__arrow {
+    width: 0.9rem;
+    height: 0.9rem;
+    transition: transform 200ms ease;
+  }
+
+  .emergency-card:hover .emergency-card__arrow,
+  .emergency-card:focus-visible .emergency-card__arrow {
+    transform: translateX(4px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .emergency-card:hover,
+    .emergency-card:focus-visible {
+      transform: none;
+    }
+
+    .emergency-card:hover .emergency-card__img,
+    .emergency-card:focus-visible .emergency-card__img {
+      transform: none;
+    }
+
+    .emergency-card:hover .emergency-card__arrow,
+    .emergency-card:focus-visible .emergency-card__arrow {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 62rem) {
+    .emergency-selector__grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: clamp(1rem, 0.9rem + 0.4vw, 1.25rem);
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .emergency-selector__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

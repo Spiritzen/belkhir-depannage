@@ -1,0 +1,372 @@
+---
+/**
+ * Grille immersive des domaines d'intervention (section 12 du prompt de
+ * mission initial).
+ *
+ * Refonte « Nos domaines d'intervention » (01/09/2026) : reprend le principe
+ * visuel de l'ancien site (grille 3×2, carte survolée qui s'élargit tandis
+ * que ses deux voisines de rangée se resserrent, titre/description intégrés
+ * en bas de la photographie) sur fond anthracite très sombre avec une lueur
+ * orange diffuse. Aucun JavaScript nécessaire au survol ni à l'expansion.
+ *
+ * Micro-retouche suppression FinalCta (01/09/2026) : les six cartes
+ * pointaient vers `#contact`, désormais supprimé. Aucune page métier dédiée
+ * n'existe encore (`futureRoute`, toujours centralisée dans les données,
+ * jamais exposée tant qu'elle produirait un 404) : plutôt que d'inventer une
+ * autre destination, les cartes ne sont plus des liens (`<article>` au lieu
+ * de `<a>`) et le CTA « Découvrir ce service » a été retiré — le titre et la
+ * description révélée au survol restent la seule promesse faite, jamais une
+ * navigation trompeuse.
+ *
+ * Effet « rangée indépendante » obtenu sans JavaScript ni double conteneur
+ * DOM : un unique conteneur flex avec `flex-wrap: wrap` et une base flexible
+ * à ~33 % par carte forme naturellement deux lignes de trois. La
+ * distribution de l'espace libre par `flex-grow` au survol/focus se calcule
+ * par CSS *par ligne* dans un conteneur flex multi-lignes (comportement du
+ * spec Flexbox) : agrandir une carte de la première ligne ne redistribue
+ * jamais l'espace de la seconde ligne.
+ *
+ * Photographies : cinq métiers réutilisent les photographies legacy déjà en
+ * place (Plomberie, Fuites et anomalies, Chauffage, Serrurerie, Vitrerie).
+ * « Rideaux métalliques » n'a jamais eu de photographie fidèle sur l'ancien
+ * site (voir `src/data/legacy-assets.ts`) ; à défaut de média historique
+ * adapté, la photographie déjà présente localement dans
+ * `src/assets/legacy/urgences/rideau-metallique-bloque.png` (ajoutée pour la
+ * section « Quelle est votre urgence ? ») est réutilisée ici — c'est une
+ * vraie photographie du même sujet réel (rideau métallique de commerce),
+ * jamais une image générée ou téléchargée pour ce sprint.
+ */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import imgPlomberie from '../../assets/legacy/accordeon-plomberie.jpg';
+import imgFuites from '../../assets/legacy/technicien-intervention-2.jpg';
+import imgChauffage from '../../assets/legacy/accordeon-chauffage.webp';
+import imgSerrurerie from '../../assets/legacy/accordeon-serrurerie.webp';
+import imgVitrerie from '../../assets/legacy/accordeon-vitrerie.webp';
+import imgRideaux from '../../assets/legacy/urgences/rideau-metallique-bloque.png';
+import Icon from '../ui/Icon.astro';
+import { services, type ServiceId } from '../../data/landing';
+
+const images: Record<ServiceId, ImageMetadata> = {
+  plomberie: imgPlomberie,
+  'fuites-anomalies': imgFuites,
+  chauffage: imgChauffage,
+  serrurerie: imgSerrurerie,
+  vitrerie: imgVitrerie,
+  'rideaux-metalliques': imgRideaux,
+};
+
+const icons: Record<ServiceId, 'wrench' | 'droplet' | 'flame' | 'key' | 'window' | 'shutter'> = {
+  plomberie: 'wrench',
+  'fuites-anomalies': 'droplet',
+  chauffage: 'flame',
+  serrurerie: 'key',
+  vitrerie: 'window',
+  'rideaux-metalliques': 'shutter',
+};
+---
+
+<section class="services-accordion" id="metiers" aria-labelledby="services-accordion-title">
+  <div class="container">
+    <div class="services-accordion__header" data-reveal="up">
+      <p class="services-accordion__eyebrow">
+        <span class="services-accordion__eyebrow-bar" aria-hidden="true"></span>
+        NOS DOMAINES D’INTERVENTION
+      </p>
+
+      <h2 id="services-accordion-title">
+        Un seul contact pour plusieurs <span class="services-accordion__accent">urgences</span>
+      </h2>
+
+      <p class="services-accordion__lead">
+        De la fuite d’eau à la porte bloquée, chaque urgence exige une réponse adaptée et une
+        véritable maîtrise technique. Chez <span class="services-accordion__brand"
+          ><span class="services-accordion__brand-initial">B</span>elkhir <span
+            class="services-accordion__brand-initial">D</span
+          >épannage</span
+        >, notre équipe réunit plusieurs savoir-faire afin de diagnostiquer la situation, sécuriser
+        les lieux et mettre en œuvre une solution durable. Plomberie, recherche de fuites,
+        chauffage, serrurerie, vitrerie ou rideaux métalliques : découvrez nos domaines
+        d’intervention et les solutions que nous pouvons apporter à votre situation.
+      </p>
+    </div>
+
+    <div class="services-grid" data-reveal-group="services-grid">
+      {
+        services.map((service) => (
+          <article id={service.anchor} class="service-card" data-reveal="up">
+            <Image
+              src={images[service.id]}
+              alt={service.imageAlt}
+              class="service-card__img"
+              widths={[400, 600, 900]}
+              sizes="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 33vw"
+              loading="lazy"
+            />
+            <span class="service-card__overlay" aria-hidden="true" />
+            <span class="service-card__content">
+              <Icon name={icons[service.id]} class="service-card__icon" />
+              <span class="service-card__title">{service.title}</span>
+              <span class="service-card__description">{service.description}</span>
+            </span>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  /*
+   * Fond anthracite très sombre + lueur orange diffuse (sections 0-1 du
+   * prompt) : profondeur perceptible sans halo voyant, contraste puissant
+   * avec le fond abricot de la section précédente (« Quelle est votre
+   * urgence ? »), transition nette et volontaire entre les deux ambiances.
+   */
+  .services-accordion {
+    position: relative;
+    padding-block: var(--space-7);
+    background:
+      radial-gradient(52% 42% at 50% 22%, rgba(255, 105, 0, 0.09), transparent 72%),
+      var(--color-anthracite-950);
+  }
+
+  .services-accordion__header {
+    max-width: 50rem;
+    margin-bottom: clamp(2.5rem, 4vw, 3.5rem);
+  }
+
+  .services-accordion__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--color-brand);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.9rem;
+  }
+
+  .services-accordion__eyebrow-bar {
+    width: 28px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--color-brand);
+  }
+
+  #services-accordion-title {
+    color: var(--color-white);
+    font-size: clamp(1.9rem, 1.5rem + 1.7vw, 2.6rem);
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    margin-bottom: 1.25rem;
+  }
+
+  /* « urgences » est mis en orange : la composition à deux teintes (blanc /
+     orange de marque) fait écho au H1 du Hero et au H2 d'EmergencySelector,
+     cohérence visuelle jugée préférable à un titre entièrement blanc. */
+  .services-accordion__accent {
+    color: var(--color-brand);
+  }
+
+  .services-accordion__lead {
+    color: var(--color-gray-100);
+    font-size: clamp(1.0625rem, 0.95rem + 0.35vw, 1.2rem);
+    line-height: 1.65;
+  }
+
+  /* Seuls B et D sont orange (section 2 du prompt) ; des spans simples ne
+     modifient jamais le texte lu par un lecteur d'écran. */
+  .services-accordion__brand-initial {
+    color: var(--color-brand);
+  }
+
+  /*
+   * Grille des six cartes : un unique conteneur flex en wrap plutôt que
+   * deux rangées codées en dur. `flex-basis` ~33 % force exactement trois
+   * cartes par ligne au repos ; le survol d'une carte ne redistribue
+   * l'espace libre que sur sa propre ligne (comportement Flexbox standard),
+   * ce qui satisfait nativement « chaque rangée fonctionne indépendamment »
+   * sans JavaScript.
+   */
+  .services-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+  }
+
+  .service-card {
+    position: relative;
+    /*
+     * flex-basis volontairement petit (8 %, pas ~33 %) : si la base des
+     * trois cartes d'une ligne totalisait déjà 100 % au repos, il ne
+     * resterait aucun espace libre à redistribuer par flex-grow au survol
+     * (flex-grow ne répartit que l'espace libre au-delà de la somme des
+     * bases) — la carte survolée ne s'élargirait jamais. `min-width: 26%`
+     * assure à la fois qu'exactement trois cartes tiennent par ligne (4 ×
+     * 26 % > 100 %, force le retour à la ligne) et sert de plancher : les
+     * deux cartes voisines ne descendent jamais en dessous au survol, elles
+     * se resserrent sans jamais disparaître.
+     */
+    flex: 1 1 8%;
+    min-width: 26%;
+    height: 24rem;
+    display: block;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: inherit;
+    /* Les cinq liens métiers du Hero et les cartes d'EmergencySelector
+       pointent vers ces ancres (id={service.anchor}) : scroll-margin-top
+       garantit qu'un défilement ne laisse jamais la carte ciblée masquée
+       sous la navbar sticky (hérité de .accordion-panel, retouche 03). */
+    scroll-margin-top: var(--header-total-height);
+    transition:
+      flex-grow 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 420ms ease,
+      box-shadow 420ms ease;
+  }
+
+  /* flex-grow modéré (2.2 contre 1 pour les deux voisines) : la carte
+     survolée occupe environ la moitié de la rangée sans jamais écraser les
+     deux autres (section 5 du prompt : « ne pas agrandir... au point
+     d'écraser complètement »). Carte non interactive depuis la suppression
+     du lien (micro-retouche FinalCta) : seul `:hover` reste pertinent,
+     `:focus-visible` ne s'applique jamais à un <article> sans tabindex. */
+  .service-card:hover {
+    flex-grow: 2.2;
+    border-color: rgba(255, 105, 0, 0.55);
+    box-shadow:
+      0 20px 50px rgba(0, 0, 0, 0.45),
+      0 0 0 1px rgba(255, 105, 0, 0.16);
+  }
+
+  .service-card__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 450ms ease;
+  }
+
+  .service-card:hover .service-card__img {
+    transform: scale(1.045);
+  }
+
+  .service-card__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(
+      0deg,
+      rgba(9, 10, 14, 0.92) 0%,
+      rgba(9, 10, 14, 0.4) 55%,
+      rgba(9, 10, 14, 0.12) 100%
+    );
+  }
+
+  .service-card__content {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 0.45rem;
+    padding: 1.1rem 1.25rem 1.25rem;
+    color: var(--color-white);
+  }
+
+  .service-card__icon {
+    width: 1.4rem;
+    height: 1.4rem;
+    color: var(--color-orange-500);
+  }
+
+  /* Le titre reste toujours visible (section 4 du prompt), jamais caché
+     derrière l'état survol/focus. */
+  .service-card__title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.15rem;
+  }
+
+  /* Description masquée au repos sur desktop large uniquement, révélée au
+     survol — jamais retirée de l'arbre d'accessibilité (opacity/max-height,
+     pas display:none ni aria-hidden) : un lecteur d'écran l'annonce
+     indépendamment de l'état visuel. */
+  .service-card__description {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--color-gray-100);
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition:
+      opacity 380ms ease,
+      max-height 380ms ease;
+  }
+
+  .service-card:hover .service-card__description {
+    opacity: 1;
+    max-height: 10rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .service-card {
+      transition: none;
+    }
+
+    .service-card:hover {
+      flex-grow: 1;
+    }
+
+    .service-card__img {
+      transition: none;
+    }
+
+    .service-card:hover .service-card__img {
+      transform: none;
+    }
+
+    .service-card__description {
+      opacity: 1;
+      max-height: none;
+      transition: none;
+    }
+  }
+
+  /*
+   * Tablette : deux colonnes, cartes de taille fixe (pas d'expansion, la
+   * consigne du prompt interdit de forcer cet effet s'il dégrade la mise en
+   * page). Description toujours visible plutôt que dépendante du survol,
+   * plus fiable sur écran tactile.
+   */
+  @media (max-width: 64rem) {
+    .service-card {
+      flex: 1 1 calc((100% - 1.25rem) / 2);
+      height: 19rem;
+    }
+
+    .service-card:hover {
+      flex-grow: 1;
+      transform: none;
+    }
+
+    .service-card__description {
+      opacity: 1;
+      max-height: none;
+    }
+  }
+
+  /* Mobile : une seule colonne, cartes plus hautes pour conserver l'impact
+     visuel de la photographie (section 7 du prompt). */
+  @media (max-width: 40rem) {
+    .service-card {
+      flex: 1 1 100%;
+      height: 21rem;
+    }
+  }
+</style>

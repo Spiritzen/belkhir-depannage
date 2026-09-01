@@ -1,0 +1,522 @@
+---
+/**
+ * Processus d'intervention (section 14 du prompt de mission initial).
+ *
+ * Refonte « wahou » (01/09/2026,
+ * PROMPT_CLAUDE_CODE_PROCESSUS_PRISE_EN_CHARGE_WAHOU.txt) : les quatre
+ * anciennes cartes blanches deviennent une timeline premium sur fond
+ * anthracite très sombre, cohérente avec « Nos domaines d'intervention »
+ * tout en restant visuellement distincte (lueurs orange positionnées
+ * différemment, trame technique réutilisée du Hero). Réutilise intégralement
+ * le mécanisme d'apparition au scroll existant (`data-reveal`,
+ * `src/scripts/reveal.ts`) : aucune nouvelle dépendance, aucun second
+ * observer. Le tracé progressif de la ligne et l'allumage des nœuds sont de
+ * simples extensions CSS scoped à ce composant, branchées sur les classes
+ * globales déjà posées par ce même script (`.js-reveal-ready`,
+ * `.is-visible`).
+ */
+import Icon from '../ui/Icon.astro';
+import { processSteps } from '../../data/landing';
+---
+
+<section class="process" id="interventions" aria-labelledby="process-title">
+  <div class="process__texture" aria-hidden="true"></div>
+
+  <div class="container">
+    <div class="process__header" data-reveal="up">
+      <p class="process__eyebrow">
+        <span class="process__eyebrow-bar" aria-hidden="true"></span>
+        VOTRE INTERVENTION, ÉTAPE PAR ÉTAPE
+      </p>
+
+      <h2 id="process-title">
+        Une prise en charge claire, même dans l’<span class="process__accent">urgence</span>
+      </h2>
+
+      <p class="process__lead">
+        Lorsqu’un problème survient, l’incertitude est souvent aussi difficile à gérer que la panne
+        elle-même. Chez <span class="process__brand"
+          ><span class="process__brand-initial">B</span>elkhir <span class="process__brand-initial"
+            >D</span
+          >épannage</span
+        >, chaque demande suit un parcours simple : comprendre la situation, identifier son niveau
+        d’urgence, expliquer la réponse envisageable, puis intervenir et contrôler. Vous savez ainsi
+        où vous en êtes, ce qui va se passer et quelles informations préparer.
+      </p>
+    </div>
+
+    <ol class="process__timeline" data-reveal="draw">
+      {
+        processSteps.map((step) => (
+          <li class="process__step" data-reveal="up" data-reveal-group="process-steps">
+            <span class="process__node" aria-hidden="true">
+              <span class="process__node-dot" />
+            </span>
+            <div class="process__card">
+              <span class="process__number" aria-hidden="true">
+                {String(step.step).padStart(2, '0')}
+              </span>
+              <span class="process__icon-frame">
+                <Icon name={step.icon} class="process__icon" />
+              </span>
+              <p class="process__label">{step.label}</p>
+              <h3 class="process__title">{step.title}</h3>
+              <p class="process__desc">{step.description}</p>
+              <div class="process__badges">
+                {step.badges.map((badge) => (
+                  <span class="process__badge">{badge}</span>
+                ))}
+              </div>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="process__banner" data-reveal="up" data-reveal-group="process-steps">
+      <Icon name="shield" class="process__banner-icon" />
+      <div class="process__banner-text">
+        <p class="process__banner-title">Un contact clair du premier appel au contrôle final.</p>
+        <p class="process__banner-desc">
+          À chaque étape, la priorité reste la même : protéger les personnes, limiter les dégâts et
+          vous donner une information compréhensible.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /*
+   * Fond anthracite très sombre + deux lueurs orange diffuses, positionnées
+   * différemment de « Nos domaines d'intervention » (coin haut-droit et
+   * bas-gauche plutôt qu'un unique dégradé centré haut) pour rester
+   * cohérent sans répéter exactement le même arrière-plan. Trame technique
+   * réutilisée du Hero (`.hero__texture`) plutôt qu'un nouveau motif.
+   */
+  .process {
+    position: relative;
+    overflow: hidden;
+    padding-block: var(--space-7);
+    background:
+      radial-gradient(46% 38% at 84% 6%, rgba(255, 105, 0, 0.08), transparent 70%),
+      radial-gradient(40% 44% at 6% 96%, rgba(255, 105, 0, 0.06), transparent 72%),
+      var(--color-anthracite-950);
+  }
+
+  .process__texture {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 3.5rem 3.5rem;
+    mask-image: radial-gradient(75% 65% at 50% 25%, black, transparent);
+  }
+
+  .process__header {
+    position: relative;
+    z-index: 1;
+    max-width: 53.125rem;
+    margin-bottom: clamp(2.5rem, 4vw, 3.5rem);
+  }
+
+  .process__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--color-brand);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.9rem;
+  }
+
+  .process__eyebrow-bar {
+    width: 28px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--color-brand);
+  }
+
+  #process-title {
+    max-width: 34rem;
+    color: var(--color-white);
+    font-size: clamp(1.9rem, 1.5rem + 1.7vw, 2.6rem);
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    margin-bottom: 1.25rem;
+  }
+
+  .process__accent {
+    color: var(--color-brand);
+  }
+
+  .process__lead {
+    max-width: 53.125rem;
+    color: var(--color-gray-100);
+    font-size: clamp(1.0625rem, 0.95rem + 0.35vw, 1.2rem);
+    line-height: 1.65;
+  }
+
+  /* Seuls B et D sont orange, jamais répété ailleurs dans le paragraphe. */
+  .process__brand-initial {
+    color: var(--color-brand);
+  }
+
+  /*
+   * Timeline : conteneur flex qui force exactement quatre cartes par ligne
+   * au repos (desktop large). La ligne de connexion est un pseudo-élément
+   * du conteneur lui-même (jamais un <li> supplémentaire, pour ne pas
+   * fausser le compte de la liste ordonnée pour les lecteurs d'écran) :
+   * elle s'étend du centre du premier nœud (12.5 % du conteneur) au centre
+   * du dernier (87.5 %), quel que soit le nombre exact de pixels.
+   */
+  .process__timeline {
+    position: relative;
+    z-index: 1;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  /* `data-reveal="draw"` sert uniquement à faire observer ce conteneur par
+     l'IntersectionObserver existant (pour déclencher le tracé de la ligne
+     ci-dessous). La règle générique `.js-reveal-ready [data-reveal] {
+     opacity: 0; ... }` (voir animations.css) s'appliquerait sinon aussi à
+     ce conteneur — ses quatre cartes, déjà animées individuellement via
+     leur propre `data-reveal="up"`, se retrouveraient masquées tant que le
+     <ol> parent n'aurait pas lui-même atteint opacity:1, créant un double
+     fondu redondant. Cette règle, plus spécifique (classe locale scopée par
+     Astro), neutralise cet effet : seul le pseudo-élément ::before ci-dessous
+     est réellement animé. */
+  :global(.js-reveal-ready) .process__timeline {
+    opacity: 1;
+    transform: none;
+  }
+
+  .process__timeline::before {
+    content: '';
+    position: absolute;
+    top: 7px;
+    left: 12.5%;
+    right: 12.5%;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 105, 0, 0.15),
+      var(--color-brand) 15%,
+      var(--color-brand) 85%,
+      rgba(255, 105, 0, 0.15)
+    );
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 900ms ease;
+  }
+
+  /* Tracé progressif de la ligne : branché sur les mêmes classes globales
+     que le reste du site (`.js-reveal-ready` posée sur <html>, `.is-visible`
+     posée par le même IntersectionObserver que toutes les autres sections) —
+     aucun nouvel observer, aucune nouvelle dépendance. */
+  :global(.js-reveal-ready) .process__timeline.is-visible::before {
+    transform: scaleX(1);
+  }
+
+  .process__step {
+    position: relative;
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+
+  .process__node {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .process__node-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(255, 105, 0, 0.28);
+    box-shadow: none;
+    transition:
+      background-color 400ms ease 120ms,
+      box-shadow 400ms ease 120ms;
+  }
+
+  /* Allumage successif des nœuds : chaque étape reprend le décalage déjà
+     calculé par reveal.ts pour son propre groupe (`process-steps`), donc
+     les nœuds s'allument dans l'ordre naturel de la timeline sans code
+     supplémentaire. */
+  .process__step.is-visible .process__node-dot {
+    background: var(--color-brand);
+    box-shadow:
+      0 0 0 4px rgba(255, 105, 0, 0.16),
+      0 0 18px rgba(255, 105, 0, 0.55);
+  }
+
+  .process__card {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    background: rgba(35, 40, 56, 0.55);
+    border: 1px solid rgba(255, 105, 0, 0.16);
+    backdrop-filter: blur(10px) saturate(115%);
+    -webkit-backdrop-filter: blur(10px) saturate(115%);
+    overflow: hidden;
+    transition:
+      transform 300ms ease,
+      border-color 300ms ease,
+      box-shadow 300ms ease,
+      background-color 300ms ease;
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .process__card {
+      background: rgba(24, 28, 40, 0.92);
+    }
+  }
+
+  /* Hover décoratif uniquement : la carte ne contient aucun lien ni bouton,
+     donc aucun état focus-visible n'est ajouté (section 12 du prompt). */
+  .process__card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(255, 105, 0, 0.45);
+    box-shadow:
+      0 24px 48px rgba(0, 0, 0, 0.35),
+      0 0 40px rgba(255, 105, 0, 0.12);
+    background: rgba(35, 40, 56, 0.75);
+  }
+
+  /* Numéro monumental décoratif, faible opacité, jamais en concurrence avec
+     le titre (posé en amont dans la boîte, sous le titre visuellement). */
+  .process__number {
+    position: absolute;
+    top: 0.9rem;
+    right: 1.1rem;
+    z-index: 0;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 2.75rem;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.07);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .process__icon-frame {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-md);
+    background: rgba(255, 105, 0, 0.14);
+    border: 1px solid rgba(255, 105, 0, 0.25);
+    margin-bottom: 1rem;
+  }
+
+  .process__icon {
+    width: 1.4rem;
+    height: 1.4rem;
+    color: var(--color-orange-500);
+    transition: transform 250ms ease;
+  }
+
+  .process__card:hover .process__icon {
+    transform: scale(1.08);
+  }
+
+  .process__label {
+    position: relative;
+    z-index: 1;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-orange-500);
+    margin-bottom: 0.4rem;
+  }
+
+  .process__title {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1.3;
+    color: var(--color-white);
+    margin-bottom: 0.6rem;
+  }
+
+  .process__desc {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: var(--color-gray-100);
+  }
+
+  .process__badges {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .process__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.65rem;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 105, 0, 0.12);
+    border: 1px solid rgba(255, 105, 0, 0.22);
+    color: var(--color-gray-100);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    transition:
+      background-color 300ms ease,
+      color 300ms ease;
+  }
+
+  .process__card:hover .process__badge {
+    background: rgba(255, 105, 0, 0.22);
+    color: var(--color-white);
+  }
+
+  /*
+   * Bandeau final de réassurance : conclusion légère, jamais un cinquième
+   * gros bloc. Fond légèrement distinct du fond général, fin trait orange
+   * supérieur.
+   */
+  .process__banner {
+    position: relative;
+    z-index: 1;
+    margin-top: clamp(2.5rem, 4vw, 3.5rem);
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.5rem 1.75rem;
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.03);
+    border-top: 1px solid rgba(255, 105, 0, 0.35);
+  }
+
+  .process__banner-icon {
+    width: 1.8rem;
+    height: 1.8rem;
+    flex-shrink: 0;
+    color: var(--color-brand);
+  }
+
+  .process__banner-title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--color-white);
+    margin-bottom: 0.3rem;
+  }
+
+  .process__banner-desc {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--color-gray-100);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .process__card:hover {
+      transform: none;
+    }
+
+    .process__card:hover .process__icon {
+      transform: none;
+    }
+  }
+
+  /* Desktop étroit / tablette paysage : grille 2×2. Une ligne oblique ou
+     tronquée traversant du vide serait incohérente (section 13 du prompt) :
+     la ligne et les nœuds sont donc masqués à ce palier, le numéro
+     monumental de chaque carte suffit à indiquer l'ordre. */
+  @media (max-width: 64rem) and (min-width: 48.0625rem) {
+    .process__timeline {
+      flex-wrap: wrap;
+    }
+
+    .process__timeline::before {
+      display: none;
+    }
+
+    .process__step {
+      flex: 1 1 calc(50% - 0.75rem);
+    }
+
+    .process__node {
+      display: none;
+    }
+  }
+
+  /* Tablette portrait et mobile : une colonne, timeline verticale à gauche
+     des cartes. Le tracé progressif passe de scaleX à scaleY. */
+  @media (max-width: 48rem) {
+    .process__timeline {
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .process__timeline::before {
+      top: 0;
+      bottom: 0;
+      left: 7px;
+      right: auto;
+      width: 2px;
+      height: auto;
+      transform: scaleY(0);
+      transform-origin: top center;
+    }
+
+    :global(.js-reveal-ready) .process__timeline.is-visible::before {
+      transform: scaleY(1);
+    }
+
+    .process__step {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .process__node {
+      flex-shrink: 0;
+      margin-bottom: 0;
+      padding-top: 0.35rem;
+    }
+
+    .process__card {
+      flex: 1;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .process__banner {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

@@ -1,0 +1,162 @@
+/*
+ * Reset léger et fondations partagées par toute la landing.
+ * Les tokens de palette/typographie vivent dans `tokens.css`, les fontes
+ * dans `fonts.css` et les familles d'animation dans `animations.css`.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  /* Surface racine explicite (sprint « mode sombre mobile », 01/09/2026) :
+     mêmes tokens que <body> ci-dessous, jamais une nouvelle teinte. `body`
+     couvre déjà tout le viewport en pratique (aucun changement visuel), mais
+     un fond/couleur non explicites sur <html> peuvent laisser transparaître
+     le canvas par défaut du navigateur pendant certains auto-darkenings. */
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  /* Filet de sécurité : les panneaux non encore révélés au scroll portent un
+     `transform: translateX()` (voir animations.css) tant qu'ils sont hors
+     champ et invisibles (opacity: 0). Cet état transitoire ne doit jamais
+     rendre le document scrollable horizontalement (section 23 : aucun
+     débordement horizontal). Le contenu réellement visible n'est jamais
+     rogné : aucune section ne dépasse la largeur du viewport en soi. */
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  /* `clip` (jamais `hidden`) : contrairement à `hidden`/`auto`/`scroll`,
+     `clip` n'établit pas de conteneur de scroll concurrent de <html>. Le
+     combiner avec `overflow-x: hidden` sur <html> cassait le sticky de la
+     navbar (deux conteneurs de scroll imbriqués et incohérents) — voir la
+     retouche 01, section « navbar sticky ». `clip` seul suffit à empêcher
+     le débordement horizontal résiduel des panneaux non encore révélés au
+     scroll (transform hors champ, invisibles) sans ce risque. */
+  overflow-x: clip;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+  line-height: 1.15;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+ul,
+ol {
+  padding-left: var(--space-4);
+  margin: 0;
+}
+
+/* Lien d'évitement, visible uniquement au focus clavier. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1000;
+  background: var(--color-anthracite-900);
+  color: var(--color-white);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+}
+
+.skip-link:focus {
+  left: var(--space-2);
+  top: var(--space-2);
+}
+
+/* Focus clavier toujours visible, indépendamment du navigateur. */
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--space-3);
+}
+
+@media (min-width: 48rem) {
+  .container {
+    padding-inline: var(--space-5);
+  }
+}
+
+/* En-tête de section partagé par les blocs de la landing. */
+.section-heading {
+  max-width: 40rem;
+  margin-bottom: var(--space-5);
+}
+
+.section-heading h2 {
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  margin-bottom: 0.5rem;
+}
+
+.section-heading p {
+  color: var(--color-muted);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Filet de sécurité global : réduction de mouvement système. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

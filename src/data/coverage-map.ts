@@ -1,0 +1,102 @@
+/**
+ * Donnée cartographique locale des Hauts-de-France (refonte « wahou » de la
+ * section Coverage, PROMPT_CLAUDE_CODE_COVERAGE_HAUTS_DE_FRANCE_WAHOU.txt).
+ *
+ * SOURCE ET LICENCE
+ * ------------------
+ * Contours dérivés d'Admin Express (IGN), distribués via le jeu de données
+ * ouvert « france-geojson » (github.com/gregoiredavid/france-geojson),
+ * sous Licence Ouverte / Etalab 2.0
+ * (https://www.etalab.gouv.fr/licence-ouverte-open-licence/).
+ *
+ * Fichiers sources téléchargés le 01/09/2026 :
+ *  - departements-version-simplifiee.geojson (5 départements retenus :
+ *    codes INSEE 80, 59, 62, 60, 02) ;
+ *  - regions-version-simplifiee.geojson (contour de la région
+ *    Hauts-de-France, code INSEE 32).
+ *
+ * TRAITEMENT (hors runtime, script Node local — jamais exécuté dans le
+ * navigateur, section 24 du prompt de mission)
+ * ------------------------------------------------------------------------
+ * 1. Extraction des 5 features départementales + de la feature régionale.
+ * 2. Pour les géométries MultiPolygon (Nord), conservation du seul anneau
+ *    extérieur de plus grande aire (méthode du lacet) — les enclaves/îlots
+ *    mineurs du jeu de données ne servent pas une carte illustrative à
+ *    cette échelle.
+ * 3. Simplification de Douglas-Peucker (tolérance 0,012°, implémentation
+ *    locale sans dépendance).
+ * 4. Projection équirectangulaire corrigée (longitude mise à l'échelle par
+ *    cos(latitude moyenne)) vers un repère SVG unique et commun, nord en
+ *    haut, dans lequel départements et contour régional coïncident
+ *    exactement (même bornes, même échelle).
+ * 5. Arrondi à une décimale ; export des chemins `d` déjà prêts à l'emploi.
+ *
+ * Le tracé routier et l'ancrage du fourgon sont une composition originale
+ * stylisée (aucun itinéraire réel entre villes précises, section 13 du
+ * prompt) ; ils ne dérivent pas des données géographiques ci-dessus.
+ */
+
+/** Repère SVG commun à l'ensemble de la carte (contour + départements + zone trace/fourgon). */
+export const COVERAGE_MAP_VIEWBOX = '0 0 340 485.5';
+
+/** Limite basse (axe Y) occupée par les cinq départements ; en dessous : la zone « tracé + fourgon ». */
+export const COVERAGE_MAP_DEPT_BOTTOM_Y = 393.5;
+
+/** Contour régional global (Hauts-de-France), dessiné en premier lors de l'entrée. */
+export const COVERAGE_MAP_OUTLINE_PATH =
+  'M303.5 298 L302.1 305.7 L294 302.7 L290.1 297.6 L287.2 300.1 L283.6 298 L280.6 299.7 L282.6 302.1 L281.7 305 L259.6 313.7 L262.5 326 L261.6 331.2 L265.4 331.8 L268.4 337.1 L271.2 336.4 L271 339.9 L257.2 340.9 L256.1 346.5 L259.1 352.7 L253.5 356.4 L253.5 360.7 L260 359.4 L263.3 363.6 L259 366 L257.1 372.2 L253.9 373.1 L255 375.7 L247.1 381.3 L239.7 393.5 L238.8 390.7 L231 387.6 L229.5 379.4 L225.5 381.8 L222.8 375.1 L218.8 376.8 L217 371.1 L208 363.6 L209.4 356.2 L206.4 352.4 L207.6 349.6 L204.5 348.3 L197.5 346.6 L194.9 351.9 L186.9 353.8 L179 352 L174.1 354.6 L167.1 351.2 L162.9 356.2 L157.9 355.3 L149.9 348.1 L145.2 353 L134.3 348.5 L135.8 346.6 L132.3 343.6 L118.7 339.1 L114.9 335 L108.5 340.6 L104.9 335.9 L91.7 334.4 L89.3 331.2 L81.2 336.8 L68.7 339 L53.1 336 L52.3 329.1 L49 327.2 L49.7 321.8 L58.3 324.6 L59.7 320.5 L56.8 315.9 L55 304.3 L50.1 297.4 L58.4 281.5 L50.7 280.7 L53.8 275.7 L51.5 275 L49.5 257.3 L54.2 251.5 L52.3 248.4 L49.1 251.5 L47.4 249.2 L53.1 239.6 L57.7 238.5 L46.2 211.5 L37.1 206.3 L21.7 190.9 L22.4 187.1 L14 186.6 L21.9 179.1 L28.2 163.6 L32.1 161.4 L37.3 166.4 L46.8 166.8 L44.5 161.6 L40.2 161.4 L36.9 154.4 L32.2 153.7 L31 150 L32.4 138.6 L42.2 138.2 L32.9 130.6 L36.1 107 L39.8 107.3 L35.2 101.1 L33.4 79.6 L38.2 68.9 L35.9 50.5 L42.3 49.4 L57.3 36.5 L140.4 14 L143.4 28.3 L147.1 31.1 L149.8 38 L145.2 42.6 L147.1 43.7 L150.1 60.5 L159.1 60.4 L169.4 76.7 L173.2 75.7 L178.7 80.5 L181.3 79.1 L182.9 72.4 L192.1 67.4 L199.3 67.2 L201.7 63.7 L206.2 65.6 L212.7 77.3 L217.7 79.4 L218.2 83.2 L215.9 86.7 L219 94.6 L220.8 108.6 L230.5 114.8 L241.1 107.6 L246.1 109.4 L243.6 113.5 L255.6 113.8 L261.8 121.2 L262.8 131.9 L261.1 135 L266.8 146.5 L270.8 138.5 L282.3 138.3 L288.4 142.2 L301.2 137.3 L311.5 147.3 L311.7 151.5 L320.8 151.6 L322.3 154.3 L315.6 163.5 L315 170.5 L312 174.9 L319.6 174.8 L319.7 179.2 L322.9 184.2 L313 194.2 L315.4 199.7 L313.5 201.3 L323.6 204.8 L321.8 212 L326 214 L321.5 230.4 L322.8 232.6 L320.8 234.6 L325 239 L318.3 248.5 L312 252 L311.8 256.8 L308.6 260.3 L305.2 258.9 L301.7 262.8 L306.6 270 L304.6 273.2 L306.6 277.8 L302.7 280.6 L304.5 290.3 L302.3 292.5 L303.5 298 Z';
+
+/** Longueur approximative du contour (polyligne), pour le `stroke-dasharray` du tracé progressif. */
+export const COVERAGE_MAP_OUTLINE_LENGTH = 1500;
+
+export interface DepartmentShape {
+  /** Chemin `d` de la forme départementale dans le repère {@link COVERAGE_MAP_VIEWBOX}. */
+  d: string;
+  /** Centre approximatif (moyenne des sommets), pour le point de repère et le code affichés sur la carte. */
+  centroid: [number, number];
+}
+
+/** Clé = code INSEE du département, identique à {@link import('./landing').CoverageZone.code}. */
+export const COVERAGE_MAP_DEPARTMENTS: Record<string, DepartmentShape> = {
+  '80': {
+    d: 'M14 186.6 L21.9 179.1 L28.2 163.6 L32.1 161.4 L37.3 166.4 L46.8 166.8 L44.5 161.6 L40.2 161.4 L36.9 154.4 L32.2 153.7 L32.4 138.6 L39.1 136.9 L45.4 141.8 L57.1 136.6 L72.2 145.1 L74.4 142 L76.7 145 L74.2 146.8 L87.2 154.6 L90.4 163.8 L94.4 162.1 L98.5 164.8 L110.4 159.1 L113.8 161.7 L118.1 159 L121.3 162.3 L125.2 158.2 L130.2 159.5 L134.9 164.8 L123.4 171.4 L121.9 179.2 L127.8 182.8 L133.4 174.4 L137 173.9 L138.9 178.3 L141.6 173.7 L143.7 178.5 L156.2 182.2 L160.3 176.4 L166 182.3 L161.7 189.5 L164 191.2 L174.3 184.6 L176.3 190.6 L180.7 191.6 L183.7 188.6 L199.5 188.6 L208.5 195.8 L207.2 198.3 L208.9 200.2 L202.5 212.1 L202.7 217.2 L195.8 226.1 L198.2 227.6 L199 232.8 L196.5 234.4 L202.5 247.3 L196.5 246.2 L192.5 251.6 L188.6 246.9 L184.2 249.9 L180.5 247.8 L174.2 251.1 L172.7 255.3 L168.1 254.8 L167.8 262.1 L155.8 261 L151.7 269.9 L148.9 263.4 L143.2 265.7 L136.1 259.3 L133 261.7 L129.5 256.2 L121.4 255.7 L115.4 250 L98.1 247.9 L94.3 250.3 L73.9 245 L69.6 248.5 L63.6 246.9 L63.4 241.5 L54.9 234.7 L49.7 216.4 L46.2 211.5 L37.1 206.3 L21.7 190.9 L22.4 187.1 L14 186.6 Z',
+    centroid: [118.3, 199.4],
+  },
+  '59': {
+    d: 'M88.5 27.8 L118.3 19.2 L124 20.4 L140.4 14 L143.4 28.3 L147.1 31.1 L149.8 38 L145.2 42.6 L147.1 43.7 L150.1 60.5 L159.1 60.4 L166.5 73.8 L178.7 80.5 L181.3 79.1 L182.9 72.4 L192.1 67.4 L199.3 67.2 L201.7 63.7 L206.2 65.6 L212.7 77.3 L217.7 79.4 L218.2 83.2 L215.9 86.7 L219 94.6 L220.8 108.6 L230.5 114.8 L241.1 107.6 L246.1 109.4 L243.6 113.5 L255.6 113.8 L261.8 121.2 L262.8 131.9 L261.1 135 L266.8 146.5 L270.8 138.5 L282.3 138.3 L288.4 142.2 L301.2 137.3 L311.5 147.3 L311.7 151.5 L320.8 151.6 L322.3 154.3 L315.6 163.5 L315 170.5 L312 174.9 L319.6 174.8 L319.7 179.2 L322.9 184.2 L313 194.2 L315.4 199.7 L307.7 202.9 L296 197.2 L297.1 190.7 L287.8 194.6 L267.3 186 L256.3 193.4 L248.6 188.6 L243 194.5 L228 191.6 L226.3 194.8 L214.7 192.3 L208.5 195.8 L202.5 193 L199.5 188.6 L202.1 182.1 L199.7 177.3 L206.6 166.7 L204 164 L205.2 160.7 L210.1 159.1 L204.2 152.7 L191.7 153.1 L191.3 149.8 L198.8 145.2 L188.6 131 L198 123.3 L191.5 122 L191.4 115.6 L185.9 111.1 L178.7 113 L176.8 107.3 L168.2 107.4 L168.9 99.9 L166.8 99.3 L172.6 91.5 L175.5 91.2 L169 84.7 L164.6 85.7 L163.4 93.3 L159.9 94 L158.6 91.1 L149.6 93.4 L144.8 90 L135 91.1 L122.7 84.3 L120.6 82.1 L122.7 80.2 L118.1 72.6 L125.8 68.3 L122 65.4 L108.5 64.7 L104.3 59.9 L95.8 34.9 L88.5 27.8 Z',
+    centroid: [207.4, 117],
+  },
+  '62': {
+    d: 'M88.5 27.8 L95.8 34.9 L104.3 59.9 L108.5 64.7 L122 65.4 L125.8 68.3 L118.1 72.6 L122.7 80.2 L120.6 82.1 L122.7 84.3 L135 91.1 L144.8 90 L149.6 93.4 L158.6 91.1 L159.9 94 L163.4 93.3 L164.6 85.7 L169 84.7 L175.5 91.2 L172.6 91.5 L166.8 99.3 L168.9 99.9 L168.2 107.4 L176.8 107.3 L178.7 113 L185.9 111.1 L191.4 115.6 L191.5 122 L198 123.3 L188.6 131 L198.8 145.2 L191.3 149.8 L191.7 153.1 L204.2 152.7 L210.1 159.1 L205.2 160.7 L204 164 L206.6 166.7 L199.7 177.3 L202.1 182.1 L199.5 188.6 L183.7 188.6 L180.7 191.6 L176.3 190.6 L174.3 184.6 L164 191.2 L161.7 189.5 L166 182.3 L164 179.1 L160.3 176.4 L156.2 182.2 L143.7 178.5 L141.6 173.7 L138.9 178.3 L137 173.9 L133.4 174.4 L127.8 182.8 L121.9 179.2 L123.4 171.4 L134.9 164.8 L130.2 159.5 L125.2 158.2 L121.3 162.3 L118.1 159 L113.8 161.7 L110.4 159.1 L98.5 164.8 L94.4 162.1 L90.4 163.8 L87.2 154.6 L74.2 146.8 L76.7 145 L74.4 142 L72.2 145.1 L57.1 136.6 L45.4 141.8 L40.5 134.9 L32.9 130.6 L36.1 107 L39.8 107.3 L35.2 101.1 L33.4 79.6 L38.2 68.9 L35.9 50.5 L42.3 49.4 L57.3 36.5 L88.5 27.8 Z',
+    centroid: [133.4, 129.5],
+  },
+  '60': {
+    d: 'M57.7 238.5 L63.4 241.5 L63.6 246.9 L69.6 248.5 L73.9 245 L94.3 250.3 L98.1 247.9 L115.4 250 L121.4 255.7 L129.5 256.2 L133 261.7 L136.1 259.3 L143.2 265.7 L148.9 263.4 L151.7 269.9 L155.8 261 L167.8 262.1 L168.1 254.8 L172.7 255.3 L174.2 251.1 L180.5 247.8 L184.2 249.9 L188.6 246.9 L192.5 251.6 L196.5 246.2 L202.5 247.3 L202.2 254.2 L200.3 255.6 L201.9 259.9 L199.8 261.4 L204.9 269.2 L202.8 278.5 L200.1 279 L202.9 283.1 L201.3 287.4 L207.3 292.1 L200.6 292.3 L197.8 307.5 L185.8 312.1 L187.6 316.2 L193.5 318 L194 327.9 L185.2 328.3 L186.2 334.1 L190 334.7 L189.7 330.4 L200.8 333.1 L204.8 340.7 L199.9 342.5 L194.9 351.9 L174.1 354.6 L167.1 351.2 L162.9 356.2 L157.9 355.3 L149.9 348.1 L145.2 353 L134.3 348.5 L135.8 346.6 L132.3 343.6 L118.7 339.1 L114.9 335 L108.5 340.6 L104.9 335.9 L91.7 334.4 L89.3 331.2 L81.2 336.8 L68.7 339 L53.1 336 L52.3 329.1 L49 327.2 L49.7 321.8 L58.3 324.6 L59.7 320.5 L56.8 315.9 L55 304.3 L50.1 297.4 L58.4 281.5 L50.7 280.7 L53.8 275.7 L51.5 275 L49.5 257.3 L54.2 251.5 L52.3 248.4 L49.1 251.5 L47.4 249.2 L53.1 239.6 L57.7 238.5 Z',
+    centroid: [132.4, 292.4],
+  },
+  '02': {
+    d: 'M303.5 298 L302.1 305.7 L294 302.7 L290.1 297.6 L287.2 300.1 L283.6 298 L280.6 299.7 L282.6 302.1 L281.7 305 L259.6 313.7 L262.5 326 L261.6 331.2 L265.4 331.8 L268.4 337.1 L271.2 336.4 L271 339.9 L257.2 340.9 L256.1 346.5 L259.1 352.7 L253.5 356.4 L253.5 360.7 L260 359.4 L263.3 363.6 L259 366 L257.1 372.2 L253.9 373.1 L255 375.7 L247.1 381.3 L239.7 393.5 L238.8 390.7 L231 387.6 L229.5 379.4 L225.5 381.8 L222.8 375.1 L218.8 376.8 L217 371.1 L208 363.6 L209.4 356.2 L206.4 352.4 L207.6 349.6 L197.5 346.6 L204.8 340.7 L202.4 334.5 L189.7 330.4 L190 334.7 L186.2 334.1 L185.2 328.3 L194 327.9 L193.5 318 L187.6 316.2 L185.8 312.1 L197.8 307.5 L200.6 292.3 L207.3 292.1 L201.3 287.4 L202.9 283.1 L200.1 279 L202.8 278.5 L204.9 269.2 L199.8 261.4 L201.9 259.9 L200.3 255.6 L202.2 254.2 L202.5 247.3 L196.5 234.4 L199 232.8 L198.2 227.6 L195.8 226.1 L202.7 217.2 L202.5 212.1 L208.9 200.2 L207.2 198.3 L208.5 195.8 L214.7 192.3 L220.1 195.1 L226.3 194.8 L228 191.6 L243 194.5 L248.6 188.6 L256.3 193.4 L267.3 186 L287.8 194.6 L297.1 190.7 L296 197.2 L299.7 200.1 L323.6 204.8 L321.8 212 L326 214 L321.5 230.4 L322.8 232.6 L320.8 234.6 L325 239 L318.3 248.5 L312 252 L311.8 256.8 L308.6 260.3 L305.2 258.9 L301.7 262.8 L306.6 270 L304.6 273.2 L306.6 277.8 L302.7 280.6 L304.5 290.3 L302.3 292.5 L303.5 298 Z',
+    centroid: [248.5, 289.5],
+  },
+};
+
+/**
+ * Tracé de mobilité stylisé (composition originale, aucune donnée
+ * géographique réelle) : traverse la partie centrale de la carte puis
+ * descend vers la zone « fourgon » sous les départements.
+ */
+export const COVERAGE_ROUTE_PATH =
+  'M150 190 C 185 225 135 260 170 300 C 205 340 155 365 185 400 C 210 425 165 440 172 458';
+
+/** Longueur approximative du tracé (échantillonnage des courbes de Bézier), pour son `stroke-dasharray`. */
+export const COVERAGE_ROUTE_LENGTH = 300;
+
+/** Nœuds discrets affichés le long du tracé. */
+export const COVERAGE_ROUTE_NODES: Array<[number, number]> = [
+  [150, 190],
+  [170, 300],
+  [185, 400],
+];
+
+/** Ancrage du fourgon (centre horizontal, base verticale) dans le repère {@link COVERAGE_MAP_VIEWBOX}. */
+export const COVERAGE_VAN_ANCHOR = { x: 172, y: 472, widthRatio: 0.3 };
