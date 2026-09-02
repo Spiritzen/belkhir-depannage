@@ -19,15 +19,25 @@
  * dans la direction artistique du site — aucun widget Trustindex, aucune
  * iframe.
  *
- * Ordre du contenu (imposé, reflète l'ordre visuel — aucun `order` CSS) :
+ * Ordre du contenu :
  *   1. signature orange centrée
  *   2. cinq métiers, liens pleine largeur vers les panneaux réels de
  *      l'accordéon (jamais de route factice)
  *   3. groupe éditorial (H1 + paragraphe + ligne de conversion), placé dans
  *      l'espace restant
+ *
+ * Mini-sprint 4 « hiérarchie du Hero mobile » (02/09/2026) : le paragraphe
+ * existe désormais en deux variantes (longue/courte, une seule rendue par
+ * breakpoint) et la ligne de conversion place la preuve Google avant le CTA
+ * dans le DOM — l'ordre visuel mobile empilé reflète donc à nouveau l'ordre
+ * du DOM, SAUF à partir de 48rem (desktop/tablette large) où `order`
+ * restaure l'agencement visuel d'origine (CTA puis preuve) sans toucher au
+ * DOM ni à l'ordre de tabulation sur mobile. Détails et justification dans
+ * les commentaires du template et du <style> ci-dessous.
  */
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import heroImg from '../../assets/legacy/hero-intervention-urgence.jpg';
+import heroMobileImg from '../../assets/hero/hero-mobile-technicien-arrivee-belkhir.png';
 import Icon from '../ui/Icon.astro';
 import { services, type ServiceId, googleReviewSummary } from '../../data/landing';
 import { siteConfig } from '../../lib/site-config';
@@ -65,18 +75,43 @@ const standardCta = getPhoneCta(siteConfig.standardPhone);
 const googleHref = siteConfig.googleReviewsUrl ?? '#avis';
 const googleRatingDisplay = googleReviewSummary.rating.toFixed(1).replace('.', ',');
 const googleAccessibleLabel = `${googleReviewSummary.label}, note de ${googleRatingDisplay} sur 5 basée sur ${googleReviewSummary.reviewCount} avis ${googleReviewSummary.platform}`;
+
+// Art direction responsive du fond du Hero (mini-sprint 2 « intégration
+// image Hero mobile », 02/09/2026) : uniquement sous le breakpoint « Mobile
+// (sous 768px) » déjà utilisé par ce composant (voir .hero__message plus
+// bas) — cohérent avec le fait que la navbar est déjà en mode hamburger
+// bien avant ce seuil (74rem). Au-dessus, l'image desktop actuelle
+// (hero-intervention-urgence.jpg, <Image> ci-dessous) reste strictement
+// inchangée : ni remplacée, ni retouchée. Un vrai <picture>/<source
+// media> natif garantit que le navigateur ne télécharge jamais les deux
+// images à la fois. `getImage` (et non <Image>) pour la variante mobile
+// car elle n'alimente qu'un <source>, jamais directement un <img> — le
+// <img> de secours du <picture> reste le <Image> desktop existant.
+const heroMobileOptimized = await getImage({
+  src: heroMobileImg,
+  widths: [375, 480, 640, 828, 941],
+  formats: ['webp'],
+  format: 'webp',
+});
 ---
 
 <section class="hero" id="accueil" aria-label="Présentation de Belkhir Dépannage">
-  <Image
-    src={heroImg}
-    alt=""
-    class="hero__bg"
-    widths={[640, 960, 1280, 1920]}
-    sizes="100vw"
-    loading="eager"
-    fetchpriority="high"
-  />
+  <picture>
+    <source
+      media="(max-width: 47.9375rem)"
+      srcset={heroMobileOptimized.srcSet.attribute}
+      sizes="100vw"
+    />
+    <Image
+      src={heroImg}
+      alt=""
+      class="hero__bg"
+      widths={[640, 960, 1280, 1920]}
+      sizes="100vw"
+      loading="eager"
+      fetchpriority="high"
+    />
+  </picture>
   <div class="hero__overlay" aria-hidden="true"></div>
   <div class="hero__texture" aria-hidden="true"></div>
 
@@ -110,14 +145,64 @@ const googleAccessibleLabel = `${googleReviewSummary.label}, note de ${googleRat
         >
       </h1>
 
-      <p class="hero__lead" data-reveal="left">
+      <p class="hero__lead hero__lead--full" data-reveal="left">
         Plomberie, chauffage, serrurerie, vitrerie et rideaux métalliques : notre équipe répond à
         votre urgence, de jour comme de nuit. Fuite, panne de chauffage, porte bloquée, vitre cassée
         ou rideau métallique immobilisé : nous qualifions votre situation dès l’appel afin
         d’organiser la réponse adaptée.
       </p>
+      {
+        /*
+          Mini-sprint 4 (02/09/2026) : variante mobile concise, rendue par
+          Astro (jamais un texte tronqué en CSS, jamais un doublon SEO) —
+          voir le commentaire détaillé sur .hero__lead--full/--short plus
+          bas dans le <style>. Contenu exact demandé par le prompt de
+          mission, accents et ponctuation compris.
+        */
+      }
+      <p class="hero__lead hero__lead--short" data-reveal="left">
+        Fuite, panne de chauffage, porte bloquée ou vitre cassée : nous qualifions votre urgence dès
+        l’appel.
+      </p>
 
       <div class="hero__conversion-row" data-reveal="up">
+        {
+          /*
+            Mini-sprint 4, mission 3 : la preuve Google précède désormais le
+            CTA dans le DOM (ordre de lecture/clavier), afin qu'elle
+            apparaisse avant lui dans le flux mobile empilé — conformément à
+            « privilégie une structure HTML logique plutôt qu'un `order`
+            CSS ». Sur desktop/tablette large, `order` restaure l'agencement
+            visuel d'origine (CTA à gauche, preuve à droite) sans toucher au
+            DOM ; voir la règle `@media (min-width: 48rem)` plus bas.
+          */
+        }
+        <a class="hero__google-proof" href={googleHref} aria-label={googleAccessibleLabel}>
+          <span class="hero__google-proof-top">
+            <span class="hero__google-proof-stars" aria-hidden="true">
+              {
+                Array.from({ length: 5 }).map(() => (
+                  <Icon name="star" class="hero__google-proof-star" />
+                ))
+              }
+            </span>
+            <span class="hero__google-proof-rating">{googleRatingDisplay}/5</span>
+            {
+              /* Variante mobile compacte de la mention (voir .hero__google-proof-meta--short
+                 dans le <style>) : masquée à l'aria puisque déjà couverte par
+                 l'aria-label du lien parent — jamais une seconde annonce. */
+            }
+            <span class="hero__google-proof-meta--short" aria-hidden="true">
+              — {googleReviewSummary.reviewCount} avis {googleReviewSummary.platform}
+            </span>
+          </span>
+          <span class="hero__google-proof-meta hero__google-proof-meta--full"
+            >{googleReviewSummary.label} · {googleReviewSummary.reviewCount} avis {
+              googleReviewSummary.platform
+            }</span
+          >
+        </a>
+
         {
           standardCta.kind === 'link' ? (
             <a class="hero__quote-cta" href={standardCta.href} data-phone-role={standardCta.role}>
@@ -140,28 +225,194 @@ const googleAccessibleLabel = `${googleReviewSummary.label}, note de ${googleRat
             </button>
           )
         }
-
-        <a class="hero__google-proof" href={googleHref} aria-label={googleAccessibleLabel}>
-          <span class="hero__google-proof-top">
-            <span class="hero__google-proof-stars" aria-hidden="true">
-              {
-                Array.from({ length: 5 }).map(() => (
-                  <Icon name="star" class="hero__google-proof-star" />
-                ))
-              }
-            </span>
-            <span class="hero__google-proof-rating">{googleRatingDisplay}/5</span>
-          </span>
-          <span class="hero__google-proof-meta"
-            >{googleReviewSummary.label} · {googleReviewSummary.reviewCount} avis {
-              googleReviewSummary.platform
-            }</span
-          >
-        </a>
       </div>
     </div>
   </div>
 </section>
+
+<script>
+  // Ruban horizontal des métiers, mobile uniquement (mini-sprint 3,
+  // 02/09/2026) : défilement automatique très lent, arrêté définitivement
+  // dès la première interaction réelle (jamais un simple événement
+  // `scroll`, ambigu entre notre propre défilement programmatique et un
+  // geste utilisateur : on écoute directement les origines réelles d'une
+  // interaction — pointer/touch, molette, focus clavier), en pause dès que
+  // le Hero quitte réellement le viewport, jamais actif si
+  // prefers-reduced-motion est demandé. Ne reprend au retour dans le
+  // viewport que tant qu'aucune interaction n'a eu lieu ; plus aucune
+  // reprise possible une fois `hasInteracted` posé (pointerup, mouseleave,
+  // blur et retour dans le viewport n'ont alors plus aucun effet).
+  import {
+    computeLegPosition,
+    computeLegProgress,
+    nextFullLeg,
+    resumeLeg,
+    ABNORMAL_DELTA_MS,
+    RIBBON_PASS_DURATION_MS,
+    type RibbonDirection,
+    type RibbonLeg,
+  } from '../../scripts/hero-trades-ribbon';
+
+  const MOBILE_QUERY = '(max-width: 47.9375rem)';
+
+  const ribbon = document.querySelector<HTMLElement>('.hero__trades');
+  const heroSection = document.querySelector<HTMLElement>('.hero');
+  const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const mobileQuery = window.matchMedia(MOBILE_QUERY);
+
+  if (ribbon && heroSection) {
+    // Recapturé dans une const locale : TypeScript ne propage pas le
+    // rétrécissement de type de `ribbon` (potentiellement null) à
+    // l'intérieur des fonctions imbriquées ci-dessous.
+    const ribbonEl = ribbon;
+
+    let hasInteracted = false;
+    let isInViewport = false;
+    let frameId: number | null = null;
+    let lastTickTimestamp: number | null = null;
+    let direction: RibbonDirection = 1;
+    // `null` déclenche systématiquement un rebasage au tick suivant (voir
+    // tick() ci-dessous) : premier démarrage, reprise après pause, et
+    // rebasage après un delta anormal partagent donc exactement le même
+    // chemin de code — toujours depuis la position réellement affichée.
+    let leg: RibbonLeg | null = null;
+
+    function stopFrame(): void {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+        frameId = null;
+      }
+      lastTickTimestamp = null;
+      leg = null;
+    }
+
+    // Arrêt définitif pour la session courante de la page (pas de
+    // persistance au-delà du rechargement, conformément au prompt de
+    // mission) : une fois posé, plus aucun appel à startFrame() ne peut
+    // relancer l'animation (voir shouldAnimate()).
+    function stopForever(): void {
+      if (hasInteracted) return;
+      hasInteracted = true;
+      stopFrame();
+    }
+
+    function shouldAnimate(): boolean {
+      return !hasInteracted && isInViewport && mobileQuery.matches && !reducedMotionQuery.matches;
+    }
+
+    function tick(timestamp: number): void {
+      if (!shouldAnimate()) {
+        stopFrame();
+        return;
+      }
+
+      const maxScroll = ribbonEl.scrollWidth - ribbonEl.clientWidth;
+      if (maxScroll <= 0) {
+        stopFrame();
+        return;
+      }
+
+      // Delta anormalement grand (onglet suspendu, throttling navigateur) :
+      // rebase le leg courant plutôt que de laisser la progression sauter
+      // directement à 1 — sans ce garde-fou, la prochaine frame
+      // téléporterait le ruban à l'extrémité au lieu d'y glisser doucement.
+      if (lastTickTimestamp !== null && timestamp - lastTickTimestamp > ABNORMAL_DELTA_MS) {
+        leg = null;
+      }
+      lastTickTimestamp = timestamp;
+
+      if (leg === null) {
+        // Premier démarrage, reprise après pause hors viewport, ou
+        // rebasage après un delta anormal : toujours depuis la position
+        // réellement affichée à cet instant (jamais une valeur mémorisée
+        // qui pourrait être en décalage), vers la borne actuellement
+        // ciblée, avec une durée proportionnelle à la distance réellement
+        // restante — jamais un aller complet de 18 s pour quelques pixels.
+        const targetEnd = direction === 1 ? maxScroll : 0;
+        leg = resumeLeg(
+          ribbonEl.scrollLeft,
+          targetEnd,
+          maxScroll,
+          timestamp,
+          RIBBON_PASS_DURATION_MS,
+        );
+      }
+
+      const rawProgress = computeLegProgress(leg, timestamp);
+      // Valeur décimale affectée directement, jamais arrondie : la
+      // trajectoire reste déterministe et indépendante du taux de
+      // rafraîchissement réel de l'écran.
+      ribbonEl.scrollLeft = computeLegPosition(leg, rawProgress);
+
+      if (rawProgress >= 1) {
+        // Borne atteinte : la position venant d'être écrite vaut déjà très
+        // exactement `leg.end` (easeInOutSine(1) = 1) — le nouveau leg
+        // repart de cette même valeur, sans saut, direction inversée.
+        direction = direction === 1 ? -1 : 1;
+        leg = nextFullLeg(leg, maxScroll, timestamp, RIBBON_PASS_DURATION_MS);
+      }
+
+      frameId = window.requestAnimationFrame(tick);
+    }
+
+    function startFrame(): void {
+      if (frameId !== null || !shouldAnimate()) return;
+      leg = null;
+      lastTickTimestamp = null;
+      frameId = window.requestAnimationFrame(tick);
+    }
+
+    // Focus clavier : arrête définitivement l'auto-défilement (comme toute
+    // interaction réelle) et fait entrer entièrement le bouton ciblé dans
+    // la zone visible, sans mouvement agressif — jamais de `smooth` si
+    // prefers-reduced-motion est actif.
+    ribbonEl.addEventListener('focusin', (event) => {
+      stopForever();
+      const target = event.target;
+      if (target instanceof HTMLElement && target.classList.contains('hero__trade')) {
+        target.scrollIntoView({
+          behavior: reducedMotionQuery.matches ? 'auto' : 'smooth',
+          block: 'nearest',
+          inline: 'nearest',
+        });
+      }
+    });
+
+    ribbonEl.addEventListener('pointerdown', stopForever, { passive: true });
+    ribbonEl.addEventListener('touchstart', stopForever, { passive: true });
+    ribbonEl.addEventListener('wheel', stopForever, { passive: true });
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            isInViewport = entry.isIntersecting;
+          }
+          if (isInViewport) {
+            startFrame();
+          } else {
+            stopFrame();
+          }
+        },
+        { threshold: 0.1 },
+      );
+      observer.observe(heroSection);
+    } else {
+      // Repli raisonnable sans IntersectionObserver : le Hero est presque
+      // toujours le tout premier écran, donc déjà visible au chargement.
+      isInViewport = true;
+      startFrame();
+    }
+
+    mobileQuery.addEventListener('change', () => {
+      if (mobileQuery.matches) {
+        startFrame();
+      } else {
+        stopFrame();
+      }
+    });
+  }
+</script>
 
 <style>
   /*
@@ -349,6 +600,200 @@ const googleAccessibleLabel = `${googleReviewSummary.label}, note de ${googleRat
   @media (max-width: 47.9375rem) {
     .hero__message {
       transform: none;
+      /*
+       * Mini-sprint 4, mission 1 (02/09/2026) : le padding-top hérité du
+       * clamp desktop (2.5rem–4rem, piloté par 5vh) créait un écart
+       * ruban → H1 mesuré entre 40px et 87px selon le format — bien
+       * au-dessus de la cible 14–20px demandée. `.hero__message` est le
+       * seul responsable de cet écart : aucun `gap`/`row-gap` sur
+       * `.hero__container` (grille à 2 tracks depuis le mini-sprint 3) et
+       * aucun `margin-top` propre au H1 ne s'y ajoute. Seul `padding-top`
+       * est réduit ici (remplace la composante haute du raccourci
+       * `padding-block` ci-dessus, sans toucher `padding-bottom` qui reste
+       * la respiration avant la fin du Hero, cible inchangée par cette
+       * mission). 16px : valeur ronde au milieu de la plage 14–20px.
+       *
+       * `align-self: start` (au lieu du `center` hérité du desktop) est
+       * nécessaire en plus du padding-top : `.hero__message` vit dans la
+       * 2ᵉ rangée de la grille (`minmax(0, 1fr)`), et un centrage vertical
+       * répartit tout espace restant pour moitié AU-DESSUS du bloc — sur
+       * mobile, plus le viewport est haut, plus cette moitié grandit et
+       * s'ajoute au padding-top fixe (mesuré jusqu'à 103px d'écart ruban →
+       * H1 à 412×915 avec `center`, contre 16px visé). `align-self: start`
+       * ancre le bloc juste sous le ruban : l'écart devient alors
+       * uniquement `padding-top` (16px), constant quel que soit la hauteur
+       * du viewport, et tout l'espace restant s'accumule proprement en bas
+       * (avant la fin du Hero) plutôt qu'en haut.
+       */
+      align-self: start;
+      padding-top: 16px;
+    }
+
+    /*
+     * Cadrage dédié à la photo mobile (mini-sprint 2, 02/09/2026) :
+     * composition différente de l'image desktop (technicien à droite,
+     * visage et marquage « Belkhir Dépannage » dans le tiers supérieur,
+     * caisse à outils plus bas) — le `center 38%` desktop ne convient pas.
+     * Cette règle ne s'applique qu'au <source> mobile du <picture> ;
+     * l'image desktop et son object-position restent inchangés au-dessus
+     * de ce breakpoint.
+     */
+    .hero__bg {
+      object-position: 75% 22%;
+    }
+
+    /*
+     * Micro-correction luminosité (02/09/2026,
+     * PROMPT_CLAUDE_CODE_MICRO_CORRECTION_LUMINOSITE_HERO_MOBILE.txt) :
+     * l'overlay hérité du desktop (ci-dessus) ne varie que verticalement —
+     * à hauteur du visage du technicien (mesuré à ~22 % du cadrage image,
+     * soit environ 30–45 % de la hauteur du Hero selon le format), il
+     * applique déjà une opacité mesurée ~0,45–0,55, cumulée à une photo de
+     * nuit intrinsèquement sombre : le résultat lit comme une texture
+     * plutôt qu'une scène. Corrigé ici par une redistribution directionnelle
+     * en 4 couches (jamais un simple assombrissement/éclaircissement
+     * uniforme), strictement scopée à ce breakpoint — le desktop garde le
+     * dégradé d'origine, inchangé, au-dessus de 47.9375rem.
+     *
+     * Couches (dans l'ordre CSS, la première étant peinte au-dessus) :
+     *  1. Renfort bas (vertical, uniforme en largeur) : restaure la
+     *     protection de la zone description/preuve Google/CTA quasiment au
+     *     niveau d'origine, quelle que soit la position x — ces éléments
+     *     portent de toute façon leur propre fond (badge en verre fumé,
+     *     bouton plein), donc peu sensibles à l'image sous-jacente, mais on
+     *     évite toute perte de contraste résiduelle.
+     *  2. Renfort gauche (horizontal, uniforme en hauteur, transparent dès
+     *     58 % de la largeur) : restaure la protection du ruban, du H1 et
+     *     du paragraphe sur leur portion gauche — jamais éclaircie plus que
+     *     l'original.
+     *  3. Halo orange existant, repris à l'identique (aucune nouvelle
+     *     valeur, aucun halo ajouté) : conserve la lumière chaude déjà
+     *     présente dans la direction artistique.
+     *  4. Base verticale (remplace le dégradé desktop) : mêmes trois
+     *     paliers, opacités réduites d'environ 15 points de pourcentage
+     *     chacun. Combinée à l'absence de renfort au-delà de 58 % de
+     *     largeur, la zone haute-droite (visage, épaule, tenue, lumière de
+     *     l'entrée) gagne ainsi ~15 à 20 points d'opacité en moins par
+     *     rapport à l'état précédent, sans qu'aucune valeur ne dépasse
+     *     l'original ailleurs (mesures avant/après dans le rapport de
+     *     mission).
+     *
+     * Aucun `filter`/`brightness()` : la superposition de gradients suffit
+     * à atteindre la cible sans recourir au levier de secours mentionné par
+     * le prompt de mission.
+     */
+    .hero__overlay {
+      background:
+        linear-gradient(0deg, rgba(9, 10, 14, 0.22) 0%, transparent 32%),
+        linear-gradient(
+          90deg,
+          rgba(9, 10, 14, 0.22) 0%,
+          rgba(9, 10, 14, 0.08) 40%,
+          transparent 58%
+        ),
+        radial-gradient(60% 55% at 78% 8%, rgba(255, 105, 0, 0.35), transparent 70%),
+        linear-gradient(
+          0deg,
+          rgba(9, 10, 14, 0.78) 0%,
+          rgba(9, 10, 14, 0.55) 42%,
+          rgba(9, 10, 14, 0.22) 100%
+        );
+    }
+
+    /*
+     * Mini-sprint 3 (02/09/2026) : accroche orange masquée sur mobile
+     * uniquement — l'information (urgence · région · 24h/24 · 7j/7) est
+     * déjà donnée par la bande de disponibilité tout en haut de page et par
+     * le titre principal juste en dessous ; la répétir ici ne faisait que
+     * consommer de la hauteur. `display: none` (jamais un simple
+     * `visibility`/`opacity`) : retiré du rendu ET de l'arbre
+     * d'accessibilité, donc plus annoncé par un lecteur d'écran. Reste dans
+     * le DOM pour la version desktop/tablette large, strictement
+     * inchangée au-dessus de ce breakpoint.
+     *
+     * `.hero__container` ne compte donc plus que 2 enfants visibles
+     * (métiers, groupe éditorial) au lieu de 3 : sans ajuster
+     * `grid-template-rows`, le 3ᵉ track (minmax(0, 1fr)) resterait défini
+     * mais vide, et absorberait tout l'espace libéré par l'accroche à la
+     * place de le supprimer réellement (aucun élément ne s'y placerait plus
+     * automatiquement). Le ramener à 2 tracks fait remonter les métiers
+     * dans la 1ʳᵉ rangée (auto) et rend au groupe éditorial son centrage
+     * dans la 2ᵉ (minmax(0, 1fr)), exactement comme avant pour ces deux
+     * éléments — aucun vide résiduel.
+     */
+    .hero__eyebrow {
+      display: none;
+    }
+
+    .hero__container {
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    /*
+     * Ruban horizontal des métiers (mini-sprint 3) : la grille 5 colonnes
+     * desktop devient un conteneur à défilement horizontal natif, une
+     * seule ligne. `display: flex` neutralise sans les toucher les
+     * `grid-template-columns` hérités des breakpoints plus étroits
+     * (64rem/30rem/23rem, laissés inchangés plus bas dans ce fichier pour
+     * ne pas retoucher du CSS qui reste correct au-dessus de 47.9375rem) :
+     * cette propriété n'a plus aucun effet sur un conteneur qui n'est plus
+     * `display: grid`. `scroll-behavior: auto` (et non `smooth`, hérité
+     * sinon de `html` dans global.css) est nécessaire pour que le
+     * défilement automatique piloté en JavaScript (voir le <script>
+     * ci-dessus) écrive directement `scrollLeft` sans que chaque image
+     * ne déclenche sa propre animation de lissage concurrente.
+     */
+    .hero__trades {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-behavior: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      /* Aperçu naturel du bouton suivant : les 5 boutons à taille fixe ne
+         remplissent jamais exactement une largeur d'écran, un léger
+         padding droit garantit qu'il en reste toujours un peu visible au
+         repos, quelle que soit la largeur réelle. */
+      padding-right: 2.5rem;
+    }
+
+    .hero__trades::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hero__trade {
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+
+    /*
+     * Mini-sprint 4, mission 4 (02/09/2026) : protection contre la barre
+     * d'appel fixe (`MobileCallBar.astro`, `position: fixed`, visible sous
+     * 64rem). Elle recouvre le bas du viewport à N'IMPORTE QUELLE position
+     * de scroll — le `padding-bottom` déjà posé sur `body.has-mobile-call-bar`
+     * (voir BaseLayout.astro) ne réserve de l'espace qu'à la toute fin du
+     * document et ne protège donc pas le premier écran du Hero. Réutilise
+     * le token existant `--mobile-callbar-height` (70px, mesuré à 390px,
+     * incluant déjà son propre `env(safe-area-inset-bottom)` — voir
+     * tokens.css, à ne jamais additionner une seconde fois ici) plutôt que
+     * de définir une nouvelle valeur. `env(safe-area-inset-bottom)` est
+     * quand même réappliqué ici : c'est la marge de sécurité du BAS DU
+     * VIEWPORT (zone gestuelle de l'appareil), un besoin distinct de celui
+     * déjà couvert par le token pour la hauteur propre de la barre.
+     * + 16px de respiration pour que la preuve Google se termine
+     * confortablement au-dessus du bord supérieur de la barre plutôt que
+     * pile à son contact.
+     */
+    .hero__container {
+      min-height: calc(
+        100vh - var(--header-total-height) - var(--mobile-callbar-height) -
+          env(safe-area-inset-bottom) - 16px
+      );
+      min-height: calc(
+        100svh - var(--header-total-height) - var(--mobile-callbar-height) -
+          env(safe-area-inset-bottom) - 16px
+      );
     }
   }
 
@@ -399,6 +844,36 @@ const googleAccessibleLabel = `${googleReviewSummary.label}, note de ${googleRat
   }
 
   /*
+   * Mini-sprint 4, mission 2 (02/09/2026) : description mobile concise.
+   * Les DEUX variantes (`--full` et `--short`) partagent la classe
+   * `.hero__lead` ci-dessus (taille, couleur, marge, largeur max
+   * identiques) et sont toutes les deux rendues côté serveur — jamais un
+   * texte tronqué en CSS, jamais une variante injectée en JS après coup
+   * (aucun FOUC, aucune dépendance JS pour un contenu éditorial). `display:
+   * none` (jamais `visibility`/`opacity`) retire la variante inactive du
+   * rendu ET de l'arbre d'accessibilité sur chaque breakpoint : une seule
+   * des deux est donc jamais annoncée par un lecteur d'écran, quel que soit
+   * le viewport. Desktop/tablette large : la version longue existante,
+   * strictement inchangée. Mobile : la version courte, avec un
+   * `line-height` propre (1.5, hors de la fourchette desktop 1.65) pour
+   * rester dans la plage 1.4–1.55 demandée à cette taille de texte.
+   */
+  .hero__lead--short {
+    display: none;
+  }
+
+  @media (max-width: 47.9375rem) {
+    .hero__lead--full {
+      display: none;
+    }
+
+    .hero__lead--short {
+      display: block;
+      line-height: 1.5;
+    }
+  }
+
+  /*
    * Ligne de conversion (retouche 04, section 9 du prompt) : un bouton de
    * devis unique et un badge de confiance Google, alignés à gauche,
    * horizontaux tant que l'espace le permet (`flex-wrap` gère les cas
@@ -412,6 +887,30 @@ const googleAccessibleLabel = `${googleReviewSummary.label}, note de ${googleRat
     align-items: center;
     /* Cible 16–20px. */
     gap: clamp(1rem, 0.9rem + 0.3vw, 1.25rem);
+  }
+
+  /*
+   * Mini-sprint 4, mission 3 (02/09/2026) : le DOM place désormais la
+   * preuve Google avant le CTA (voir le template) afin que l'ordre visuel
+   * mobile empilé corresponde à l'ordre du DOM/clavier, comme demandé par
+   * le prompt de mission (« structure HTML logique plutôt qu'un `order`
+   * CSS qui créerait une lecture assistive incohérente »). Sous 767.9375px
+   * (mobile), aucun `order` n'est posé : les deux restent à `order: 0`
+   * (valeur par défaut) et se départagent donc par le DOM, dans l'ordre
+   * voulu. À partir de 48rem (768px, le complément exact et non
+   * chevauchant du breakpoint mobile 47.9375rem), `order` restaure
+   * uniquement l'agencement VISUEL d'origine (CTA à gauche, preuve à
+   * droite) sans toucher au DOM ni à l'ordre de tabulation sur ces
+   * gabarits, non couverts par l'exigence du prompt.
+   */
+  @media (min-width: 48rem) {
+    .hero__quote-cta {
+      order: 0;
+    }
+
+    .hero__google-proof {
+      order: 1;
+    }
   }
 
   .hero__quote-cta {
@@ -515,6 +1014,70 @@ const googleAccessibleLabel = `${googleReviewSummary.label}, note de ${googleRat
        est un élément de marque plutôt qu'une notation Google. */
     color: #ffb400;
     fill: #ffb400;
+    /*
+     * Vague fluide (02/09/2026,
+     * PROMPT_CLAUDE_CODE_ANIMATION_VAGUE_ETOILES_GOOGLE.txt) : chaque
+     * étoile est déjà un élément séparé (5 <Icon> distincts, voir le
+     * template) — aucune restructuration de balisage nécessaire, la
+     * consigne de transformation « chaîne unique → 5 spans » ne
+     * s'applique pas ici. `display: inline-block` + `transform-origin:
+     * center` pour un agrandissement propre sans affecter le flux ; seul
+     * `transform` est animé (jamais `width`/`height`/`font-size`), donc
+     * aucun recalcul de mise en page, aucun layout shift, taille/position
+     * de la carte Google inchangées.
+     */
+    display: inline-block;
+    transform-origin: center;
+    animation: google-star-wave 5s cubic-bezier(0.34, 1.2, 0.64, 1) infinite;
+  }
+
+  /* Décalage progressif de 130ms par étoile (gauche → droite), via
+     nth-child plutôt qu'une variable d'index : 5 éléments fixes, jamais
+     générés dynamiquement en nombre variable. */
+  .hero__google-proof-star:nth-child(1) {
+    animation-delay: 0ms;
+  }
+
+  .hero__google-proof-star:nth-child(2) {
+    animation-delay: 130ms;
+  }
+
+  .hero__google-proof-star:nth-child(3) {
+    animation-delay: 260ms;
+  }
+
+  .hero__google-proof-star:nth-child(4) {
+    animation-delay: 390ms;
+  }
+
+  .hero__google-proof-star:nth-child(5) {
+    animation-delay: 520ms;
+  }
+
+  /* Keyframes reprises telles que recommandées par le prompt de mission.
+     Chaque étoile boucle sur son propre cycle de montée/descente en
+     27 % de 5s ≈ 1,35s après son propre départ (0 %→16 % immobile,
+     21 % pic à scale(1.35), 27 %→100 % retour puis silence). Avec le
+     décalage de 130ms par étoile, la dernière étoile termine son propre
+     mouvement vers 520ms + 1,35s ≈ 1,87s après le début du cycle — au-delà
+     de la fourchette « 1 à 1,2s » donnée en indication, mais un contrôle
+     visuel confirme un effet cohérent et fluide (voir compte rendu) ; les
+     étoiles restent ensuite parfaitement statiques jusqu'au prochain cycle
+     à 5s, conformément à la chorégraphie demandée. */
+  @keyframes google-star-wave {
+    0%,
+    16% {
+      transform: scale(1);
+    }
+
+    21% {
+      transform: scale(1.35);
+    }
+
+    27%,
+    100% {
+      transform: scale(1);
+    }
   }
 
   .hero__google-proof-rating {
@@ -527,12 +1090,63 @@ const googleAccessibleLabel = `${googleReviewSummary.label}, note de ${googleRat
     color: var(--color-gray-100);
   }
 
+  /*
+   * Mini-sprint 4, mission 3 (02/09/2026) : variante mobile compacte de la
+   * preuve Google. Desktop conserve la structure à 2 lignes existante
+   * (étoiles + note, puis « Excellent · 277 avis Google » en dessous,
+   * strictement inchangée). Mobile condense sur une seule ligne (repliable
+   * en 2 si l'espace manque, via `flex-wrap` sur `.hero__google-proof-top`)
+   * — étoiles, note, puis « — 277 avis Google » sans reprendre
+   * « Excellent » ni le point médian, pour rester compact. Aucune nouvelle
+   * note ni nouveau nombre d'avis : mêmes données (`googleReviewSummary`)
+   * que la variante longue. `.hero__google-proof-meta--short` porte
+   * `aria-hidden="true"` dans le template : le lien parent porte déjà un
+   * `aria-label` complet, qui prime sur tout texte interne pour le nom
+   * accessible — donc jamais une double annonce, qu'il y ait une ou deux
+   * variantes de texte visible à l'intérieur.
+   */
+  .hero__google-proof-meta--short {
+    display: none;
+  }
+
+  @media (max-width: 47.9375rem) {
+    .hero__google-proof-top {
+      flex-wrap: wrap;
+      row-gap: 0.2rem;
+    }
+
+    .hero__google-proof-meta--full {
+      display: none;
+    }
+
+    .hero__google-proof-meta--short {
+      display: inline;
+      font-size: 0.78rem;
+      color: var(--color-gray-100);
+    }
+
+    /* Une seule ligne de texte au lieu de deux : le badge peut redevenir
+       compact (cible 44–56px de hauteur totale) sans changer son fond, sa
+       bordure ni son contraste. 44px = plancher également requis pour la
+       cible tactile. */
+    .hero__google-proof {
+      min-height: 44px;
+      padding: 0.55rem 0.9rem;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .hero__quote-cta:hover,
     .hero__quote-cta:focus-visible,
     .hero__google-proof:hover,
     .hero__google-proof:focus-visible {
       transform: none;
+    }
+
+    /* Vague des étoiles Google : aucune animation, les 5 étoiles restent
+       parfaitement statiques à scale(1). */
+    .hero__google-proof-star {
+      animation: none;
     }
   }
 

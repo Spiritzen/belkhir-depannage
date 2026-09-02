@@ -175,7 +175,15 @@ describe('refonte « wahou » — EmergencySelector', () => {
     const heroEnd = pageHtml.indexOf('id="accueil"');
     expect(heroEnd).toBeGreaterThan(-1);
     const heroSectionEnd = pageHtml.indexOf('</section>', heroEnd) + '</section>'.length;
-    const remainder = pageHtml.slice(heroSectionEnd).trimStart();
+    // Mini-sprint 3 (02/09/2026) : Hero.astro porte désormais un <script>
+    // de composant (ruban horizontal des métiers) rendu inline juste après
+    // </section> — Astro ne le hoiste pas dans <head>. On l'ignore ici sans
+    // affaiblir l'intention réelle du test : aucune AUTRE section ne doit
+    // être intercalée avant emergency-selector.
+    const remainder = pageHtml
+      .slice(heroSectionEnd)
+      .trimStart()
+      .replace(/^<script[^>]*>[\s\S]*?<\/script>\s*/, '');
     expect(remainder.startsWith('<section class="emergency-selector"')).toBe(true);
   });
 

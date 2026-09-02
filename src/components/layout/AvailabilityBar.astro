@@ -12,7 +12,7 @@ import { siteConfig } from '../../lib/site-config';
   <div class="container availability-bar__inner">
     <p class="availability-bar__item">
       <span class="availability-bar__dot" aria-hidden="true"></span>
-      Dépannage d’urgence 24h/24 · 7j/7
+      <span class="availability-bar__label">Dépannage d’urgence 24h/24 · 7j/7</span>
     </p>
     <p class="availability-bar__item availability-bar__region">{siteConfig.region}</p>
   </div>
@@ -41,12 +41,43 @@ import { siteConfig } from '../../lib/site-config';
     display: flex;
     align-items: center;
     gap: 0.4rem;
+  }
+
+  /*
+   * Micro-animation pulsation (02/09/2026,
+   * PROMPT_CLAUDE_CODE_MICRO_ANIMATION_POINT_DISPONIBILITE.txt) : la
+   * troncature (`overflow: hidden` + `text-overflow: ellipsis` +
+   * `white-space: nowrap`) vivait auparavant sur `.availability-bar__item`
+   * lui-même. Le point (premier enfant du flex) est alors collé au bord
+   * gauche de CETTE boîte — un halo qui déborde du point, même de
+   * quelques pixels, y serait immédiatement rogné par ce même
+   * `overflow: hidden`. Les trois propriétés sont donc déplacées ici, sur
+   * un nouveau `<span class="availability-bar__label">` qui n'entoure QUE
+   * le texte (jamais le point) : la troncature du libellé reste strictement
+   * identique à avant (même élément visuellement, même comportement en cas
+   * de rétrécissement), tandis que `.availability-bar__item` redevient
+   * `overflow: visible`, laissant le halo se peindre sans être coupé. Ce
+   * nouveau nœud n'est pas décoratif : il est fonctionnellement nécessaire
+   * pour restaurer la troncature à cet endroit précis une fois
+   * `overflow: hidden` retiré de son parent — un pseudo-élément seul ne
+   * pouvait pas résoudre ce conflit.
+   */
+  .availability-bar__label {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
+  /*
+   * `position: relative` autorisé explicitement par le prompt de mission
+   * pour porter le halo (`::after`) sans altérer l'alignement, la boîte ou
+   * la hauteur de ligne du point : un élément `position: relative` sans
+   * changement de `top`/`left`/`right`/`bottom` reste exactement à sa
+   * position statique d'origine dans le flux — seul son enfant absolu en
+   * est affecté.
+   */
   .availability-bar__dot {
+    position: relative;
     width: 0.45rem;
     height: 0.45rem;
     border-radius: 50%;
@@ -54,8 +85,86 @@ import { siteConfig } from '../../lib/site-config';
     flex-shrink: 0;
   }
 
+  /*
+   * Halo de pulsation, purement décoratif (le point porte déjà
+   * `aria-hidden="true"`, donc son `::after` généré est lui aussi hors de
+   * l'arbre d'accessibilité — aucun attribut ARIA supplémentaire requis).
+   * `width`/`height: 100%` == le diamètre du point lui-même à `scale(1)` :
+   * une échelle finale de 2.6 donne donc un halo d'environ 2,6× le diamètre
+   * du point, dans la cible « 2,5 à 3 fois » du prompt. Centré via
+   * `top/left: 50%` + `translate(-50%, -50%)` (jamais de décalage en
+   * pixels fixes, qui dériverait si la taille du point changeait).
+   * `pointer-events: none` : purement visuel, jamais interactif.
+   * `will-change` : justifié ici car l'animation tourne indéfiniment
+   * (`infinite`) sur toute la durée de vie de la page — un indice de
+   * compositing persistant pour un élément qui anime en continu.
+   */
+  .availability-bar__dot::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--color-orange-500);
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation: availability-pulse 1s cubic-bezier(0.2, 0.7, 0.2, 1) infinite;
+  }
+
+  /*
+   * Correction chirurgicale (02/09/2026,
+   * PROMPT_CLAUDE_CODE_CORRECTION_PULSATION_VISIBLE_POINT_DISPONIBILITE.txt
+   * puis message de suivi du même jour) : le renforcement précédent
+   * (pic à scale(4.8), ~34,5px) était jugé excessif après contrôle visuel.
+   * Valeurs resserrées à un compromis entre l'original imperceptible
+   * (18,7px) et le renforcement excessif (34,5px) : pic à scale(3.7) — pour
+   * un point de 7,1875px (0.45rem) mesuré en navigateur, cela donne un halo
+   * d'environ 26,6px de diamètre. Le point central lui-même n'est jamais
+   * animé : seul ce pseudo-élément séparé bouge, le point réel reste net et
+   * immobile en toute circonstance.
+   */
+  @keyframes availability-pulse {
+    0% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0.78;
+      filter: blur(0);
+    }
+    18% {
+      transform: translate(-50%, -50%) scale(1.55);
+      opacity: 0.62;
+      filter: blur(0.2px);
+    }
+    55% {
+      transform: translate(-50%, -50%) scale(2.6);
+      opacity: 0.3;
+      filter: blur(0.8px);
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(3.7);
+      opacity: 0;
+      filter: blur(1.8px);
+    }
+  }
+
+  /*
+   * Respect strict de prefers-reduced-motion : animation totalement
+   * désactivée (jamais remplacée par un clignotement), halo figé à opacité
+   * 0 — le point central orange reste seul, net et statique.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .availability-bar__dot::after {
+      animation: none;
+      opacity: 0;
+    }
+  }
+
   .availability-bar__region {
     color: var(--color-gray-300);
     font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 </style>

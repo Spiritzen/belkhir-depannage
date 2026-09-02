@@ -58,8 +58,14 @@ describe('suppression de QuickAnswers', () => {
     const heroSectionEnd = pageHtml.indexOf('</section>', heroEnd) + '</section>'.length;
     // The very next tag after the hero's closing </section> must open the
     // emergency selector section directly — no QuickAnswers or any other
-    // section wedged in between.
-    const remainder = pageHtml.slice(heroSectionEnd).trimStart();
+    // section wedged in between. Mini-sprint 3 (02/09/2026): Hero.astro now
+    // renders an inline component <script> (mobile trades ribbon) right
+    // after </section> — Astro does not hoist it into <head> — stripped
+    // here without weakening the real intent of this check.
+    const remainder = pageHtml
+      .slice(heroSectionEnd)
+      .trimStart()
+      .replace(/^<script[^>]*>[\s\S]*?<\/script>\s*/, '');
     expect(remainder.startsWith('<section class="emergency-selector"')).toBe(true);
     expect(remainder).toContain('id="depannages"');
   });
