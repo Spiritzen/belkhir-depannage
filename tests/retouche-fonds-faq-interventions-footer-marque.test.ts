@@ -114,9 +114,12 @@ describe('micro-retouche — signature de marque orange dans le footer', () => {
     const footerHtml = pageHtml.match(/<footer[\s\S]*?<\/footer>/)?.[0] ?? '';
     // Micro-correction « navigation depuis les pages métiers » (03/09/2026) :
     // le href est désormais préfixé par `base` (voir src/data/landing.ts,
-    // `homeHref`) — l'ancre elle-même (#accueil) reste inchangée.
+    // `homeHref`). CORRECTION P0 (DOUBLE CORRECTION P0 — DIALOG FERMÉ ET
+    // RETOUR RÉEL EN HAUT DE PAGE, 04/09/2026) : l'ancre elle-même est
+    // passée de `#accueil` (id du Hero, sous le bandeau/la navbar) à `#top`
+    // (sommet réel du document, porté par <body> dans BaseLayout.astro).
     const linkMatch = footerHtml.match(
-      /<a href="[^"]*#accueil" class="footer__brand-link"[^>]*>[\s\S]*?<\/a>/,
+      /<a href="[^"]*#top" class="footer__brand-link"[^>]*>[\s\S]*?<\/a>/,
     );
     expect(linkMatch).not.toBeNull();
     const visibleText = (linkMatch?.[0] ?? '')

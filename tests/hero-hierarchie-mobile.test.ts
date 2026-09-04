@@ -256,16 +256,24 @@ describe('non-régression — pas de nouvelle dépendance, un seul nouveau point
     expect(uniqueQueries.has('@media (min-width: 48rem)')).toBe(true);
   });
 
-  it('25. no import was added to Hero.astro (no new runtime dependency)', () => {
+  it('25. no import was added to Hero.astro (no new runtime dependency) — one import was removed by a later, explicit micro-sprint', () => {
+    // Micro-correction « remplacement de l'image du Hero desktop »
+    // (04/09/2026, PROMPT_CLAUDE_CODE_MICRO_CORRECTION_HERO_DESKTOP_IMAGE.txt) :
+    // même import unique d'image desktop, chemin mis à jour vers la nouvelle
+    // photo de marque. MICRO-SPRINT « modale demande de devis » (même jour,
+    // PROMPT_CLAUDE_CODE_MICRO_SPRINT_MODALE_DEVIS.txt) : `getPhoneCta`
+    // n'est plus utilisé par ce fichier — le bouton de devis ouvre
+    // désormais la modale partagée au lieu d'appeler la ligne standard (voir
+    // tests/hero-retouche-04.test.ts, tests 5-8) — toujours aucun NOUVEL
+    // import ajouté.
     const importLines = heroSource.match(/^import .+$/gm) ?? [];
     expect(importLines).toEqual([
       "import { Image, getImage } from 'astro:assets';",
-      "import heroImg from '../../assets/legacy/hero-intervention-urgence.jpg';",
+      "import heroImg from '../../assets/hero/hero-belkhir-depannage-desktop-bd.png';",
       "import heroMobileImg from '../../assets/hero/hero-mobile-technicien-arrivee-belkhir.png';",
       "import Icon from '../ui/Icon.astro';",
       "import { services, type ServiceId, googleReviewSummary } from '../../data/landing';",
       "import { siteConfig } from '../../lib/site-config';",
-      "import { getPhoneCta } from '../../lib/phone';",
     ]);
   });
 

@@ -1,0 +1,604 @@
+---
+/**
+ * Page « Mentions légales » (PROMPT_CLAUDE_CODE_PAGE_MENTIONS_LEGALES.txt,
+ * 04/09/2026). Même niveau de finition que /politique-de-confidentialite/
+ * (coquille commune, tokens de design, alternance abricot/anthracite,
+ * pattern de sections `.legal-section` défini indépendamment ici — jamais
+ * une modification de la page confidentialité, jamais une simple recopie
+ * de son contenu), mais un Hero et un contenu propres à cette page.
+ *
+ * Informations administratives (section 1 du prompt de mission, validées
+ * par le client — jamais reformulées) codées en dur, propres à cette page
+ * légale, plutôt qu'ajoutées à `siteConfig` (hors périmètre : « aucune
+ * modification de la landing »). Seul le médiateur de la consommation
+ * (section H) est lu depuis une petite source dédiée
+ * (`src/data/mediateur-consommation.ts`) pour que sa future confirmation
+ * n'exige jamais de reconstruire cette page.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AvailabilityBar from '../../components/layout/AvailabilityBar.astro';
+import Navbar from '../../components/layout/Navbar.astro';
+import MobileDrawer from '../../components/layout/MobileDrawer.astro';
+import Footer from '../../components/layout/Footer.astro';
+import MobileCallBar from '../../components/layout/MobileCallBar.astro';
+import Hero from '../../components/mentions-legales/Hero.astro';
+import { mediateurConsommation } from '../../data/mediateur-consommation';
+
+const title = 'Mentions légales | Belkhir Dépannage';
+const description =
+  "Éditeur, directeur de la publication et hébergeur du site Belkhir Dépannage : l'ensemble des " +
+  'informations légales confirmées.';
+
+const contactEmail = 'belkhirdepannage@gmail.com';
+const lastUpdated = '4 septembre 2026';
+const privacyHref = `${import.meta.env.BASE_URL}politique-de-confidentialite/`;
+---
+
+<BaseLayout title={title} description={description} path="/mentions-legales/" hasMobileCallBar>
+  <Fragment slot="header">
+    <AvailabilityBar />
+    <Navbar />
+    <MobileDrawer />
+  </Fragment>
+
+  <Hero />
+
+  <!-- SECTION A — Éditeur du site — blanc abricot -->
+  <section class="legal-section legal-section--light" id="editeur" aria-labelledby="editeur-title">
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        ÉDITEUR DU SITE
+      </p>
+      <h2 id="editeur-title">La société BELKHIR DEPANNAGE</h2>
+
+      <dl class="legal-section__identity">
+        <div>
+          <dt>Dénomination sociale</dt>
+          <dd>BELKHIR DEPANNAGE</dd>
+        </div>
+        <div>
+          <dt>Forme juridique</dt>
+          <dd>Société par actions simplifiée unipersonnelle (SASU)</dd>
+        </div>
+        <div>
+          <dt>Capital social</dt>
+          <dd>1 000 €</dd>
+        </div>
+        <div>
+          <dt>Siège social</dt>
+          <dd>13 bis rue du Pont Blanc, 80300 Albert, France</dd>
+        </div>
+        <div>
+          <dt>SIREN</dt>
+          <dd>977 900 216</dd>
+        </div>
+        <div>
+          <dt>SIRET du siège</dt>
+          <dd>977 900 216 00010</dd>
+        </div>
+        <div>
+          <dt>RCS</dt>
+          <dd>Amiens 977 900 216</dd>
+        </div>
+        <div>
+          <dt>TVA intracommunautaire</dt>
+          <dd>FR68 977900216</dd>
+        </div>
+        <div>
+          <dt>E-mail</dt>
+          <dd><a href={`mailto:${contactEmail}`}>{contactEmail}</a></dd>
+        </div>
+        <div>
+          <dt>Téléphone</dt>
+          <dd><a href="tel:+33649621619">06 49 62 16 19</a></dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- SECTION B — Direction de la publication — anthracite -->
+  <section
+    class="legal-section legal-section--dark"
+    id="direction-publication"
+    aria-labelledby="direction-publication-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        DIRECTION DE LA PUBLICATION
+      </p>
+      <h2 id="direction-publication-title">Responsable de la publication</h2>
+
+      <p class="legal-section__text">
+        Le directeur de la publication est <strong>Fouad BELKHIR</strong>, président de BELKHIR
+        DEPANNAGE. Il assume la responsabilité éditoriale des contenus publiés sur ce site au nom de
+        la société — jamais le développeur du site, qui n’intervient qu’en tant que prestataire
+        technique.
+      </p>
+      <p class="legal-section__text">
+        Contact : <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION C — Hébergement — blanc abricot -->
+  <section
+    class="legal-section legal-section--light"
+    id="hebergement"
+    aria-labelledby="hebergement-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        HÉBERGEMENT
+      </p>
+      <h2 id="hebergement-title">Le site est hébergé par GitHub, Inc.</h2>
+
+      <dl class="legal-section__identity legal-section__identity--host">
+        <div>
+          <dt>Hébergeur</dt>
+          <dd>GitHub, Inc.</dd>
+        </div>
+        <div>
+          <dt>Service</dt>
+          <dd>GitHub Pages</dd>
+        </div>
+        <div>
+          <dt>Adresse</dt>
+          <dd>88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis</dd>
+        </div>
+        <div>
+          <dt>Téléphone</dt>
+          <dd>+1 415 735 4488</dd>
+        </div>
+        <div>
+          <dt>Site</dt>
+          <dd>
+            <a href="https://github.com/" target="_blank" rel="noopener noreferrer">
+              github.com<span class="visually-hidden"> (nouvelle fenêtre)</span>
+            </a>
+          </dd>
+        </div>
+      </dl>
+
+      <p class="legal-section__text">
+        Pour le détail du traitement des données techniques par cet hébergeur, se reporter à sa
+        politique de confidentialité :
+        <a
+          href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          politique de confidentialité de GitHub<span class="visually-hidden">
+            (nouvelle fenêtre)</span
+          >
+        </a>. La disponibilité du site dépend également de l’infrastructure de cet hébergeur.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION D — Propriété intellectuelle et attributions — anthracite -->
+  <section
+    class="legal-section legal-section--dark"
+    id="propriete-intellectuelle"
+    aria-labelledby="propriete-intellectuelle-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        PROPRIÉTÉ INTELLECTUELLE ET ATTRIBUTIONS
+      </p>
+      <h2 id="propriete-intellectuelle-title">Contenus, marques et attributions</h2>
+
+      <ul class="legal-section__list">
+        <li>
+          La structure, les textes, éléments graphiques, photographies et composants de ce site sont
+          protégés selon les droits applicables, sauf mention contraire.
+        </li>
+        <li>
+          Aucune reproduction ou réutilisation substantielle n’est autorisée sans accord préalable,
+          hors exceptions prévues par la loi.
+        </li>
+        <li>
+          Les marques, noms et contenus appartenant à des tiers restent la propriété de leurs
+          titulaires respectifs.
+        </li>
+        <li>
+          Une demande d’autorisation peut être adressée à
+          <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.
+        </li>
+      </ul>
+
+      <p class="legal-section__attribution">
+        Cartographie des départements des Hauts-de-France utilisée dans les sections de couverture
+        du site : contours dérivés d’Admin Express (IGN), distribués via le jeu de données ouvert «
+        france-geojson », sous
+        <a
+          href="https://www.etalab.gouv.fr/licence-ouverte-open-licence/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Licence Ouverte / Etalab 2.0<span class="visually-hidden"> (nouvelle fenêtre)</span>
+        </a>.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION E — Responsabilité et utilisation du site — blanc abricot -->
+  <section
+    class="legal-section legal-section--light"
+    id="responsabilite-utilisation"
+    aria-labelledby="responsabilite-utilisation-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        RESPONSABILITÉ ET UTILISATION DU SITE
+      </p>
+      <h2 id="responsabilite-utilisation-title">
+        Ce que vous devez savoir avant d’utiliser ce site
+      </h2>
+
+      <ul class="legal-section__list">
+        <li>Les informations du site sont fournies à titre informatif et peuvent évoluer.</li>
+        <li>Le contenu ne remplace pas un diagnostic réalisé sur place.</li>
+        <li>
+          Les premiers gestes proposés ne doivent jamais conduire une personne à se mettre en danger
+          ou à manipuler une installation risquée.
+        </li>
+        <li>
+          La faisabilité, les conditions et la nature d’une intervention dépendent de la situation
+          réellement constatée.
+        </li>
+        <li>
+          BELKHIR DEPANNAGE met en œuvre des moyens raisonnables pour maintenir des informations
+          accessibles et exactes, sans garantir une disponibilité technique permanente.
+        </li>
+        <li>
+          L’utilisateur reste responsable de son équipement, de sa connexion et de l’usage qu’il
+          fait du site.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SECTION F — Situations de danger et numéros publics — anthracite -->
+  <section
+    class="legal-section legal-section--dark"
+    id="situations-danger"
+    aria-labelledby="situations-danger-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        SITUATIONS DE DANGER ET NUMÉROS PUBLICS
+      </p>
+      <h2 id="situations-danger-title">
+        Les numéros publics ne sont pas ceux de Belkhir Dépannage
+      </h2>
+
+      <ul class="legal-section__list">
+        <li>
+          Les liens vers le 17, le 18 ou le 112 présents sur certaines pages du site redirigent vers
+          les services publics compétents.
+        </li>
+        <li>BELKHIR DEPANNAGE ne se substitue ni aux secours, ni aux forces de l’ordre.</li>
+        <li>
+          En cas de danger immédiat pour les personnes, les consignes des services officiels
+          priment.
+        </li>
+        <li>
+          Ces numéros publics et liens externes sont proposés uniquement pour faciliter
+          l’orientation du visiteur.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SECTION G — Données personnelles et cookies — blanc abricot -->
+  <section
+    class="legal-section legal-section--light"
+    id="donnees-cookies"
+    aria-labelledby="donnees-cookies-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        DONNÉES PERSONNELLES ET COOKIES
+      </p>
+      <h2 id="donnees-cookies-title">En résumé</h2>
+
+      <p class="legal-section__text">
+        Aucun formulaire, cookie publicitaire ou outil de suivi n’est actuellement intégré à ce
+        site. Les modalités détaillées figurent dans la
+        <a href={privacyHref}>politique de confidentialité</a>.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION H — Médiation de la consommation — anthracite -->
+  <section
+    class="legal-section legal-section--dark"
+    id="mediation-consommation"
+    aria-labelledby="mediation-consommation-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        MÉDIATION DE LA CONSOMMATION
+      </p>
+      <h2 id="mediation-consommation-title">Médiateur de la consommation</h2>
+
+      <div class="legal-section__pending" role="note">
+        <p class="legal-section__pending-flag">[RESTE À COMPLÉTER AVANT MISE EN PRODUCTION]</p>
+        <dl class="legal-section__identity legal-section__identity--pending">
+          <div>
+            <dt>Médiateur de la consommation</dt>
+            <dd>{mediateurConsommation?.nom ?? 'à compléter'}</dd>
+          </div>
+          <div>
+            <dt>Adresse</dt>
+            <dd>{mediateurConsommation?.adresse ?? 'à compléter'}</dd>
+          </div>
+          <div>
+            <dt>Site internet</dt>
+            <dd>{mediateurConsommation?.siteInternet ?? 'à compléter'}</dd>
+          </div>
+        </dl>
+        <p class="legal-section__text">
+          Ces informations seront complétées après confirmation par Fouad BELKHIR de l’organisme de
+          médiation de la consommation auquel BELKHIR DEPANNAGE aura adhéré.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION I — Droit applicable, contact et mise à jour — blanc abricot -->
+  <section
+    class="legal-section legal-section--light"
+    id="droit-applicable-contact"
+    aria-labelledby="droit-applicable-contact-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        DROIT APPLICABLE, CONTACT ET MISE À JOUR
+      </p>
+      <h2 id="droit-applicable-contact-title">Droit applicable et contact</h2>
+
+      <ul class="legal-section__list">
+        <li>Le site et les présentes mentions légales sont soumis au droit français.</li>
+        <li>
+          Pour toute question concernant le site ou ses contenus :
+          <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.
+        </li>
+        <li>
+          Ces mentions légales peuvent être actualisées en cas de changement d’hébergeur, de
+          coordonnées ou de situation juridique.
+        </li>
+      </ul>
+
+      <p class="legal-section__updated">Dernière mise à jour : {lastUpdated}.</p>
+    </div>
+  </section>
+
+  <Footer slot="footer" />
+  <MobileCallBar slot="mobile-call-bar" />
+</BaseLayout>
+
+<style>
+  .legal-section {
+    padding-block: clamp(3.25rem, 6vw, 5rem);
+  }
+
+  .legal-section--light {
+    background: radial-gradient(circle at 20% 0%, rgba(255, 105, 0, 0.1), transparent 34%), #fff7f0;
+    color: var(--color-anthracite-900);
+  }
+
+  .legal-section--dark {
+    background:
+      radial-gradient(46% 38% at 85% 15%, rgba(255, 105, 0, 0.09), transparent 72%),
+      radial-gradient(42% 40% at 12% 88%, rgba(255, 105, 0, 0.06), transparent 72%),
+      var(--color-anthracite-950);
+    color: var(--color-white);
+  }
+
+  .legal-section__inner {
+    max-width: 46rem;
+  }
+
+  .legal-section__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--color-brand);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.9rem;
+  }
+
+  .legal-section--dark .legal-section__eyebrow {
+    color: var(--color-orange-500);
+  }
+
+  .legal-section__eyebrow-bar {
+    width: 28px;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+  }
+
+  .legal-section h2 {
+    font-size: clamp(1.4rem, 1.2rem + 0.9vw, 1.8rem);
+    line-height: 1.25;
+    margin: 0 0 1.25rem;
+  }
+
+  .legal-section--light h2 {
+    color: var(--color-anthracite-900);
+  }
+
+  .legal-section--dark h2 {
+    color: var(--color-white);
+  }
+
+  .legal-section__text {
+    font-size: 1rem;
+    line-height: 1.65;
+    margin: 0 0 1rem;
+  }
+
+  .legal-section--light .legal-section__text {
+    color: var(--color-anthracite-700);
+  }
+
+  .legal-section--dark .legal-section__text {
+    color: var(--color-gray-300);
+  }
+
+  .legal-section__text a,
+  .legal-section__list a,
+  .legal-section__attribution a {
+    color: inherit;
+    text-decoration-color: currentColor;
+    text-underline-offset: 2px;
+  }
+
+  .legal-section__text a:hover,
+  .legal-section__text a:focus-visible,
+  .legal-section__list a:hover,
+  .legal-section__list a:focus-visible,
+  .legal-section__attribution a:hover,
+  .legal-section__attribution a:focus-visible {
+    color: var(--color-orange-600);
+  }
+
+  .legal-section--dark .legal-section__text a:hover,
+  .legal-section--dark .legal-section__text a:focus-visible,
+  .legal-section--dark .legal-section__list a:hover,
+  .legal-section--dark .legal-section__list a:focus-visible {
+    color: var(--color-orange-500);
+  }
+
+  .legal-section__list {
+    margin: 0 0 1rem;
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  .legal-section--light .legal-section__list {
+    color: var(--color-anthracite-700);
+  }
+
+  .legal-section--dark .legal-section__list {
+    color: var(--color-gray-300);
+  }
+
+  .legal-section__attribution {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--color-gray-400);
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* ---------- Identité (dl), réutilisée pour éditeur/hébergeur/médiateur ---------- */
+
+  .legal-section__identity {
+    margin-top: 1.5rem;
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .legal-section__identity > div {
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .legal-section__identity dt {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.25rem;
+  }
+
+  .legal-section--light .legal-section__identity dt {
+    color: var(--color-gray-500);
+  }
+
+  .legal-section__identity dd {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .legal-section--light .legal-section__identity dd {
+    color: var(--color-anthracite-900);
+  }
+
+  .legal-section--light .legal-section__identity dd a {
+    color: var(--color-orange-700);
+  }
+
+  /* ---------- Médiateur — bloc « reste à compléter », volontairement distinct ---------- */
+
+  .legal-section__pending {
+    margin-top: 1.5rem;
+    padding: 1.25rem 1.4rem;
+    border-radius: var(--radius-md);
+    border: 1px dashed rgba(255, 138, 61, 0.55);
+    background: rgba(255, 105, 0, 0.07);
+  }
+
+  .legal-section__pending-flag {
+    margin: 0 0 1rem;
+    font-weight: 800;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+    color: var(--color-orange-500);
+  }
+
+  .legal-section__identity--pending {
+    margin-top: 0;
+  }
+
+  .legal-section__identity--pending > div {
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .legal-section__identity--pending dt {
+    color: var(--color-gray-400);
+  }
+
+  .legal-section__identity--pending dd {
+    color: var(--color-gray-300);
+    font-style: italic;
+    font-weight: 500;
+  }
+
+  .legal-section__pending .legal-section__text {
+    margin-top: 1rem;
+    margin-bottom: 0;
+  }
+
+  .legal-section__updated {
+    font-size: 0.9rem;
+    color: var(--color-anthracite-700);
+    margin: 1.5rem 0 0;
+  }
+
+  @media (max-width: 30rem) {
+    .legal-section__identity {
+      gap: 0.75rem;
+    }
+  }
+</style>

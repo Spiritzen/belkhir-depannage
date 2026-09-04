@@ -1,0 +1,693 @@
+---
+/**
+ * Page « Politique de confidentialité » (PROMPT_CLAUDE_CODE_PAGE_POLITIQUE_
+ * CONFIDENTIALITE.txt, 04/09/2026). Page unique, non reproductible sur
+ * d'autres routes : contrairement aux pages métier, ses neuf sections ne
+ * suivent pas un pattern partagé à répliquer — elles sont donc écrites
+ * directement ici plutôt qu'extraites en composants paramétrables, tout en
+ * réutilisant la coquille commune (BaseLayout + bande de disponibilité +
+ * navbar + tiroir mobile + footer + barre d'appel mobile) et les tokens de
+ * design déjà validés (mêmes dégradés clair/sombre que Coverage.astro et
+ * CoverageSummary.astro).
+ *
+ * Informations administratives (section 1 du prompt de mission, validées
+ * par le client — jamais reformulées) : dénomination, forme juridique,
+ * SIREN/SIRET, RCS, capital social, siège social et adresse de contact sont
+ * codées ici en dur, propres à cette page légale, plutôt qu'ajoutées à
+ * `siteConfig` (hors périmètre de cette mission : « ne modifier aucun...
+ * autre contenu de la landing »).
+ *
+ * Pas de données structurées : ni `WebPage` (aucun schéma de ce type
+ * n'existe dans le projet) ni `BreadcrumbList` (utilitaire disponible dans
+ * `src/lib/seo.ts` mais jamais encore appelé par une page réelle — son
+ * propre commentaire indique qu'il attend « une hiérarchie de navigation
+ * réelle » future). Le prompt de mission n'autorise ces schémas que « si le
+ * pattern du projet les utilise déjà » : ce n'est pas le cas.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AvailabilityBar from '../../components/layout/AvailabilityBar.astro';
+import Navbar from '../../components/layout/Navbar.astro';
+import MobileDrawer from '../../components/layout/MobileDrawer.astro';
+import Footer from '../../components/layout/Footer.astro';
+import MobileCallBar from '../../components/layout/MobileCallBar.astro';
+import Icon from '../../components/ui/Icon.astro';
+import Hero from '../../components/confidentialite/Hero.astro';
+
+const title = 'Politique de confidentialité | Belkhir Dépannage';
+const description =
+  'Belkhir Dépannage ne dépose aucun cookie et ne collecte vos coordonnées via aucun formulaire. ' +
+  'Découvrez comment les informations communiquées par téléphone sont utilisées.';
+
+const contactEmail = 'belkhirdepannage@gmail.com';
+const lastUpdated = '4 septembre 2026';
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  path="/politique-de-confidentialite/"
+  hasMobileCallBar
+>
+  <Fragment slot="header">
+    <AvailabilityBar />
+    <Navbar />
+    <MobileDrawer />
+  </Fragment>
+
+  <Hero />
+
+  <!-- SECTION A — L'essentiel en quelques points — blanc abricot -->
+  <section
+    class="legal-section legal-section--light"
+    id="essentiel"
+    aria-labelledby="essentiel-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        L’ESSENTIEL EN QUELQUES POINTS
+      </p>
+      <h2 id="essentiel-title">Ce qu’il faut retenir avant de lire le détail</h2>
+
+      <ul class="legal-section__list">
+        <li>Le site ne collecte aucune coordonnée par formulaire — il n’en existe aucun.</li>
+        <li>Aucun cookie ni traceur n’est déposé par le site.</li>
+        <li>Aucun profil publicitaire ni suivi de navigation n’est créé.</li>
+        <li>
+          Vos coordonnées ne sont ni vendues, ni louées, ni cédées à des tiers pour leur prospection
+          commerciale.
+        </li>
+        <li>
+          Les renseignements donnés volontairement par téléphone servent seulement à traiter votre
+          demande et organiser la prise en charge — les informations strictement nécessaires peuvent
+          être communiquées à une personne autorisée participant réellement à l’intervention.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SECTION B — Responsable du traitement — anthracite -->
+  <section
+    class="legal-section legal-section--dark"
+    id="responsable-traitement"
+    aria-labelledby="responsable-traitement-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        RESPONSABLE DU TRAITEMENT
+      </p>
+      <h2 id="responsable-traitement-title">La société BELKHIR DEPANNAGE</h2>
+      <p class="legal-section__text">
+        Le responsable du traitement des données décrites dans cette page est la société BELKHIR
+        DEPANNAGE — jamais GitHub, ni le développeur du site.
+      </p>
+
+      <dl class="legal-section__identity">
+        <div>
+          <dt>Dénomination</dt>
+          <dd>BELKHIR DEPANNAGE</dd>
+        </div>
+        <div>
+          <dt>Forme juridique</dt>
+          <dd>Société par actions simplifiée unipersonnelle (SASU)</dd>
+        </div>
+        <div>
+          <dt>Président</dt>
+          <dd>Fouad BELKHIR</dd>
+        </div>
+        <div>
+          <dt>SIREN</dt>
+          <dd>977 900 216</dd>
+        </div>
+        <div>
+          <dt>SIRET du siège</dt>
+          <dd>977 900 216 00010</dd>
+        </div>
+        <div>
+          <dt>RCS</dt>
+          <dd>Amiens 977 900 216</dd>
+        </div>
+        <div>
+          <dt>Capital social</dt>
+          <dd>1 000 €</dd>
+        </div>
+        <div>
+          <dt>Siège social</dt>
+          <dd>13 bis rue du Pont Blanc, 80300 Albert, France</dd>
+        </div>
+        <div>
+          <dt>Contact et exercice des droits</dt>
+          <dd><a href={`mailto:${contactEmail}`}>{contactEmail}</a></dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- SECTION C — Données concernées et origine — blanc abricot -->
+  <section
+    class="legal-section legal-section--light"
+    id="donnees-concernees"
+    aria-labelledby="donnees-concernees-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        DONNÉES CONCERNÉES ET ORIGINE
+      </p>
+      <h2 id="donnees-concernees-title">
+        D’où viennent les informations et lesquelles sont concernées
+      </h2>
+
+      <div class="legal-section__subsection">
+        <h3>1. Navigation sur le site</h3>
+        <ul class="legal-section__list">
+          <li>aucune donnée nominative n’est directement demandée ;</li>
+          <li>aucun formulaire ;</li>
+          <li>aucun compte client ;</li>
+          <li>aucun cookie, <code>localStorage</code> ou <code>sessionStorage</code> ;</li>
+          <li>aucune analyse d’audience ni publicité.</li>
+        </ul>
+      </div>
+
+      <div class="legal-section__subsection">
+        <h3>2. Appel téléphonique volontaire</h3>
+        <ul class="legal-section__list">
+          <li>le clic sur un lien d’appel ouvre seulement le composeur de votre appareil ;</li>
+          <li>le site ne récupère pas votre numéro et n’enregistre pas l’appel ;</li>
+          <li>
+            pendant l’échange, vous pouvez choisir de communiquer votre nom, votre numéro, une
+            adresse d’intervention, la nature de l’urgence et les informations nécessaires à votre
+            prise en charge ;
+          </li>
+          <li>
+            nous ne vous inviterons jamais à transmettre des données sans rapport avec
+            l’intervention.
+          </li>
+        </ul>
+      </div>
+
+      <div class="legal-section__subsection">
+        <h3>3. Données techniques d’hébergement</h3>
+        <p class="legal-section__text">
+          Le site est hébergé sur GitHub Pages. GitHub peut traiter les informations techniques
+          habituelles nécessaires à la diffusion et à la sécurité du service, telles que l’adresse
+          IP, le navigateur, l’URL demandée et l’horodatage. Ces journaux relèvent de
+          l’infrastructure d’hébergement et ne sont pas utilisés par Belkhir Dépannage pour établir
+          un profil commercial. Pour le détail de ce traitement, propre à GitHub, se reporter à sa
+          politique de confidentialité :
+          <a
+            href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            politique de confidentialité de GitHub<span class="visually-hidden">
+              (nouvelle fenêtre)</span
+            >
+          </a>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION D — Finalités et bases juridiques — anthracite -->
+  <section
+    class="legal-section legal-section--dark"
+    id="finalites-bases-legales"
+    aria-labelledby="finalites-bases-legales-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        FINALITÉS ET BASES JURIDIQUES
+      </p>
+      <h2 id="finalites-bases-legales-title">Pourquoi et sur quel fondement</h2>
+
+      <div class="legal-section__table-wrap">
+        <table class="legal-section__table">
+          <thead>
+            <tr>
+              <th scope="col">Finalité</th>
+              <th scope="col">Base juridique</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Comprendre et qualifier une demande d’urgence</td>
+              <td>Mesures précontractuelles prises à la demande de la personne</td>
+            </tr>
+            <tr>
+              <td>Rappeler la personne ou organiser une intervention demandée</td>
+              <td>Mesures précontractuelles ou exécution d’un contrat</td>
+            </tr>
+            <tr>
+              <td>Réaliser et suivre une prestation acceptée</td>
+              <td>Exécution du contrat</td>
+            </tr>
+            <tr>
+              <td>Établir et conserver les documents obligatoires liés à une prestation</td>
+              <td>Obligation légale</td>
+            </tr>
+            <tr>
+              <td>Assurer la disponibilité et la sécurité technique du site</td>
+              <td>Intérêt légitime à disposer d’un site fonctionnel et sécurisé</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION E — Destinataires et absence d'usage commercial — blanc abricot -->
+  <section
+    class="legal-section legal-section--light"
+    id="destinataires"
+    aria-labelledby="destinataires-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        DESTINATAIRES
+      </p>
+      <h2 id="destinataires-title">Qui a accès à vos informations</h2>
+
+      <p class="legal-section__callout">
+        Les coordonnées et informations communiquées ne sont ni vendues, ni louées, ni cédées à des
+        partenaires à des fins de publicité, de démarchage ou de prospection commerciale.
+      </p>
+
+      <p class="legal-section__text">Les destinataires possibles restent limités à :</p>
+      <ul class="legal-section__list">
+        <li>les personnes autorisées au sein de BELKHIR DEPANNAGE ;</li>
+        <li>
+          un intervenant participant réellement à la prise en charge, uniquement pour les
+          informations strictement nécessaires ;
+        </li>
+        <li>
+          les prestataires techniques ou administratifs indispensables, soumis à leurs propres
+          obligations ;
+        </li>
+        <li>les autorités ou services légalement habilités lorsqu’une obligation l’impose.</li>
+      </ul>
+      <p class="legal-section__text">
+        GitHub n’est cité que pour les données techniques liées à l’hébergement du site (voir
+        section « Données concernées et origine »).
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION F — Durées de conservation — anthracite -->
+  <section
+    class="legal-section legal-section--dark"
+    id="duree-conservation"
+    aria-labelledby="duree-conservation-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        DURÉES DE CONSERVATION
+      </p>
+      <h2 id="duree-conservation-title">Combien de temps vos informations sont gardées</h2>
+
+      <ul class="legal-section__list">
+        <li>aucune base de prospects n’est constituée depuis le site ;</li>
+        <li>les appels ne sont pas enregistrés ;</li>
+        <li>
+          les informations données pour une simple demande sont utilisées le temps nécessaire pour y
+          répondre et organiser la prise en charge, sans réutilisation commerciale ultérieure ;
+        </li>
+        <li>
+          lorsqu’une demande aboutit à un devis, une intervention, un contrat ou une facture, seules
+          les données nécessaires aux documents correspondants peuvent être conservées pendant les
+          durées imposées par les obligations légales, comptables ou nécessaires à la défense de
+          droits ;
+        </li>
+        <li>les journaux techniques éventuels sont conservés selon les règles de l’hébergeur.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SECTION G — Cookies et services tiers — blanc abricot -->
+  <section
+    class="legal-section legal-section--light"
+    id="cookies-tiers"
+    aria-labelledby="cookies-tiers-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        COOKIES ET SERVICES TIERS
+      </p>
+      <h2 id="cookies-tiers-title">Aucun traceur à la date de mise à jour</h2>
+
+      <ul class="legal-section__list">
+        <li>aucun cookie ni traceur n’est déposé par le site ;</li>
+        <li>aucun bandeau de consentement n’est donc nécessaire ;</li>
+        <li>
+          aucun Google Analytics, Google Tag Manager, pixel publicitaire, Google Maps embarqué,
+          widget Google Reviews distant, reCAPTCHA ou vidéo externe n’est utilisé ;
+        </li>
+        <li>
+          les avis, cartes géographiques, images, polices et scripts visibles sont servis localement
+          par le site.
+        </li>
+      </ul>
+
+      <p class="legal-section__text">
+        Cette politique sera mise à jour avant l’activation future d’un service susceptible de
+        déposer des traceurs ou de transmettre des données à un tiers.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION H — Droits des personnes — anthracite -->
+  <section
+    class="legal-section legal-section--dark"
+    id="droits-personnes"
+    aria-labelledby="droits-personnes-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        DROITS DES PERSONNES
+      </p>
+      <h2 id="droits-personnes-title">Vos droits sur vos informations</h2>
+
+      <ul class="legal-section__rights">
+        <li><Icon name="check" class="legal-section__rights-icon" /> Droit d’accès</li>
+        <li><Icon name="check" class="legal-section__rights-icon" /> Droit de rectification</li>
+        <li><Icon name="check" class="legal-section__rights-icon" /> Droit à l’effacement</li>
+        <li><Icon name="check" class="legal-section__rights-icon" /> Droit à la limitation</li>
+        <li><Icon name="check" class="legal-section__rights-icon" /> Droit d’opposition</li>
+        <li>
+          <Icon name="check" class="legal-section__rights-icon" /> Droit à la portabilité, lorsque les
+          conditions légales sont réunies
+        </li>
+        <li>
+          <Icon name="check" class="legal-section__rights-icon" /> Droit de retirer un consentement, pour
+          un éventuel traitement futur qui en dépendrait, sans effet rétroactif
+        </li>
+      </ul>
+
+      <div class="legal-section__contact-block">
+        <p class="legal-section__text">Pour exercer ces droits :</p>
+        <ul class="legal-section__list">
+          <li>par e-mail : <a href={`mailto:${contactEmail}`}>{contactEmail}</a> ;</li>
+          <li>par courrier : BELKHIR DEPANNAGE, 13 bis rue du Pont Blanc, 80300 Albert, France.</li>
+        </ul>
+        <p class="legal-section__text">
+          Un justificatif d’identité ne vous sera demandé qu’en cas de doute raisonnable sur votre
+          identité, et uniquement dans la mesure nécessaire.
+        </p>
+        <p class="legal-section__text">
+          Vous disposez également du droit d’adresser une réclamation à la CNIL :
+          <a href="https://www.cnil.fr/fr/plaintes" target="_blank" rel="noopener noreferrer">
+            cnil.fr/fr/plaintes<span class="visually-hidden"> (nouvelle fenêtre)</span>
+          </a>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION I — Sécurité, évolution et contact — blanc abricot -->
+  <section
+    class="legal-section legal-section--light"
+    id="securite-contact"
+    aria-labelledby="securite-contact-title"
+  >
+    <div class="container legal-section__inner">
+      <p class="legal-section__eyebrow">
+        <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
+        SÉCURITÉ, ÉVOLUTION ET CONTACT
+      </p>
+      <h2 id="securite-contact-title">Comment nous protégeons vos informations</h2>
+
+      <ul class="legal-section__list">
+        <li>principe de minimisation : seules les informations nécessaires sont demandées ;</li>
+        <li>accès limité aux personnes qui en ont réellement besoin ;</li>
+        <li>aucune promesse de sécurité absolue ne peut être garantie ;</li>
+        <li>
+          cette politique peut être mise à jour en cas d’évolution du site ou de ses services.
+        </li>
+      </ul>
+
+      <p class="legal-section__updated">Dernière mise à jour : {lastUpdated}.</p>
+
+      <p class="legal-section__closing">
+        Une question sur l’utilisation de vos informations ? Vous pouvez contacter BELKHIR DEPANNAGE
+        à tout moment à <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.
+      </p>
+    </div>
+  </section>
+
+  <Footer slot="footer" />
+  <MobileCallBar slot="mobile-call-bar" />
+</BaseLayout>
+
+<style>
+  .legal-section {
+    padding-block: clamp(3.25rem, 6vw, 5rem);
+  }
+
+  .legal-section--light {
+    background: radial-gradient(circle at 20% 0%, rgba(255, 105, 0, 0.1), transparent 34%), #fff7f0;
+    color: var(--color-anthracite-900);
+  }
+
+  .legal-section--dark {
+    background:
+      radial-gradient(46% 38% at 85% 15%, rgba(255, 105, 0, 0.09), transparent 72%),
+      radial-gradient(42% 40% at 12% 88%, rgba(255, 105, 0, 0.06), transparent 72%),
+      var(--color-anthracite-950);
+    color: var(--color-white);
+  }
+
+  .legal-section__inner {
+    max-width: 46rem;
+  }
+
+  .legal-section__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--color-brand);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.9rem;
+  }
+
+  .legal-section--dark .legal-section__eyebrow {
+    color: var(--color-orange-500);
+  }
+
+  .legal-section__eyebrow-bar {
+    width: 28px;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+  }
+
+  .legal-section h2 {
+    font-size: clamp(1.4rem, 1.2rem + 0.9vw, 1.8rem);
+    line-height: 1.25;
+    margin: 0 0 1.25rem;
+  }
+
+  .legal-section--light h2 {
+    color: var(--color-anthracite-900);
+  }
+
+  .legal-section--dark h2 {
+    color: var(--color-white);
+  }
+
+  .legal-section__subsection {
+    margin-top: 1.75rem;
+  }
+
+  .legal-section__subsection h3 {
+    font-size: 1.05rem;
+    margin: 0 0 0.6rem;
+  }
+
+  .legal-section__text {
+    font-size: 1rem;
+    line-height: 1.65;
+    margin: 0 0 1rem;
+  }
+
+  .legal-section--light .legal-section__text {
+    color: var(--color-anthracite-700);
+  }
+
+  .legal-section--dark .legal-section__text {
+    color: var(--color-gray-300);
+  }
+
+  .legal-section__text a,
+  .legal-section__list a {
+    color: inherit;
+    text-decoration-color: currentColor;
+    text-underline-offset: 2px;
+  }
+
+  .legal-section__text a:hover,
+  .legal-section__text a:focus-visible,
+  .legal-section__list a:hover,
+  .legal-section__list a:focus-visible {
+    color: var(--color-orange-600);
+  }
+
+  .legal-section--dark .legal-section__text a:hover,
+  .legal-section--dark .legal-section__text a:focus-visible,
+  .legal-section--dark .legal-section__list a:hover,
+  .legal-section--dark .legal-section__list a:focus-visible {
+    color: var(--color-orange-500);
+  }
+
+  .legal-section__list {
+    margin: 0 0 1rem;
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  .legal-section--light .legal-section__list {
+    color: var(--color-anthracite-700);
+  }
+
+  .legal-section--dark .legal-section__list {
+    color: var(--color-gray-300);
+  }
+
+  .legal-section__callout {
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.5;
+    padding: 1.1rem 1.25rem;
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--color-orange-500);
+    background: rgba(255, 105, 0, 0.08);
+    color: var(--color-anthracite-900);
+    margin: 0 0 1.5rem;
+  }
+
+  /* ---------- Identité (dl) ---------- */
+
+  .legal-section__identity {
+    margin-top: 1.5rem;
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .legal-section__identity > div {
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .legal-section__identity dt {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-gray-400);
+    margin-bottom: 0.25rem;
+  }
+
+  .legal-section__identity dd {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-white);
+  }
+
+  /* ---------- Tableau finalités/bases légales ---------- */
+
+  .legal-section__table-wrap {
+    overflow-x: auto;
+    margin-top: 1.25rem;
+  }
+
+  .legal-section__table {
+    width: 100%;
+    min-width: 30rem;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+  }
+
+  .legal-section__table th,
+  .legal-section__table td {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    vertical-align: top;
+    color: var(--color-gray-300);
+  }
+
+  .legal-section__table th {
+    color: var(--color-white);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---------- Droits (liste avec coches) ---------- */
+
+  .legal-section__rights {
+    margin: 0 0 1.75rem;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    color: var(--color-gray-300);
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .legal-section__rights-icon {
+    width: 1.05rem;
+    height: 1.05rem;
+    flex-shrink: 0;
+    color: var(--color-orange-500);
+    vertical-align: -0.15em;
+    margin-right: 0.35rem;
+  }
+
+  .legal-section__contact-block {
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .legal-section__updated {
+    font-size: 0.9rem;
+    color: var(--color-anthracite-700);
+    margin: 1.5rem 0 0;
+  }
+
+  .legal-section__closing {
+    margin-top: 0.75rem;
+    padding: 1.1rem 1.25rem;
+    border-radius: var(--radius-md);
+    background: var(--color-white);
+    border: 1px solid rgba(255, 105, 0, 0.16);
+    color: var(--color-anthracite-700);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .legal-section__closing a {
+    color: var(--color-orange-700);
+    font-weight: 600;
+  }
+
+  @media (max-width: 30rem) {
+    .legal-section__identity {
+      gap: 0.75rem;
+    }
+  }
+</style>

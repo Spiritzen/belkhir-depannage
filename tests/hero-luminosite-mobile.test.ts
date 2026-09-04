@@ -96,10 +96,10 @@ describe('overlay mobile — nouvelle redistribution directionnelle, scopée au 
 });
 
 describe('overlay desktop — conservation stricte, aucune fuite du mobile', () => {
-  it('6. the base (desktop) .hero__overlay rule is byte-identical to before this mission', () => {
+  it('6. the base (desktop) .hero__overlay rule matches the lightened values from the later, explicit micro-correction (04/09/2026, PROMPT_CLAUDE_CODE_MICRO_CORRECTION_HERO_DESKTOP_IMAGE.txt) — the mobile-only override (tested above) still lives strictly inside its own media query, untouched by that later change', () => {
     const baseRule = heroSource.match(/\n {2}\.hero__overlay\s*{[^}]*}/)?.[0] ?? '';
     expect(baseRule).toContain(
-      'linear-gradient(\n        0deg,\n        rgba(9, 10, 14, 0.92) 0%,\n        rgba(9, 10, 14, 0.72) 42%,\n        rgba(9, 10, 14, 0.35) 100%\n      ),\n      radial-gradient(60% 55% at 78% 8%, rgba(255, 105, 0, 0.35), transparent 70%);',
+      'linear-gradient(\n        0deg,\n        rgba(9, 10, 14, 0.62) 0%,\n        rgba(9, 10, 14, 0.48) 42%,\n        rgba(9, 10, 14, 0.22) 100%\n      ),\n      radial-gradient(60% 55% at 78% 8%, rgba(255, 105, 0, 0.35), transparent 70%);',
     );
   });
 
@@ -114,9 +114,9 @@ describe('overlay desktop — conservation stricte, aucune fuite du mobile', () 
 });
 
 describe('non-régression — image source, cadrage et structure du Hero (mini-sprint 4) inchangés', () => {
-  it('8. no change to the image source files or their import paths', () => {
+  it('8. the mobile image source and its import path are untouched — the desktop source was intentionally swapped by a later, explicit micro-correction (04/09/2026, PROMPT_CLAUDE_CODE_MICRO_CORRECTION_HERO_DESKTOP_IMAGE.txt)', () => {
     expect(heroSource).toContain(
-      "import heroImg from '../../assets/legacy/hero-intervention-urgence.jpg';",
+      "import heroImg from '../../assets/hero/hero-belkhir-depannage-desktop-bd.png';",
     );
     expect(heroSource).toContain(
       "import heroMobileImg from '../../assets/hero/hero-mobile-technicien-arrivee-belkhir.png';",
@@ -130,9 +130,9 @@ describe('non-régression — image source, cadrage et structure du Hero (mini-s
     expect(mobileBlock).toMatch(/\.hero__bg\s*{\s*object-position:\s*75% 22%;\s*}/);
   });
 
-  it('10. the desktop base object-position is untouched', () => {
+  it("10. the desktop base object-position matches the new photo's cadrage (micro-correction du 04/09/2026), mobile stays untouched (see test 9)", () => {
     const baseRule = heroSource.match(/\.hero__bg\s*{[^}]*}/)?.[0] ?? '';
-    expect(baseRule).toContain('object-position: center 38%');
+    expect(baseRule).toContain('object-position: 80% 32%');
   });
 
   it('11. no Astro/Vite config file was touched, no new dependency was imported', () => {

@@ -44,40 +44,38 @@ describe('retouche 04 — hero (H1 maîtrisé, devis et confiance Google)', () =
     expect(occurrences).toHaveLength(1);
   });
 
-  // Micro-retouche suppression FinalCta (01/09/2026) : le bouton ne pointe
-  // plus vers l'ancienne section #contact mais vers la ligne standard
-  // centralisée, avec le même garde-fou que PhoneCta — jamais de faux
-  // `tel:` tant que le numéro reste provisoire. Avec la configuration de
-  // développement actuelle (numéros placeholders), l'élément est donc un
-  // <button disabled>, jamais un <a href="#...">.
-  it('5. never a dead #contact link, never href="#" (the old internal-anchor destination is gone)', () => {
+  // MICRO-SPRINT « modale demande de devis » (04/09/2026, PROMPT_CLAUDE_
+  // CODE_MICRO_SPRINT_MODALE_DEVIS.txt) : le bouton n'appelle plus la ligne
+  // standard (garde-fou téléphonique devenu hors-sujet) — il ouvre la
+  // modale partagée `QuoteModal.astro` et n'est donc plus jamais un lien ni
+  // jamais désactivé. Couverture complète du comportement de la modale
+  // dans tests/quote-modal.test.ts ; ce fichier ne couvre que le bouton du
+  // Hero lui-même.
+  it('5. never a dead #contact link, never href="#" (no href at all: the button now opens the shared quote modal instead)', () => {
     expect(heroHtml).not.toMatch(/class="hero__quote-cta"[^>]*href="#contact"/);
     expect(heroHtml).not.toMatch(/class="hero__quote-cta"[^>]*href="#"/);
+    expect(heroHtml).not.toMatch(/class="hero__quote-cta"[^>]*href=/);
   });
 
-  it('6. with the current placeholder phone configuration, the button is disabled and produces no href at all', () => {
+  it('6. the button is a plain, always-enabled <button> that opens the shared quote modal — never disabled, regardless of the standard phone configuration', () => {
     const match = heroHtml.match(/<(a|button)[^>]*class="hero__quote-cta"[^>]*>/);
     expect(match).not.toBeNull();
     expect(match?.[1]).toBe('button');
-    expect(match?.[0] ?? '').toContain('disabled');
-    expect(match?.[0] ?? '').not.toMatch(/href=/);
+    expect(match?.[0] ?? '').not.toContain('disabled');
+    expect(match?.[0] ?? '').toContain('data-quote-trigger');
   });
 
-  it('7. no hardcoded phone number appears on the button, and it reuses the centralized guard note', () => {
+  it('7. no hardcoded phone number appears on the button, and no leftover phone-placeholder guard note remains', () => {
     expect(heroHtml).not.toMatch(/0[1-9](?:[\s.-]?\d{2}){4}/);
-    expect(heroHtml).toContain('id="hero-quote-note"');
-    expect(heroHtml).toContain('Numéro standard non encore renseigné');
+    expect(heroHtml).not.toContain('id="hero-quote-note"');
+    expect(heroHtml).not.toContain('Numéro standard non encore renseigné');
   });
 
-  it('8. if the button were ever a link (real number configured), it would only ever use a tel: href, never an internal anchor', () => {
-    // Documente le contrat attendu de getPhoneCta pour ce bouton : vérifié
-    // structurellement plutôt que par une vraie configuration de numéro
-    // (hors périmètre de ce test), voir src/lib/phone.ts (buildTelHref) et
-    // tests/final-cta-removal.test.ts.
-    const match = heroHtml.match(/<a[^>]*class="hero__quote-cta"[^>]*href="([^"]+)"/);
-    if (match) {
-      expect(match[1]).toMatch(/^tel:\+/);
-    }
+  it('8. the button is never rendered as a link (a <button>, opening the shared modal, whatever the phone configuration)', () => {
+    // Ancien contrat (numéro standard, getPhoneCta) devenu hors-sujet depuis
+    // le micro-sprint « modale demande de devis » — voir le commentaire des
+    // tests 5-7 ci-dessus.
+    expect(heroHtml).not.toMatch(/<a[^>]*class="hero__quote-cta"/);
   });
 
   it('9. the hero displays "Excellent"', () => {
@@ -157,8 +155,8 @@ describe('retouche 04 — hero (H1 maîtrisé, devis et confiance Google)', () =
     expect(hrefs[4].endsWith('/rideaux-metalliques/')).toBe(true);
   });
 
-  it('22. the current hero photo is still used', () => {
-    expect(heroHtml).toContain('hero-intervention-urgence');
+  it('22. a local hero photo is used — the exact photo was intentionally swapped by a later, explicit micro-correction (04/09/2026, PROMPT_CLAUDE_CODE_MICRO_CORRECTION_HERO_DESKTOP_IMAGE.txt)', () => {
+    expect(heroHtml).toContain('hero-belkhir-depannage-desktop-bd');
   });
 
   it('23. the Google data comes from a centralized source, not a hardcoded duplicate', () => {

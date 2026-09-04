@@ -32,19 +32,31 @@ export interface NavLink {
 // navigation dans le même document (pas de rechargement), et continue donc
 // d'appliquer le défilement fluide existant (`scroll-behavior: smooth`,
 // voir src/styles/global.css) — le comportement sur la landing reste donc
-// identique à avant. Les cinq ancres ci-dessous ont toutes été vérifiées
-// comme réellement présentes sur la landing avant cette correction :
-// #accueil (Hero.astro), #depannages (EmergencySelector.astro),
-// #interventions-recentes (LatestInterventions.astro), #zones-couvertes
-// (Coverage.astro), #avis (Reviews.astro).
+// identique à avant. Les ancres ci-dessous ont toutes été vérifiées comme
+// réellement présentes sur la landing : #top (<body>, BaseLayout.astro),
+// #depannages (EmergencySelector.astro), #interventions-recentes
+// (LatestInterventions.astro), #zones-couvertes (Coverage.astro), #avis
+// (Reviews.astro).
 /**
  * Destination du logo de marque (navbar et footer) : même ancre
  * « Accueil » que `navLinks[0]` ci-dessous, mais le logo n'est pas
  * construit à partir de `navLinks` (balisage `<img>` + nom de marque
  * distinct du reste de la navigation) — exportée séparément plutôt que
  * dupliquée en dur dans chaque composant.
+ *
+ * CORRECTION P0 (DOUBLE CORRECTION P0 — DIALOG FERMÉ ET RETOUR RÉEL EN HAUT
+ * DE PAGE, 04/09/2026) : ciblait `#accueil` (id du Hero de la landing) —
+ * ce Hero est positionné SOUS le bandeau de disponibilité et la navbar
+ * sticky, donc un retour à l'accueil laissait ce bandeau hors champ
+ * (`scrollY` > 0, page apparemment décalée d'une trentaine de pixels).
+ * Cible désormais `#top`, porté par <body> dans BaseLayout.astro — le
+ * sommet absolu réel du document, disponible sur chaque page. Seule cette
+ * constante est modifiée : Navbar (logo + lien « Accueil »), MobileDrawer
+ * (même lien, réutilisé via `navLinks`), Footer et les liens « Retour à
+ * l'accueil » des deux pages juridiques en héritent tous automatiquement,
+ * sans duplication.
  */
-export const homeHref = `${import.meta.env.BASE_URL}#accueil`;
+export const homeHref = `${import.meta.env.BASE_URL}#top`;
 
 export const navLinks: NavLink[] = [
   { label: 'Accueil', href: homeHref },

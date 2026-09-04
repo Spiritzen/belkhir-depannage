@@ -1,0 +1,730 @@
+---
+/**
+ * Modale partagée « Demander un devis gratuit » (MICRO-SPRINT, 04/09/2026,
+ * PROMPT_CLAUDE_CODE_MICRO_SPRINT_MODALE_DEVIS.txt).
+ *
+ * Rendue UNE SEULE FOIS par page, depuis `BaseLayout.astro` (comme `Footer`/
+ * `MobileCallBar`), et ouverte par n'importe quel élément portant l'attribut
+ * `data-quote-trigger` présent ailleurs sur la page — landing ou pages
+ * métier. `<dialog>` natif + JavaScript léger, volontairement sans aucune
+ * dépendance nouvelle (pas de React pour cette modale, conformément au
+ * prompt de mission) :
+ *
+ *  - piège de focus, blocage d'interaction avec le reste de la page et
+ *    fermeture au clavier (Échap) sont NATIFS à `showModal()` — aucun code
+ *    à écrire pour ces trois points ;
+ *  - le blocage/la restauration du défilement arrière réutilise exactement
+ *    le principe déjà validé par `MobileDrawer.astro`
+ *    (`html.<classe>-open { overflow: hidden; }`), qui préserve la position
+ *    de scroll sans manipulation `position: fixed` : rien ne bouge, le
+ *    document est simplement gelé à sa position actuelle ;
+ *  - la fermeture par clic extérieur est détectée au `pointerdown`, en deux
+ *    temps : tout événement dont la cible est un véritable descendant du
+ *    `<dialog>` (champ, select, option, bouton, libellé...) est d'abord
+ *    ignoré sans condition — quelles que soient ses coordonnées ; seul un
+ *    événement ciblant le `<dialog>` lui-même est ensuite départagé par son
+ *    rectangle réel. CORRECTION (04/09/2026) : l'ancienne détection, fondée
+ *    uniquement sur les coordonnées d'un `click`, fermait à tort la modale
+ *    à la sélection d'une `<option>` d'un `<select>` (coordonnées du clic
+ *    synthétique reconstitué par le navigateur après fermeture de son menu
+ *    natif, parfois hors du rectangle) ;
+ *  - le rendu au top layer du navigateur place déjà la modale au-dessus de
+ *    tout le reste (navbar, tiroir mobile, barre d'appel sticky) sans
+ *    aucune valeur de z-index à coordonner.
+ *
+ * AUCUN ENVOI RÉSEAU RÉEL : tant que l'hébergement LWS et son endpoint PHP
+ * ne sont pas disponibles, la soumission est interceptée, validée
+ * localement, puis explicitement bloquée — voir le commentaire
+ * « FUTUR ENDPOINT PHP » dans le <script> ci-dessous, point d'ancrage unique
+ * pour le branchement futur.
+ */
+import Icon from './Icon.astro';
+---
+
+<dialog
+  id="quote-modal"
+  class="quote-modal"
+  aria-labelledby="quote-modal-title"
+  aria-describedby="quote-modal-desc"
+  aria-modal="true"
+>
+  <header class="quote-modal__header">
+    <h2 id="quote-modal-title" class="quote-modal__title">Demander un devis gratuit</h2>
+    <button type="button" class="quote-modal__close" id="quote-modal-close-btn">
+      <Icon name="x" class="quote-modal__close-icon" />
+      <span class="visually-hidden">Fermer</span>
+    </button>
+  </header>
+
+  <p id="quote-modal-desc" class="quote-modal__intro">
+    Décrivez votre situation. Ces informations seront uniquement utilisées pour vous recontacter au
+    sujet de votre demande.
+  </p>
+
+  <form id="quote-modal-form" class="quote-modal__form" novalidate>
+    <div class="quote-modal__field">
+      <label for="quote-name">Nom et prénom</label>
+      <input
+        type="text"
+        id="quote-name"
+        name="name"
+        autocomplete="name"
+        required
+        aria-describedby="quote-name-error"
+      />
+      <p class="quote-modal__error" id="quote-name-error" role="alert" hidden></p>
+    </div>
+
+    <div class="quote-modal__field">
+      <label for="quote-phone">Téléphone</label>
+      <input
+        type="tel"
+        id="quote-phone"
+        name="phone"
+        autocomplete="tel"
+        inputmode="tel"
+        required
+        aria-describedby="quote-phone-error"
+      />
+      <p class="quote-modal__error" id="quote-phone-error" role="alert" hidden></p>
+    </div>
+
+    <div class="quote-modal__field">
+      <label for="quote-location">Commune ou code postal</label>
+      <input
+        type="text"
+        id="quote-location"
+        name="location"
+        autocomplete="postal-code"
+        required
+        aria-describedby="quote-location-error"
+      />
+      <p class="quote-modal__error" id="quote-location-error" role="alert" hidden></p>
+    </div>
+
+    <div class="quote-modal__field">
+      <label for="quote-service">Type d’intervention</label>
+      <select id="quote-service" name="service" required aria-describedby="quote-service-error">
+        <option value="" disabled selected>Choisir…</option>
+        <option value="plomberie">Plomberie</option>
+        <option value="chauffage">Chauffage</option>
+        <option value="serrurerie">Serrurerie</option>
+        <option value="vitrerie">Vitrerie</option>
+        <option value="rideaux-metalliques">Rideaux métalliques</option>
+        <option value="autre">Autre</option>
+      </select>
+      <p class="quote-modal__error" id="quote-service-error" role="alert" hidden></p>
+    </div>
+
+    <div class="quote-modal__field">
+      <label for="quote-delay">Délai souhaité</label>
+      <select id="quote-delay" name="delay">
+        <option value="des-que-possible">Dès que possible</option>
+        <option value="aujourdhui">Aujourd’hui</option>
+        <option value="sous-48h">Sous 48 heures</option>
+        <option value="planifiee">Intervention planifiée</option>
+      </select>
+    </div>
+
+    <div class="quote-modal__field">
+      <label for="quote-description">Description de la situation</label>
+      <textarea
+        id="quote-description"
+        name="description"
+        rows="4"
+        required
+        aria-describedby="quote-description-error"></textarea>
+      <p class="quote-modal__error" id="quote-description-error" role="alert" hidden></p>
+    </div>
+
+    <div class="quote-modal__field quote-modal__field--checkbox">
+      <input
+        type="checkbox"
+        id="quote-consent"
+        name="consent"
+        required
+        aria-describedby="quote-consent-error"
+      />
+      <label for="quote-consent">
+        J’accepte que mes informations soient utilisées uniquement pour traiter ma demande et me
+        recontacter.
+      </label>
+      <p class="quote-modal__error" id="quote-consent-error" role="alert" hidden></p>
+    </div>
+
+    <p class="quote-modal__status" id="quote-modal-status" role="status" aria-live="polite"></p>
+
+    <div class="quote-modal__actions">
+      <button type="button" class="quote-modal__cancel" id="quote-modal-cancel-btn">
+        Annuler
+      </button>
+      <button type="submit" class="quote-modal__submit">Envoyer ma demande</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  const dialog = document.getElementById('quote-modal') as HTMLDialogElement | null;
+  const form = document.getElementById('quote-modal-form') as HTMLFormElement | null;
+  const closeBtn = document.getElementById('quote-modal-close-btn');
+  const cancelBtn = document.getElementById('quote-modal-cancel-btn');
+  const statusEl = document.getElementById('quote-modal-status');
+
+  if (dialog && form && closeBtn && cancelBtn && statusEl) {
+    // Dernier élément focus avant ouverture, pour restitution exacte à la
+    // fermeture — même principe que MobileDrawer.astro.
+    let lastFocused: HTMLElement | null = null;
+
+    function openModal(trigger: HTMLElement): void {
+      lastFocused = trigger;
+      document.documentElement.classList.add('quote-modal-open');
+      dialog!.showModal();
+      // `autofocus` HTML n'est fiable qu'au premier rendu de page ; à
+      // chaque réouverture, on replace explicitement le focus sur le
+      // premier champ du formulaire.
+      document.getElementById('quote-name')?.focus();
+    }
+
+    function closeModal(): void {
+      dialog!.close();
+    }
+
+    // Un seul point de nettoyage pour LES QUATRE mécanismes de fermeture
+    // (croix, Annuler, Échap natif, clic extérieur ci-dessous) : l'événement
+    // natif `close` du <dialog> se déclenche quel que soit le chemin
+    // emprunté pour fermer.
+    dialog.addEventListener('close', () => {
+      document.documentElement.classList.remove('quote-modal-open');
+      (lastFocused ?? closeBtn).focus();
+      lastFocused = null;
+    });
+
+    // Fermeture par clic extérieur réel — CORRECTION (04/09/2026) : un
+    // `<select>` (« Type d'intervention », « Délai souhaité ») fermait la
+    // modale à tort à la sélection d'une <option>, car le clic synthétique
+    // que le navigateur reconstitue après la fermeture de son menu natif
+    // peut porter des coordonnées `clientX`/`clientY` erronées ou obsolètes
+    // — la comparaison au rectangle du <dialog> les jugeait alors « hors »
+    // de la boîte. `pointerdown` (déclenché dès l'appui, avant toute
+    // reconstitution de coordonnées par le menu natif) et une vérification
+    // d'appartenance réelle au DOM du <dialog> (`dialog.contains(target)`)
+    // écartent tout événement dont la cible est un véritable descendant —
+    // champ, select, option, bouton, libellé — quelles que soient ses
+    // coordonnées rapportées. Seul un événement dont la cible est le
+    // <dialog> lui-même (fond/backdrop, ou son propre padding/espace entre
+    // champs, où aucun enfant n'intercepte le clic) est alors départagé par
+    // son rectangle réel — un tel clic à l'intérieur de ce rectangle reste
+    // considéré comme intérieur (padding du panneau), seul un clic hors de
+    // ce rectangle (le véritable arrière-plan) ferme la modale.
+    dialog.addEventListener('pointerdown', (event) => {
+      const target = event.target as Node | null;
+      if (target && target !== dialog && dialog!.contains(target)) {
+        return;
+      }
+      const rect = dialog!.getBoundingClientRect();
+      const insideDialog =
+        event.clientX >= rect.left &&
+        event.clientX <= rect.right &&
+        event.clientY >= rect.top &&
+        event.clientY <= rect.bottom;
+      if (!insideDialog) {
+        closeModal();
+      }
+    });
+
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+
+    // ---------------------------------------------------------------------
+    // Validation locale, légère, avec erreurs associées aux champs
+    // (aria-describedby déjà posé côté HTML sur chaque champ obligatoire).
+    // ---------------------------------------------------------------------
+    interface FieldCheck {
+      id: string;
+      isValid: () => boolean;
+      message: string;
+    }
+
+    function getFieldChecks(): FieldCheck[] {
+      const nameEl = document.getElementById('quote-name') as HTMLInputElement;
+      const phoneEl = document.getElementById('quote-phone') as HTMLInputElement;
+      const locationEl = document.getElementById('quote-location') as HTMLInputElement;
+      const serviceEl = document.getElementById('quote-service') as HTMLSelectElement;
+      const descriptionEl = document.getElementById('quote-description') as HTMLTextAreaElement;
+      const consentEl = document.getElementById('quote-consent') as HTMLInputElement;
+
+      return [
+        {
+          id: 'quote-name',
+          isValid: () => nameEl.value.trim().length > 0,
+          message: 'Merci d’indiquer votre nom et prénom.',
+        },
+        {
+          id: 'quote-phone',
+          isValid: () => phoneEl.value.trim().length > 0,
+          message: 'Merci d’indiquer un numéro de téléphone.',
+        },
+        {
+          id: 'quote-location',
+          isValid: () => locationEl.value.trim().length > 0,
+          message: 'Merci d’indiquer votre commune ou votre code postal.',
+        },
+        {
+          id: 'quote-service',
+          isValid: () => serviceEl.value.length > 0,
+          message: 'Merci de choisir un type d’intervention.',
+        },
+        {
+          id: 'quote-description',
+          isValid: () => descriptionEl.value.trim().length > 0,
+          message: 'Merci de décrire votre situation.',
+        },
+        {
+          id: 'quote-consent',
+          isValid: () => consentEl.checked,
+          message: 'Merci d’accepter l’utilisation de vos informations pour vous recontacter.',
+        },
+      ];
+    }
+
+    function clearErrors(checks: FieldCheck[]): void {
+      for (const check of checks) {
+        const field = document.getElementById(check.id);
+        const error = document.getElementById(`${check.id}-error`);
+        field?.removeAttribute('aria-invalid');
+        if (error) {
+          error.hidden = true;
+          error.textContent = '';
+        }
+      }
+    }
+
+    form.addEventListener('submit', (event) => {
+      // Toujours empêché : aucune requête réseau tant que l'endpoint LWS
+      // n'existe pas (voir le commentaire « FUTUR ENDPOINT PHP » ci-dessous).
+      event.preventDefault();
+
+      const checks = getFieldChecks();
+      clearErrors(checks);
+
+      let firstInvalid: HTMLElement | null = null;
+      for (const check of checks) {
+        if (check.isValid()) continue;
+        const field = document.getElementById(check.id);
+        const error = document.getElementById(`${check.id}-error`);
+        field?.setAttribute('aria-invalid', 'true');
+        if (error) {
+          error.hidden = false;
+          error.textContent = check.message;
+        }
+        firstInvalid ??= field;
+      }
+
+      if (firstInvalid) {
+        firstInvalid.focus();
+        statusEl!.textContent = '';
+        return;
+      }
+
+      // -----------------------------------------------------------------
+      // FUTUR ENDPOINT PHP (hébergement LWS) — point de branchement unique.
+      // Une fois l'URL réelle connue, remplacer ce bloc par l'appel réseau
+      // véritable, par exemple :
+      //
+      //   const response = await fetch(QUOTE_ENDPOINT_URL, {
+      //     method: 'POST',
+      //     body: new FormData(form),
+      //   });
+      //   if (response.ok) { ...afficher un vrai succès, vider le
+      //   formulaire, fermer ou non la modale... } else { ...afficher une
+      //   vraie erreur... }
+      //
+      // Tant que cet endpoint n'existe pas : ZÉRO requête, ZÉRO stockage
+      // local ou distant, et surtout JAMAIS de simulation de succès —
+      // uniquement ce message, honnête sur l'état réel du formulaire.
+      // -----------------------------------------------------------------
+      statusEl!.textContent =
+        'L’envoi en ligne n’est pas encore disponible. Merci de nous appeler directement en attendant.';
+    });
+
+    // Tout élément marqué `data-quote-trigger` ouvre cette même modale
+    // partagée, quelle que soit la page (landing ou page métier).
+    for (const trigger of document.querySelectorAll<HTMLElement>('[data-quote-trigger]')) {
+      trigger.addEventListener('click', () => openModal(trigger));
+    }
+  }
+</script>
+
+<style is:global>
+  /* Même principe que `html.drawer-open` (MobileDrawer.astro) : gèle le
+     document à sa position de scroll actuelle sans la modifier — aucune
+     manipulation `position: fixed`/`top` nécessaire. Classe distincte pour
+     ne jamais interférer avec l'état du tiroir mobile. */
+  html.quote-modal-open {
+    overflow: hidden;
+  }
+</style>
+
+<style>
+  /*
+   * Esprit « modales IRP » demandé par le prompt de mission : verre sombre
+   * sobre (jamais un texte rendu transparent), bordure fine orange, angles
+   * généreux, lueur et ombre profonde — dans la palette anthracite/blanc/
+   * abricot/orange déjà utilisée par le reste du site (mêmes tokens que
+   * Coverage.astro/CoverageSummary.astro pour la lueur, --shadow-lg pour
+   * l'ombre). Toute la boîte visible EST l'élément <dialog> lui-même
+   * (aucun wrapper interne) : la détection de clic extérieur ci-dessus,
+   * fondée sur son rectangle réel, correspond donc exactement à ce que
+   * l'œil perçoit comme « dans » ou « hors de » la modale.
+   */
+  /* CORRECTION P0 (DOUBLE CORRECTION P0 — DIALOG FERMÉ ET RETOUR RÉEL EN
+     HAUT DE PAGE, 04/09/2026) : `display: flex` était posé sans condition
+     sur `dialog.quote-modal`, avec la même spécificité (0,1,1) que la règle
+     native `dialog:not([open]) { display: none; }` de la feuille agent —
+     à spécificité égale, la règle d'auteur (celle-ci) l'emportait TOUJOURS
+     sur la règle native, y compris dialog fermé : la modale restait donc
+     visible en permanence dans le flux du document, après le footer (son
+     emplacement de rendu dans BaseLayout.astro), avec un grand espace vide
+     sous elle. Le layout flex n'est désormais appliqué que dialog ouvert ;
+     la règle `:not([open])` ci-dessous rend explicite — et garantit même en
+     cas d'évolution future de cette feuille — ce que la feuille agent ferait
+     déjà seule si on ne la court-circuitait plus. */
+  dialog.quote-modal:not([open]) {
+    display: none;
+  }
+
+  dialog.quote-modal[open] {
+    display: flex;
+  }
+
+  dialog.quote-modal {
+    width: min(34rem, calc(100vw - 24px));
+    max-width: 34rem;
+    max-height: min(88dvh, 46rem);
+    margin: auto;
+    padding: clamp(1.5rem, 4vw, 2.25rem);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(255, 105, 0, 0.45);
+    background: rgba(13, 15, 20, 0.92);
+    backdrop-filter: blur(18px) saturate(120%);
+    -webkit-backdrop-filter: blur(18px) saturate(120%);
+    box-shadow:
+      var(--shadow-lg),
+      0 0 0 1px rgba(255, 105, 0, 0.08),
+      0 0 60px rgba(255, 105, 0, 0.14);
+    color: var(--color-white);
+    overflow-y: auto;
+    flex-direction: column;
+    gap: 1.15rem;
+  }
+
+  /* Repli opaque si `backdrop-filter` n'est pas supporté (même garde-fou
+     que Navbar.astro/Hero.astro) : jamais de texte flou ou peu contrasté. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    dialog.quote-modal {
+      background: rgba(10, 12, 16, 0.98);
+    }
+  }
+
+  /* Arrière-plan assombri et flouté (prompt de mission), distinct du verre
+     de la modale elle-même. */
+  dialog.quote-modal::backdrop {
+    background: rgba(13, 15, 20, 0.7);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    dialog.quote-modal::backdrop {
+      background: rgba(13, 15, 20, 0.88);
+    }
+  }
+
+  /* Apparition douce à l'ouverture : le garde-fou global
+     `prefers-reduced-motion` (animations.css) réduit déjà cette animation à
+     0,001 ms pour tout le site — aucune règle supplémentaire nécessaire
+     ici. */
+  dialog.quote-modal[open] {
+    animation: quote-modal-in 220ms ease;
+  }
+
+  @keyframes quote-modal-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .quote-modal__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .quote-modal__title {
+    font-size: clamp(1.2rem, 1.05rem + 0.6vw, 1.4rem);
+    font-weight: 800;
+    color: var(--color-white);
+  }
+
+  .quote-modal__close {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--color-white);
+    cursor: pointer;
+    transition:
+      background-color 200ms ease,
+      border-color 200ms ease;
+  }
+
+  .quote-modal__close:hover,
+  .quote-modal__close:focus-visible {
+    background: rgba(255, 105, 0, 0.16);
+    border-color: var(--color-orange-500);
+  }
+
+  .quote-modal__close-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .quote-modal__intro {
+    color: var(--color-gray-300);
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  .quote-modal__form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.95rem;
+  }
+
+  .quote-modal__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .quote-modal__field label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-gray-100);
+  }
+
+  .quote-modal__field input:not([type='checkbox']),
+  .quote-modal__field select,
+  .quote-modal__field textarea {
+    width: 100%;
+    min-height: var(--touch-target-min);
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-white);
+    font: inherit;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+  }
+
+  .quote-modal__field textarea {
+    min-height: 6rem;
+    resize: vertical;
+  }
+
+  .quote-modal__field input::placeholder,
+  .quote-modal__field textarea::placeholder {
+    color: var(--color-gray-400);
+  }
+
+  .quote-modal__field select {
+    cursor: pointer;
+  }
+
+  /* MICRO-CORRECTION UI (04/09/2026) : la boîte fermée du <select> reste en
+     texte blanc sur fond sombre translucide (règle groupée ci-dessus), mais
+     sa liste déroulante native s'ouvre avec un fond blanc contrôlé par le
+     système — sans règle dédiée, les <option> héritaient ce même blanc et
+     devenaient invisibles sur ce fond clair. Fond et texte sont donc fixés
+     explicitement pour la liste ouverte ; `:checked`/`:hover` appliquent un
+     surlignage orange semi-transparent lorsque le navigateur autorise le
+     style des <option> natives (Firefox notamment) — sur les navigateurs
+     qui gèrent eux-mêmes le survol (le rendu Chromium/Windows le plus
+     courant), le fallback système reste propre et lisible : fond blanc,
+     texte anthracite. */
+  .quote-modal__field select option {
+    color: #111318;
+    background-color: #ffffff;
+  }
+
+  .quote-modal__field select option:checked,
+  .quote-modal__field select option:hover {
+    background-color: rgba(255, 105, 0, 0.5);
+    color: #111318;
+  }
+
+  /* Focus visible orange (prompt de mission) : renforce le garde-fou
+     global `:focus-visible` déjà posé dans global.css sur toute la page,
+     en assortissant en plus la bordure du champ lui-même. */
+  .quote-modal__field input:focus-visible,
+  .quote-modal__field select:focus-visible,
+  .quote-modal__field textarea:focus-visible {
+    border-color: var(--color-orange-500);
+  }
+
+  .quote-modal__field input[aria-invalid='true'],
+  .quote-modal__field select[aria-invalid='true'],
+  .quote-modal__field textarea[aria-invalid='true'] {
+    border-color: var(--color-red-600);
+  }
+
+  .quote-modal__error {
+    margin: 0;
+    font-size: 0.82rem;
+    /* Rouge clair pensé pour un fond sombre (jamais --color-red-600, calibré
+       pour un texte sur fond clair ailleurs sur le site) : lisibilité
+       suffisante sur le verre anthracite de cette modale. */
+    color: #ffb4ab;
+  }
+
+  .quote-modal__field--checkbox {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .quote-modal__field--checkbox input[type='checkbox'] {
+    margin-top: 0.2rem;
+    width: 1.15rem;
+    height: 1.15rem;
+    accent-color: var(--color-orange-600);
+    flex-shrink: 0;
+  }
+
+  .quote-modal__field--checkbox label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-gray-100);
+  }
+
+  .quote-modal__status {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--color-orange-500);
+    min-height: 1.2em;
+  }
+
+  /* Bloc d'actions en fin de formulaire, dans le flux normal du <dialog>
+     scrollable (`overflow-y: auto` posé plus haut) — jamais hors d'atteinte
+     (prompt de mission : « le clavier mobile ne doit pas masquer
+     définitivement les actions »), il suffit de faire défiler la boîte.
+     Un essai initial en `position: sticky` a été abandonné : à l'ouverture
+     (scroll en haut), la barre restait collée en bas de la boîte et
+     recouvrait la description et la case de consentement, non encore
+     défilées jusque-là — un défaut plus grave que celui qu'elle visait à
+     corriger. Une bordure fine remplace le fond opaque qui compensait
+     l'effet de recouvrement. */
+  /* MICRO-CORRECTION UI (04/09/2026) : les deux boutons partagent désormais
+     une seule règle de forme (largeur/hauteur/alignement) via le sélecteur
+     groupé ci-dessous — seules leurs couleurs diffèrent. `flex: 1 1 0` leur
+     donne une largeur strictement égale (« visuellement équilibrée ») et
+     `align-items: stretch` (par défaut) leur donne la même hauteur, même si
+     leurs libellés diffèrent en longueur. `white-space: nowrap` empêche le
+     libellé le plus long (« Envoyer ma demande ») de se replier sur deux
+     lignes DANS le bouton — ce qui casserait l'égalité de hauteur sans
+     jamais déclencher l'empilement voulu ; le `min-width` sans unité fixe
+     ci-dessous (`auto`, la valeur par défaut d'un item flex) laisse alors
+     chaque bouton réclamer toute la largeur de son propre libellé. Sur une
+     ligne trop étroite pour que les deux tiennent à cette largeur réelle,
+     `flex-wrap: wrap` les empile naturellement (chacun prend alors toute la
+     largeur de sa propre ligne) — aucun point de rupture figé n'est donc
+     nécessaire : l'empilement ne survient QUE si les libellés ne tiennent
+     plus, conformément au prompt de mission. */
+  .quote-modal__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .quote-modal__cancel,
+  .quote-modal__submit {
+    flex: 1 1 auto;
+    min-height: var(--touch-target-min);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+    padding: 0.85rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .quote-modal__cancel {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: transparent;
+    color: var(--color-white);
+    transition:
+      background-color 200ms ease,
+      border-color 200ms ease;
+  }
+
+  .quote-modal__cancel:hover,
+  .quote-modal__cancel:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .quote-modal__submit {
+    border: none;
+    background: var(--color-brand);
+    color: var(--color-anthracite-950);
+    box-shadow: var(--shadow-sm);
+    transition:
+      background-color 200ms ease,
+      transform 200ms ease,
+      box-shadow 200ms ease;
+  }
+
+  .quote-modal__submit:hover,
+  .quote-modal__submit:focus-visible {
+    background: var(--color-orange-700);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .quote-modal__submit:hover,
+    .quote-modal__submit:focus-visible {
+      transform: none;
+    }
+  }
+
+  /* Mobile 360/390/412 : marge minimale de 12px déjà garantie par
+     `width: min(34rem, calc(100vw - 24px))` ci-dessus (aucune règle de
+     largeur supplémentaire nécessaire) — seul le resserrement du padding
+     change ; l'empilement éventuel des actions est déjà géré plus haut par
+     `flex-wrap: wrap`, sans point de rupture dédié. */
+  @media (max-width: 26.875rem) {
+    dialog.quote-modal {
+      padding: 1.15rem;
+      gap: 1rem;
+    }
+  }
+</style>

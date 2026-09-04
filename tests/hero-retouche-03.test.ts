@@ -141,7 +141,7 @@ describe('retouche 03 — hero (structure large, contenu et garde-fous)', () => 
     expect(googleOccurrences.length).toBeGreaterThan(0);
   });
 
-  it('12. keeps using the existing local hero image (no new photo)', () => {
-    expect(heroHtml).toContain('hero-intervention-urgence');
+  it('12. uses a self-hosted local hero image, never an external URL — intentionally swapped by a later, explicit micro-correction (04/09/2026, PROMPT_CLAUDE_CODE_MICRO_CORRECTION_HERO_DESKTOP_IMAGE.txt)', () => {
+    expect(heroHtml).toContain('hero-belkhir-depannage-desktop-bd');
   });
 });

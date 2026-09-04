@@ -19,11 +19,18 @@ const emergencyCta = getPhoneCta(siteConfig.emergencyPhone);
 <header class="navbar" id="navbar">
   <div class="container navbar__inner">
     <a class="navbar__brand" href={homeHref} aria-label={`${siteConfig.siteName} — Accueil`}>
+      {
+        /* AUDIT AVANT PUSH (04/09/2026) : `loading="eager"` explicite — le
+        logo de la navbar est toujours visible dans le viewport initial, sur
+        chaque page ; sans cette valeur, `<Image>` applique son défaut
+        (`lazy`), inadapté à un élément immédiatement visible au chargement. */
+      }
       <Image
         src={logoSrc}
         alt={`Logo ${siteConfig.siteName}`}
         width={44}
         height={44}
+        loading="eager"
         class="navbar__logo"
       />
       <span class="navbar__brand-text"

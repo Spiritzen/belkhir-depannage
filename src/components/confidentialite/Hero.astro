@@ -1,0 +1,268 @@
+---
+/**
+ * Hero de la page /politique-de-confidentialite/ (PROMPT_CLAUDE_CODE_PAGE_
+ * POLITIQUE_CONFIDENTIALITE.txt, 04/09/2026). Volontairement hors du
+ * personnage Belkhir Dépannage : aucune photographie, aucun artisan, aucune
+ * scène d'intervention — composition abstraite en HTML/CSS/SVG inline
+ * (bouclier + verrou stylisés, tracé pointillé évoquant un parcours
+ * d'information protégé). Le SVG est purement décoratif (`aria-hidden`) :
+ * tout le sens est déjà porté par le texte environnant.
+ *
+ * Fond noir anthracite + lueur orange douce, dans la continuité de la
+ * direction artistique des sections sombres déjà validées (Coverage.astro,
+ * CoverageSummary.astro) — jamais un nouveau système graphique. Apparition
+ * douce via le mécanisme `data-reveal` déjà partagé par tout le site
+ * (src/scripts/reveal.ts), qui respecte nativement `prefers-reduced-motion`
+ * (src/styles/animations.css) : aucune animation permanente.
+ */
+import { homeHref } from '../../data/landing';
+---
+
+<section class="privacy-hero" aria-label="Confidentialité du site Belkhir Dépannage">
+  <div class="privacy-hero__container">
+    <div class="privacy-hero__content">
+      <p class="privacy-hero__eyebrow" data-reveal="down">
+        <span class="privacy-hero__eyebrow-bar" aria-hidden="true"></span>
+        CONFIDENTIALITÉ · TRANSPARENCE · RESPECT
+      </p>
+
+      <h1 class="privacy-hero__title" data-reveal="left">
+        Vos informations restent au service de votre urgence
+      </h1>
+
+      <p class="privacy-hero__lead" data-reveal="left">
+        Belkhir Dépannage privilégie un site simple et respectueux de votre vie privée. Aucun
+        formulaire, aucun outil publicitaire et aucun dispositif de suivi ne collecte vos
+        coordonnées pendant votre navigation.
+      </p>
+
+      <ul class="privacy-hero__proofs" data-reveal="up">
+        <li>Aucun formulaire</li>
+        <li>Aucun cookie</li>
+        <li>Aucune revente de données</li>
+      </ul>
+
+      <a class="privacy-hero__back" href={homeHref} data-reveal="up">
+        <span aria-hidden="true">←</span> Retour à l’accueil
+      </a>
+    </div>
+
+    <div class="privacy-hero__visual" data-reveal="right" aria-hidden="true">
+      <svg
+        class="privacy-hero__svg"
+        viewBox="0 0 240 320"
+        role="img"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <!-- Tracé pointillé évoquant un parcours d'information protégé -->
+        <path
+          class="privacy-hero__path"
+          d="M14,300 C55,255 85,215 112,178 S 175,95 226,26"
+          fill="none"></path>
+        <circle class="privacy-hero__node" cx="70" cy="228" r="3.5"></circle>
+        <circle class="privacy-hero__node" cx="150" cy="118" r="3.5"></circle>
+
+        <!-- Bouclier -->
+        <path
+          class="privacy-hero__shield"
+          d="M120,22 L204,60 L204,146 C204,214 168,260 120,292 C72,260 36,214 36,146 L36,60 Z"
+        ></path>
+
+        <!-- Verrou (cadenas stylisé au centre du bouclier) -->
+        <circle class="privacy-hero__lock-body" cx="120" cy="140" r="20"></circle>
+        <path class="privacy-hero__lock-slot" d="M108,158 L132,158 L123,196 L117,196 Z"></path>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<style>
+  .privacy-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(52% 42% at 86% 12%, rgba(255, 105, 0, 0.16), transparent 72%),
+      radial-gradient(40% 38% at 8% 92%, rgba(255, 105, 0, 0.07), transparent 72%),
+      var(--color-anthracite-950);
+  }
+
+  .privacy-hero__container {
+    position: relative;
+    width: min(100%, var(--container-max));
+    margin-inline: auto;
+    box-sizing: border-box;
+    padding: clamp(2.5rem, 6vw, 4.5rem) 48px;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    align-items: center;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    min-height: calc(100vh - var(--header-total-height));
+    min-height: calc(100svh - var(--header-total-height));
+  }
+
+  .privacy-hero__content {
+    max-width: 36rem;
+    display: flex;
+    flex-direction: column;
+    color: var(--color-white);
+  }
+
+  .privacy-hero__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--color-orange-500);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+  }
+
+  .privacy-hero__eyebrow-bar {
+    width: 28px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--color-orange-500);
+  }
+
+  .privacy-hero__title {
+    margin-top: clamp(1rem, 0.85rem + 0.4vw, 1.25rem);
+    font-size: clamp(1.9rem, 1.5rem + 1.7vw, 2.9rem);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.14;
+  }
+
+  .privacy-hero__lead {
+    margin-top: clamp(1.1rem, 1rem + 0.3vw, 1.4rem);
+    max-width: 33rem;
+    font-size: clamp(1rem, 0.92rem + 0.3vw, 1.1rem);
+    line-height: 1.6;
+    color: var(--color-gray-100);
+  }
+
+  .privacy-hero__proofs {
+    margin: clamp(1.5rem, 1.3rem + 0.4vw, 2rem) 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+
+  .privacy-hero__proofs li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.04);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--color-white);
+  }
+
+  .privacy-hero__proofs li::before {
+    content: '';
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 999px;
+    background: var(--color-orange-500);
+    flex-shrink: 0;
+  }
+
+  .privacy-hero__back {
+    margin-top: clamp(1.5rem, 1.3rem + 0.4vw, 2rem);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+    color: var(--color-gray-300);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: color 200ms ease;
+  }
+
+  .privacy-hero__back:hover,
+  .privacy-hero__back:focus-visible {
+    color: var(--color-orange-500);
+  }
+
+  /* ---------- Visuel abstrait ---------- */
+
+  .privacy-hero__visual {
+    position: relative;
+    justify-self: center;
+    width: min(100%, 17rem);
+  }
+
+  .privacy-hero__visual::before {
+    content: '';
+    position: absolute;
+    inset: -18%;
+    background: radial-gradient(55% 55% at 50% 42%, rgba(255, 105, 0, 0.2), transparent 72%);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .privacy-hero__svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .privacy-hero__path {
+    stroke: rgba(255, 138, 61, 0.55);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 0.5 15;
+  }
+
+  .privacy-hero__node {
+    fill: var(--color-orange-500);
+  }
+
+  .privacy-hero__shield {
+    fill: var(--color-anthracite-800);
+    stroke: var(--color-orange-500);
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+  }
+
+  .privacy-hero__lock-body,
+  .privacy-hero__lock-slot {
+    fill: var(--color-orange-500);
+  }
+
+  /* ---------- Mobile ---------- */
+
+  @media (max-width: 56rem) {
+    .privacy-hero__container {
+      grid-template-columns: 1fr;
+      padding: clamp(2rem, 6vw, 3rem) 24px;
+      min-height: auto;
+    }
+
+    .privacy-hero__content {
+      max-width: 100%;
+      order: 1;
+    }
+
+    .privacy-hero__visual {
+      order: 0;
+      width: min(60%, 12rem);
+      margin-inline: auto;
+      margin-bottom: 1.5rem;
+    }
+  }
+
+  @media (max-width: 23rem) {
+    .privacy-hero__container {
+      padding-inline: 20px;
+    }
+  }
+</style>

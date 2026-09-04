@@ -150,11 +150,17 @@ describe('page /plomberie/ — navbar/footer réutilisés', () => {
     expect(navbarMatch?.[0]).toContain('APPEL URGENCE');
   });
 
-  it('reuses the real shared Footer (brand initials colored, metiers links present)', () => {
+  // CORRECTION (AUDIT AVANT PUSH, 04/09/2026) : le lien footer « Plomberie »
+  // pointait vers l'ancre `#service-plomberie`, inexistante sur cette page
+  // (et sur toutes les autres pages sauf la landing) — donc un lien mort.
+  // Il pointe désormais vers cette page elle-même, comme les 4 autres
+  // métiers.
+  it('reuses the real shared Footer (brand initials colored, metiers links present, Plomberie linking to a real page)', () => {
     const footerMatch = pageHtml.match(/<footer class="site-footer"[\s\S]*?<\/footer>/);
     expect(footerMatch).not.toBeNull();
     expect(footerMatch?.[0]).toContain('footer__brand-initial');
-    expect(footerMatch?.[0]).toContain('#service-plomberie');
+    expect(footerMatch?.[0]).toMatch(/href="[^"]*\/plomberie\/"[^>]*>Plomberie</);
+    expect(footerMatch?.[0]).not.toContain('#service-plomberie');
   });
 
   it('reserves space for the fixed mobile call bar (hasMobileCallBar)', () => {

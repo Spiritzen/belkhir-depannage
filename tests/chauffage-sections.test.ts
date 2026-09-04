@@ -267,12 +267,18 @@ describe('maillage depuis la landing vers /chauffage/', () => {
     expect(match?.[1]).toMatch(/\/chauffage\/#urgences-chauffage$/);
   });
 
-  it('the footer "Chauffage" entry links to the dedicated page, Plomberie entry stays untouched', () => {
+  // CORRECTION (AUDIT AVANT PUSH, 04/09/2026) : le lien footer « Plomberie »
+  // pointait vers l'ancre `#service-plomberie`, un lien mort partout sauf
+  // sur la landing (seule page portant réellement cet id) — il pointe
+  // désormais vers la page dédiée /plomberie/, exactement comme les 4
+  // autres métiers.
+  it('the footer "Chauffage" and "Plomberie" entries both link to their dedicated pages', () => {
     const footerMatch = indexHtml.match(/<footer class="site-footer"[\s\S]*?<\/footer>/);
     expect(footerMatch).not.toBeNull();
     const footerHtml = footerMatch?.[0] ?? '';
     expect(footerHtml).toMatch(/href="[^"]*\/chauffage\/"[^>]*>Chauffage</);
-    expect(footerHtml).toMatch(/href="#service-plomberie"[^>]*>Plomberie</);
+    expect(footerHtml).toMatch(/href="[^"]*\/plomberie\/"[^>]*>Plomberie</);
+    expect(footerHtml).not.toContain('href="#service-plomberie"');
   });
 });
 

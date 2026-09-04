@@ -14,12 +14,16 @@ const year = new Date().getFullYear();
 // PROMPT_CLAUDE_CODE_PAGE_CHAUFFAGE_PATTERN_COMPLET.txt, puis PROMPT_
 // CLAUDE_CODE_PAGE_SERRURERIE_PATTERN_COMPLET.txt le même jour, puis
 // PROMPT_CLAUDE_CODE_PAGE_VITRERIE_PATTERN_COMPLET.txt et PROMPT_CLAUDE_
-// CODE_PAGE_RIDEAUX_METALLIQUES_PATTERN_COMPLET.txt le 04/09/2026) :
-// « Chauffage », « Serrurerie », « Vitrerie » et « Rideaux métalliques »
-// sont concernés — le lien Plomberie existant du footer reste intact
-// (toujours l'ancre `#service-plomberie`, jamais demandé dans aucune de ces
-// missions).
+// CODE_PAGE_RIDEAUX_METALLIQUES_PATTERN_COMPLET.txt le 04/09/2026).
+// CORRECTION (AUDIT AVANT PUSH, 04/09/2026) : le lien « Plomberie » pointait
+// encore vers l'ancre `#service-plomberie` — un lien mort partout sauf sur
+// la landing (seule page où cet id existe réellement, dans son accordéon de
+// services) : sur les 5 pages métier et les 2 pages légales, ce lien ne
+// menait donc nulle part. La page /plomberie/ existe pourtant déjà (créée
+// avant ce système de correspondance, jamais raccordée depuis) ; elle suit
+// désormais exactement le même traitement que les 4 autres métiers.
 const metierHrefByService: Partial<Record<ServiceId, string>> = {
+  plomberie: `${import.meta.env.BASE_URL}plomberie/`,
   chauffage: `${import.meta.env.BASE_URL}chauffage/`,
   serrurerie: `${import.meta.env.BASE_URL}serrurerie/`,
   vitrerie: `${import.meta.env.BASE_URL}vitrerie/`,
@@ -82,9 +86,16 @@ const metierHrefByService: Partial<Record<ServiceId, string>> = {
 
   <div class="container footer__bottom">
     <p>© {year} {siteConfig.siteName}. Maquette de prévisualisation — non indexée.</p>
+    <!-- « Confidentialité » activée (04/09/2026, PROMPT_CLAUDE_CODE_PAGE_
+         POLITIQUE_CONFIDENTIALITE.txt), puis « Mentions légales » activée le
+         même jour (PROMPT_CLAUDE_CODE_PAGE_MENTIONS_LEGALES.txt) : les deux
+         pages légales existent désormais réellement, liens réels avec
+         `base`. -->
     <ul class="footer__legal">
-      <li><span>Mentions légales — page à venir</span></li>
-      <li><span>Confidentialité — page à venir</span></li>
+      <li><a href={`${import.meta.env.BASE_URL}mentions-legales/`}>Mentions légales</a></li>
+      <li>
+        <a href={`${import.meta.env.BASE_URL}politique-de-confidentialite/`}>Confidentialité</a>
+      </li>
     </ul>
   </div>
 </footer>
@@ -202,6 +213,17 @@ const metierHrefByService: Partial<Record<ServiceId, string>> = {
     gap: var(--space-4);
     padding: 0;
     margin: 0;
+  }
+
+  .footer__legal a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .footer__legal a:hover,
+  .footer__legal a:focus-visible {
+    color: var(--color-orange-500);
   }
 
   @media (max-width: 62rem) {

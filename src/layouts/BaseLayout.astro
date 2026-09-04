@@ -1,5 +1,6 @@
 ---
 import Seo from '../components/seo/Seo.astro';
+import QuoteModal from '../components/ui/QuoteModal.astro';
 import { siteConfig } from '../lib/site-config';
 import { buildCanonicalUrl, withBase } from '../lib/url';
 import type { JsonLdSchema, RobotsDirective } from '../types/seo';
@@ -76,7 +77,23 @@ const faviconSvgHref = withBase(import.meta.env.BASE_URL, 'favicon.svg');
       structuredData={structuredData}
     />
   </head>
-  <body class={hasMobileCallBar ? 'has-mobile-call-bar' : ''}>
+  <body id="top" class={hasMobileCallBar ? 'has-mobile-call-bar' : ''}>
+    <!--
+      CORRECTION P0 (DOUBLE CORRECTION P0 — DIALOG FERMÉ ET RETOUR RÉEL EN
+      HAUT DE PAGE, 04/09/2026) : `id="top"` porté par <body> lui-même —
+      sommet absolu réel du document (scrollY = 0), disponible de façon
+      cohérente sur CHAQUE page via ce layout partagé, avant même le bandeau
+      de disponibilité et la navbar sticky (slot "header" ci-dessous).
+      `homeHref` (src/data/landing.ts), seule source de tous les liens de
+      retour à l'accueil (logo, « Accueil » desktop/hamburger, footer, liens
+      « Retour à l'accueil » des pages juridiques), cible désormais cette
+      ancre plutôt que `#accueil` (id du Hero de la landing, positionné
+      SOUS ce bandeau + cette navbar) : l'ancien comportement scrollait
+      jusqu'au sommet du Hero, laissant le bandeau noir hors champ. Jamais
+      appliqué aux ancres de section (Dépannages, Interventions, Zones
+      couvertes, Avis…), qui gardent leur propre `scroll-margin-top` pour
+      rester lisibles sous la navbar sticky.
+    -->
     <a class="skip-link" href="#contenu-principal">Aller au contenu principal</a>
 
     <slot name="header" />
@@ -87,6 +104,15 @@ const faviconSvgHref = withBase(import.meta.env.BASE_URL, 'favicon.svg');
 
     <slot name="footer" />
     <slot name="mobile-call-bar" />
+
+    <!--
+      MICRO-SPRINT « modale demande de devis » (04/09/2026, PROMPT_CLAUDE_
+      CODE_MICRO_SPRINT_MODALE_DEVIS.txt) : rendue une seule fois par page,
+      comme Footer/MobileCallBar ci-dessus, jamais conditionnelle — tout
+      élément `data-quote-trigger` présent sur n'importe quelle page (landing
+      ou page métier) l'ouvre, sans avoir à l'inclure lui-même.
+    -->
+    <QuoteModal />
 
     <script src="../scripts/reveal.ts"></script>
   </body>

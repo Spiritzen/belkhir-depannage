@@ -1,0 +1,294 @@
+---
+/**
+ * Hero de la page /mentions-legales/ (PROMPT_CLAUDE_CODE_PAGE_MENTIONS_
+ * LEGALES.txt, 04/09/2026). Même principe que le Hero de
+ * /politique-de-confidentialite/ (composition abstraite HTML/CSS/SVG, fond
+ * anthracite + lueur orange, aucune photo, aucun personnage) mais avec sa
+ * propre identité visuelle — jamais une simple recopie : document
+ * institutionnel stylisé (lignes d'information vérifiées) + sceau à
+ * monogramme « BD », plutôt que le bouclier/verrou de la page
+ * confidentialité. Aucun cliché juridique pesant (pas de marteau de juge ni
+ * de balance de la justice), aucun texte juridique dans le SVG — seul un
+ * monogramme de marque à deux lettres, explicitement autorisé par le prompt
+ * de mission.
+ *
+ * Apparition douce via `data-reveal` (src/scripts/reveal.ts), mécanisme déjà
+ * partagé par tout le site et qui respecte nativement
+ * `prefers-reduced-motion` (src/styles/animations.css).
+ */
+import { homeHref } from '../../data/landing';
+---
+
+<section class="mentions-hero" aria-label="Informations légales Belkhir Dépannage">
+  <div class="mentions-hero__container">
+    <div class="mentions-hero__content">
+      <p class="mentions-hero__eyebrow" data-reveal="down">
+        <span class="mentions-hero__eyebrow-bar" aria-hidden="true"></span>
+        INFORMATIONS LÉGALES · TRANSPARENCE
+      </p>
+
+      <h1 class="mentions-hero__title" data-reveal="left">Une entreprise clairement identifiée</h1>
+
+      <p class="mentions-hero__lead" data-reveal="left">
+        Retrouvez les informations relatives à l’éditeur, au responsable de la publication et à
+        l’hébergement du site Belkhir Dépannage.
+      </p>
+
+      <ul class="mentions-hero__proofs" data-reveal="up">
+        <li>SASU</li>
+        <li>RCS Amiens</li>
+        <li>SIREN 977 900 216</li>
+      </ul>
+
+      <a class="mentions-hero__back" href={homeHref} data-reveal="up">
+        <span aria-hidden="true">←</span> Retour à l’accueil
+      </a>
+    </div>
+
+    <div class="mentions-hero__visual" data-reveal="right" aria-hidden="true">
+      <svg
+        class="mentions-hero__svg"
+        viewBox="0 0 240 320"
+        role="img"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <!-- Document institutionnel stylisé, coin corné -->
+        <path
+          class="mentions-hero__document"
+          d="M40,26 H172 L200,54 V284 C200,290.5 194.5,296 188,296 H52 C45.5,296 40,290.5 40,284 Z"
+        ></path>
+        <path class="mentions-hero__document-fold" d="M172,26 L172,54 L200,54 Z"></path>
+
+        <!-- Lignes d'informations vérifiées, longueurs variées -->
+        <line
+          class="mentions-hero__line mentions-hero__line--accent"
+          x1="62"
+          y1="92"
+          x2="146"
+          y2="92"></line>
+        <line class="mentions-hero__line" x1="62" y1="116" x2="178" y2="116"></line>
+        <line class="mentions-hero__line" x1="62" y1="138" x2="162" y2="138"></line>
+        <line class="mentions-hero__line" x1="62" y1="160" x2="178" y2="160"></line>
+        <line class="mentions-hero__line" x1="62" y1="182" x2="140" y2="182"></line>
+        <line class="mentions-hero__line" x1="62" y1="204" x2="170" y2="204"></line>
+
+        <!-- Sceau à monogramme, à cheval sur le coin inférieur droit -->
+        <circle class="mentions-hero__seal-ring" cx="176" cy="252" r="40"></circle>
+        <circle class="mentions-hero__seal-body" cx="176" cy="252" r="32"></circle>
+        <text class="mentions-hero__seal-text" x="176" y="262" text-anchor="middle">BD</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<style>
+  .mentions-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(52% 42% at 86% 14%, rgba(255, 105, 0, 0.16), transparent 72%),
+      radial-gradient(40% 38% at 8% 92%, rgba(255, 105, 0, 0.07), transparent 72%),
+      var(--color-anthracite-950);
+  }
+
+  .mentions-hero__container {
+    position: relative;
+    width: min(100%, var(--container-max));
+    margin-inline: auto;
+    box-sizing: border-box;
+    padding: clamp(2.5rem, 6vw, 4.5rem) 48px;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    align-items: center;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    min-height: calc(100vh - var(--header-total-height));
+    min-height: calc(100svh - var(--header-total-height));
+  }
+
+  .mentions-hero__content {
+    max-width: 36rem;
+    display: flex;
+    flex-direction: column;
+    color: var(--color-white);
+  }
+
+  .mentions-hero__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--color-orange-500);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+  }
+
+  .mentions-hero__eyebrow-bar {
+    width: 28px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--color-orange-500);
+  }
+
+  .mentions-hero__title {
+    margin-top: clamp(1rem, 0.85rem + 0.4vw, 1.25rem);
+    font-size: clamp(1.9rem, 1.5rem + 1.7vw, 2.9rem);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.14;
+  }
+
+  .mentions-hero__lead {
+    margin-top: clamp(1.1rem, 1rem + 0.3vw, 1.4rem);
+    max-width: 33rem;
+    font-size: clamp(1rem, 0.92rem + 0.3vw, 1.1rem);
+    line-height: 1.6;
+    color: var(--color-gray-100);
+  }
+
+  .mentions-hero__proofs {
+    margin: clamp(1.5rem, 1.3rem + 0.4vw, 2rem) 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+
+  .mentions-hero__proofs li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.04);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--color-white);
+  }
+
+  .mentions-hero__proofs li::before {
+    content: '';
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 999px;
+    background: var(--color-orange-500);
+    flex-shrink: 0;
+  }
+
+  .mentions-hero__back {
+    margin-top: clamp(1.5rem, 1.3rem + 0.4vw, 2rem);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+    color: var(--color-gray-300);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: color 200ms ease;
+  }
+
+  .mentions-hero__back:hover,
+  .mentions-hero__back:focus-visible {
+    color: var(--color-orange-500);
+  }
+
+  /* ---------- Visuel abstrait ---------- */
+
+  .mentions-hero__visual {
+    position: relative;
+    justify-self: center;
+    width: min(100%, 16rem);
+  }
+
+  .mentions-hero__visual::before {
+    content: '';
+    position: absolute;
+    inset: -18%;
+    background: radial-gradient(55% 55% at 50% 42%, rgba(255, 105, 0, 0.18), transparent 72%);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .mentions-hero__svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .mentions-hero__document {
+    fill: var(--color-anthracite-800);
+    stroke: rgba(255, 138, 61, 0.55);
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+
+  .mentions-hero__document-fold {
+    fill: var(--color-anthracite-700);
+    stroke: rgba(255, 138, 61, 0.55);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+
+  .mentions-hero__line {
+    stroke: rgba(203, 208, 216, 0.4);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+
+  .mentions-hero__line--accent {
+    stroke: var(--color-orange-500);
+  }
+
+  .mentions-hero__seal-ring {
+    fill: none;
+    stroke: var(--color-orange-500);
+    stroke-width: 2;
+    stroke-dasharray: 3 5;
+  }
+
+  .mentions-hero__seal-body {
+    fill: var(--color-anthracite-950);
+    stroke: var(--color-orange-500);
+    stroke-width: 2.5;
+  }
+
+  .mentions-hero__seal-text {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 26px;
+    fill: var(--color-orange-500);
+  }
+
+  /* ---------- Mobile ---------- */
+
+  @media (max-width: 56rem) {
+    .mentions-hero__container {
+      grid-template-columns: 1fr;
+      padding: clamp(2rem, 6vw, 3rem) 24px;
+      min-height: auto;
+    }
+
+    .mentions-hero__content {
+      max-width: 100%;
+      order: 1;
+    }
+
+    .mentions-hero__visual {
+      order: 0;
+      width: min(55%, 11rem);
+      margin-inline: auto;
+      margin-bottom: 1.5rem;
+    }
+  }
+
+  @media (max-width: 23rem) {
+    .mentions-hero__container {
+      padding-inline: 20px;
+    }
+  }
+</style>

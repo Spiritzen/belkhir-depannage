@@ -104,6 +104,102 @@
   transform: scaleX(1);
 }
 
+/*
+ * Vague « éclat » des étoiles Google (MICRO-SPRINT ANIMATION ÉCLAT DES
+ * ÉTOILES GOOGLE, 04/09/2026). Centralisée ici — feuille globale chargée
+ * une seule fois par page via BaseLayout.astro, donc appliquée telle quelle
+ * sur la landing ET les 5 pages métier (Plomberie, Chauffage, Serrurerie,
+ * Vitrerie, Rideaux métalliques) sans dupliquer ces règles ni ces
+ * @keyframes dans chaque Hero.astro : `.hero__google-proof-star` (5 <Icon
+ * name="star"> distincts) est déjà le même nom de classe partout, seules la
+ * taille et la couleur de repos (propres à chaque page, ex. 0.9rem sur la
+ * landing contre 0.85rem sur les pages métier) restent définies localement
+ * dans le <style> scoped de chaque Hero — aucune refonte de ce balisage
+ * n'était nécessaire.
+ *
+ * Chaque étoile : montée fluide vers scale(1.4), bref éclat blanc au sommet
+ * (~45ms, largement dans la fourchette 40-60ms demandée), retour immédiat à
+ * l'orange, puis descente fluide vers scale(1) — décalage de 100ms par
+ * étoile (gauche → droite, via :nth-child plutôt qu'une variable d'index :
+ * 5 éléments fixes, jamais générés dynamiquement en nombre variable), sur
+ * un cycle de 5s avec une véritable période de repos entre deux passages
+ * (la dernière étoile termine son mouvement vers 1,75s ; les 5 étoiles
+ * restent ensuite parfaitement immobiles jusqu'au prochain cycle).
+ *
+ * Seuls `transform`, `color`, `fill` et `filter` sont animés (jamais
+ * width/height/font-size) : aucun recalcul de mise en page, aucun layout
+ * shift, position et dimensions du badge inchangées. `fill` est animé en
+ * plus de `color` : l'icône <Icon name="star"> est un <svg fill="none"
+ * stroke="currentColor">, et `.hero__google-proof-star` fixe `fill` à une
+ * valeur littérale (pas `currentColor`) pour obtenir une étoile pleine —
+ * animer seulement `color` ne blanchirait donc que le contour, jamais le
+ * remplissage plein de l'étoile.
+ */
+.hero__google-proof-star {
+  display: inline-block;
+  transform-origin: center;
+  animation: google-star-wave 5s cubic-bezier(0.34, 1.2, 0.64, 1) infinite;
+}
+
+.hero__google-proof-star:nth-child(1) {
+  animation-delay: 0ms;
+}
+.hero__google-proof-star:nth-child(2) {
+  animation-delay: 100ms;
+}
+.hero__google-proof-star:nth-child(3) {
+  animation-delay: 200ms;
+}
+.hero__google-proof-star:nth-child(4) {
+  animation-delay: 300ms;
+}
+.hero__google-proof-star:nth-child(5) {
+  animation-delay: 400ms;
+}
+
+@keyframes google-star-wave {
+  0%,
+  16% {
+    transform: scale(1);
+    color: #ffb400;
+    fill: #ffb400;
+    filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+  }
+
+  20.5% {
+    color: #ffb400;
+    fill: #ffb400;
+    filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+  }
+
+  21% {
+    transform: scale(1.4);
+    color: #ffffff;
+    fill: #ffffff;
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.9));
+  }
+
+  21.9% {
+    color: #ffffff;
+    fill: #ffffff;
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.9));
+  }
+
+  22% {
+    color: #ffb400;
+    fill: #ffb400;
+    filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+  }
+
+  27%,
+  100% {
+    transform: scale(1);
+    color: #ffb400;
+    fill: #ffb400;
+    filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .js-reveal-ready [data-reveal] {
     opacity: 1;
@@ -114,6 +210,13 @@
   .bob-hover:hover,
   .bob-hover:focus-visible,
   .pulse-once {
+    animation: none;
+  }
+
+  /* Vague des étoiles Google : aucune animation, les 5 étoiles restent
+     parfaitement statiques, orange, à scale(1) — sur la landing comme sur
+     les 5 pages métier. */
+  .hero__google-proof-star {
     animation: none;
   }
 }

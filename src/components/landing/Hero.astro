@@ -1,7 +1,21 @@
 ---
 /**
- * Hero — fond photographique fidèle à l'ancienne landing (copie locale
- * obligatoire de 2151015241.jpg, inchangée). Recomposition « plein écran,
+ * Hero — fond photographique.
+ *
+ * MICRO-CORRECTION « remplacement de l'image du Hero desktop » (04/09/2026,
+ * PROMPT_CLAUDE_CODE_MICRO_CORRECTION_HERO_DESKTOP_IMAGE.txt) : l'ancienne
+ * image desktop (copie locale de 2151015241.jpg, `assets/legacy/hero-
+ * intervention-urgence.jpg`) est remplacée par la nouvelle photo de marque
+ * `assets/hero/hero-belkhir-depannage-desktop-bd.png` (équipe Belkhir
+ * Dépannage, monogramme orange « BD » visible sur le vêtement). Uniquement
+ * le fond desktop/tablette large change : l'image mobile
+ * (`hero-mobile-technicien-arrivee-belkhir.png`), son `object-position`
+ * dédié et son overlay mobile à 4 couches restent strictement inchangés
+ * (voir les règles `@media (max-width: 47.9375rem)` plus bas, qui
+ * redéfinissent entièrement `background` sur `.hero__overlay` et ne
+ * dépendent donc pas de la valeur de base modifiée ici).
+ *
+ * Recomposition « plein écran,
  * large et hiérarchisé » (retouche 03 V2, 01/09/2026) : le contenu exploite
  * enfin la largeur du conteneur central du site au lieu d'être comprimé
  * dans une colonne étroite.
@@ -36,12 +50,11 @@
  * les commentaires du template et du <style> ci-dessous.
  */
 import { Image, getImage } from 'astro:assets';
-import heroImg from '../../assets/legacy/hero-intervention-urgence.jpg';
+import heroImg from '../../assets/hero/hero-belkhir-depannage-desktop-bd.png';
 import heroMobileImg from '../../assets/hero/hero-mobile-technicien-arrivee-belkhir.png';
 import Icon from '../ui/Icon.astro';
 import { services, type ServiceId, googleReviewSummary } from '../../data/landing';
 import { siteConfig } from '../../lib/site-config';
-import { getPhoneCta } from '../../lib/phone';
 
 // Les cinq métiers du Hero réutilisent les données déjà centralisées pour
 // l'accordéon (`services` dans src/data/landing.ts) plutôt que de dupliquer
@@ -79,14 +92,6 @@ const metierHrefByService: Partial<Record<ServiceId, string>> = {
   'rideaux-metalliques': `${import.meta.env.BASE_URL}rideaux-metalliques/`,
 };
 
-// Micro-retouche suppression FinalCta (01/09/2026) : le bouton de devis
-// pointait vers #contact (FinalCta.astro), désormais supprimé. Il devient un
-// CTA vers la ligne standard centralisée, avec le même garde-fou que
-// PhoneCta : un vrai lien `tel:` si le numéro est valide, un bouton non
-// appelable (jamais de faux `tel:`) tant qu'il reste provisoire. Le libellé
-// visuel ne change pas ; seule la destination réelle du clic change.
-const standardCta = getPhoneCta(siteConfig.standardPhone);
-
 // Badge de confiance Google : `siteConfig.googleReviewsUrl` reste `null`
 // tant qu'aucune fiche Google Business n'est validée par le client (voir
 // src/lib/site-config.ts). Sans URL réelle, le badge pointe vers l'ancre
@@ -100,13 +105,13 @@ const googleAccessibleLabel = `${googleReviewSummary.label}, note de ${googleRat
 // image Hero mobile », 02/09/2026) : uniquement sous le breakpoint « Mobile
 // (sous 768px) » déjà utilisé par ce composant (voir .hero__message plus
 // bas) — cohérent avec le fait que la navbar est déjà en mode hamburger
-// bien avant ce seuil (74rem). Au-dessus, l'image desktop actuelle
-// (hero-intervention-urgence.jpg, <Image> ci-dessous) reste strictement
-// inchangée : ni remplacée, ni retouchée. Un vrai <picture>/<source
-// media> natif garantit que le navigateur ne télécharge jamais les deux
-// images à la fois. `getImage` (et non <Image>) pour la variante mobile
-// car elle n'alimente qu'un <source>, jamais directement un <img> — le
-// <img> de secours du <picture> reste le <Image> desktop existant.
+// bien avant ce seuil (74rem). Au-dessus, l'image desktop (voir la
+// micro-correction en tête de fichier) alimente le <Image> ci-dessous. Un
+// vrai <picture>/<source media> natif garantit que le navigateur ne
+// télécharge jamais les deux images à la fois. `getImage` (et non <Image>)
+// pour la variante mobile car elle n'alimente qu'un <source>, jamais
+// directement un <img> — le <img> de secours du <picture> reste le
+// <Image> desktop.
 const heroMobileOptimized = await getImage({
   src: heroMobileImg,
   widths: [375, 480, 640, 828, 941],
@@ -126,7 +131,7 @@ const heroMobileOptimized = await getImage({
       src={heroImg}
       alt=""
       class="hero__bg"
-      widths={[640, 960, 1280, 1920]}
+      widths={[640, 960, 1280, 1600, 1774]}
       sizes="100vw"
       loading="eager"
       fetchpriority="high"
@@ -228,27 +233,22 @@ const heroMobileOptimized = await getImage({
         </a>
 
         {
-          standardCta.kind === 'link' ? (
-            <a class="hero__quote-cta" href={standardCta.href} data-phone-role={standardCta.role}>
-              Demander un devis gratuit
-              <Icon name="arrow-right" class="hero__quote-cta-icon" />
-            </a>
-          ) : (
-            <button
-              type="button"
-              class="hero__quote-cta"
-              disabled
-              aria-describedby="hero-quote-note"
-              data-phone-role={standardCta.role}
-            >
-              Demander un devis gratuit
-              <Icon name="arrow-right" class="hero__quote-cta-icon" />
-              <span id="hero-quote-note" class="visually-hidden">
-                Numéro standard non encore renseigné dans cette maquette.
-              </span>
-            </button>
-          )
+          /*
+            MICRO-SPRINT « modale demande de devis » (04/09/2026,
+            PROMPT_CLAUDE_CODE_MICRO_SPRINT_MODALE_DEVIS.txt) : ce bouton
+            n'appelle plus la ligne standard (garde-fou téléphonique devenu
+            hors-sujet ici) — il ouvre la modale partagée `QuoteModal.astro`
+            (rendue une fois par `BaseLayout.astro`), qui ne dépend elle-même
+            d'aucun numéro. Toujours actif, jamais désactivé. Texte,
+            apparence, animation et position strictement inchangés — seul
+            l'attribut `data-quote-trigger` remplace l'ancien `href`/
+            `disabled` piloté par `standardCta`.
+          */
         }
+        <button type="button" class="hero__quote-cta" data-quote-trigger>
+          Demander un devis gratuit
+          <Icon name="arrow-right" class="hero__quote-cta-icon" />
+        </button>
       </div>
     </div>
   </div>
@@ -459,10 +459,30 @@ const heroMobileOptimized = await getImage({
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center 38%;
+    /* Cadrage desktop dédié à la nouvelle photo (micro-correction du
+       04/09/2026, voir le commentaire d'en-tête) : le technicien, le
+       monogramme orange « BD » et la mallette sont déjà positionnés sur la
+       moitié droite de la photo elle-même — ce biais horizontal les garde
+       visibles tout en laissant le mur sombre de gauche (zone déjà propice
+       au texte) prendre le recadrage. Uniquement la règle de base : le
+       breakpoint mobile ci-dessous redéfinit sa propre valeur, inchangée
+       par cette micro-correction. */
+    object-position: 80% 32%;
     z-index: -3;
   }
 
+  /*
+   * Overlay allégé pour la nouvelle photo (micro-correction du 04/09/2026,
+   * voir le commentaire d'en-tête) : le voile vertical hérité (0,92/0,72/
+   * 0,35) avait été calé sur l'ancienne photo et, cumulé à cette nouvelle
+   * scène déjà sombre, réduisait le bas de l'image à une plaque quasi
+   * noire — le monogramme orange « BD » et la mallette y devenaient
+   * invisibles. Opacités réduites d'environ un tiers à chaque palier ; la
+   * même forme (plus sombre en bas, plus clair en haut) est conservée pour
+   * que le texte, toujours posé sur le mur sombre de gauche déjà peu
+   * lumineux dans la photo elle-même, reste parfaitement lisible. Lueur
+   * orange inchangée.
+   */
   .hero__overlay {
     position: absolute;
     inset: 0;
@@ -470,9 +490,9 @@ const heroMobileOptimized = await getImage({
     background:
       linear-gradient(
         0deg,
-        rgba(9, 10, 14, 0.92) 0%,
-        rgba(9, 10, 14, 0.72) 42%,
-        rgba(9, 10, 14, 0.35) 100%
+        rgba(9, 10, 14, 0.62) 0%,
+        rgba(9, 10, 14, 0.48) 42%,
+        rgba(9, 10, 14, 0.22) 100%
       ),
       radial-gradient(60% 55% at 78% 8%, rgba(255, 105, 0, 0.35), transparent 70%);
   }
@@ -967,15 +987,6 @@ const heroMobileOptimized = await getImage({
     box-shadow: var(--shadow-md);
   }
 
-  /* Garde-fou numéro provisoire (voir le commentaire du frontmatter) : bouton
-     non appelable, jamais de faux `tel:`. */
-  .hero__quote-cta:disabled {
-    cursor: not-allowed;
-    opacity: 0.55;
-    transform: none;
-    box-shadow: var(--shadow-sm);
-  }
-
   .hero__quote-cta-icon {
     width: 1.05rem;
     height: 1.05rem;
@@ -1038,70 +1049,13 @@ const heroMobileOptimized = await getImage({
        est un élément de marque plutôt qu'une notation Google. */
     color: #ffb400;
     fill: #ffb400;
-    /*
-     * Vague fluide (02/09/2026,
-     * PROMPT_CLAUDE_CODE_ANIMATION_VAGUE_ETOILES_GOOGLE.txt) : chaque
-     * étoile est déjà un élément séparé (5 <Icon> distincts, voir le
-     * template) — aucune restructuration de balisage nécessaire, la
-     * consigne de transformation « chaîne unique → 5 spans » ne
-     * s'applique pas ici. `display: inline-block` + `transform-origin:
-     * center` pour un agrandissement propre sans affecter le flux ; seul
-     * `transform` est animé (jamais `width`/`height`/`font-size`), donc
-     * aucun recalcul de mise en page, aucun layout shift, taille/position
-     * de la carte Google inchangées.
-     */
-    display: inline-block;
-    transform-origin: center;
-    animation: google-star-wave 5s cubic-bezier(0.34, 1.2, 0.64, 1) infinite;
-  }
-
-  /* Décalage progressif de 130ms par étoile (gauche → droite), via
-     nth-child plutôt qu'une variable d'index : 5 éléments fixes, jamais
-     générés dynamiquement en nombre variable. */
-  .hero__google-proof-star:nth-child(1) {
-    animation-delay: 0ms;
-  }
-
-  .hero__google-proof-star:nth-child(2) {
-    animation-delay: 130ms;
-  }
-
-  .hero__google-proof-star:nth-child(3) {
-    animation-delay: 260ms;
-  }
-
-  .hero__google-proof-star:nth-child(4) {
-    animation-delay: 390ms;
-  }
-
-  .hero__google-proof-star:nth-child(5) {
-    animation-delay: 520ms;
-  }
-
-  /* Keyframes reprises telles que recommandées par le prompt de mission.
-     Chaque étoile boucle sur son propre cycle de montée/descente en
-     27 % de 5s ≈ 1,35s après son propre départ (0 %→16 % immobile,
-     21 % pic à scale(1.35), 27 %→100 % retour puis silence). Avec le
-     décalage de 130ms par étoile, la dernière étoile termine son propre
-     mouvement vers 520ms + 1,35s ≈ 1,87s après le début du cycle — au-delà
-     de la fourchette « 1 à 1,2s » donnée en indication, mais un contrôle
-     visuel confirme un effet cohérent et fluide (voir compte rendu) ; les
-     étoiles restent ensuite parfaitement statiques jusqu'au prochain cycle
-     à 5s, conformément à la chorégraphie demandée. */
-  @keyframes google-star-wave {
-    0%,
-    16% {
-      transform: scale(1);
-    }
-
-    21% {
-      transform: scale(1.35);
-    }
-
-    27%,
-    100% {
-      transform: scale(1);
-    }
+    /* Vague « éclat » (display/transform-origin/animation/@keyframes/
+       décalages par étoile) centralisée dans src/styles/animations.css
+       (MICRO-SPRINT ANIMATION ÉCLAT DES ÉTOILES GOOGLE, 04/09/2026) — cette
+       feuille globale, chargée une seule fois par page via BaseLayout.astro,
+       s'applique ici comme sur les 5 pages métier sans dupliquer ces règles.
+       Seules la taille et la couleur de repos ci-dessus, propres à cette
+       page, restent définies localement. */
   }
 
   .hero__google-proof-rating {
@@ -1167,11 +1121,8 @@ const heroMobileOptimized = await getImage({
       transform: none;
     }
 
-    /* Vague des étoiles Google : aucune animation, les 5 étoiles restent
-       parfaitement statiques à scale(1). */
-    .hero__google-proof-star {
-      animation: none;
-    }
+    /* Étoiles Google : garde-fou repris (et désormais centralisé) dans
+       src/styles/animations.css. */
   }
 
   @media (max-width: 64rem) {

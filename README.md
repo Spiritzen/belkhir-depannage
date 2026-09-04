@@ -12,12 +12,13 @@
 
 <br>
 
-![Statut](https://img.shields.io/badge/Statut-Maquette_MVP-f59e0b?style=flat-square)
+![Statut](https://img.shields.io/badge/Statut-Maquette_multi--pages-f59e0b?style=flat-square)
 ![Validation](https://img.shields.io/badge/Validation_client-En_cours-f59e0b?style=flat-square)
 ![Astro](https://img.shields.io/badge/Astro-7-BC52EE?style=flat-square&logo=astro)
 ![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat-square&logo=typescript)
 ![Rendu](https://img.shields.io/badge/Rendu-Statique-10b981?style=flat-square)
-![Publication](https://img.shields.io/badge/GitHub_Pages-Prévue-222222?style=flat-square&logo=githubpages)
+![Indexation](<https://img.shields.io/badge/Indexation-Bloquée_(noindex)-6b7280?style=flat-square>)
+![Publication](https://img.shields.io/badge/GitHub_Pages-En_ligne-222222?style=flat-square&logo=githubpages)
 
 </div>
 
@@ -26,7 +27,7 @@
 > [!IMPORTANT]
 > Ce dépôt présente une **maquette fonctionnelle en cours de conception** destinée à permettre à Fouad de découvrir, tester et valider la future expérience du site Belkhir Dépannage.
 >
-> Il ne s’agit **ni du site officiel, ni d’une version de production**. Les contenus, chiffres, avis, zones, horaires, prestations, mentions juridiques et informations commerciales restent soumis à validation avant toute publication officielle.
+> Il ne s’agit **ni du site officiel, ni d’une version de production**. La démonstration est publiée sur GitHub Pages mais reste explicitement **non indexée** (`noindex, nofollow` sur toutes les pages). Les contenus, chiffres, avis, zones, horaires, prestations, mentions juridiques et informations commerciales restent soumis à validation avant toute publication officielle.
 
 > **Belkhir Dépannage** est un projet de refonte complète d’un site vitrine consacré au dépannage d’urgence : plomberie, chauffage, serrurerie, vitrerie et rideaux métalliques.
 >
@@ -61,124 +62,117 @@ Vérifier la zone couverte et appeler
 
 ---
 
-## ✅ État du projet — 1er septembre 2026
+## ✅ État du projet — 4 septembre 2026
 
-> Phase actuelle : **MVP visuel et fonctionnel de la landing page**.
->
-> La page principale est suffisamment avancée pour être présentée à Fouad sous la forme d’une démonstration GitHub Pages. Cette publication intermédiaire sert à recueillir ses retours ; elle ne vaut pas validation commerciale, juridique ou éditoriale.
+> Phase actuelle : **maquette multi-pages** (landing + 5 pages métiers dédiées + 2 pages juridiques), publiée en démonstration sur GitHub Pages, toujours **non indexée**.
 
-| Périmètre                    | Statut                       | État actuel                                                 |
-| ---------------------------- | ---------------------------- | ----------------------------------------------------------- |
-| Direction artistique         | ✅ **Maquettée**             | Noir profond, blanc abricot et orange de sécurité           |
-| Navigation desktop           | ✅ **Maquettée**             | Barre sticky et accès directs aux sections principales      |
-| Navigation mobile            | ✅ **Maquettée**             | Menu hamburger accessible et appels dédiés                  |
-| Hero                         | ✅ **Maquetté**              | Offre, disponibilité, métiers, devis et réassurance         |
-| Orientation d’urgence        | ✅ **Maquettée**             | Six situations avec conseils introductifs et visuels dédiés |
-| Domaines d’intervention      | ✅ **Maquettés**             | Grille visuelle 3 × 2 sur desktop                           |
-| Processus de prise en charge | ✅ **Maquetté**              | Parcours en quatre étapes, animé et rassurant               |
-| Avis Google                  | 🟡 **Structure prête**       | Données et lien officiels à contrôler avant production      |
-| Pourquoi nous choisir        | ✅ **Maquetté**              | Arguments, photographie, compteurs et animations au scroll  |
-| Interventions récentes       | 🟡 **Présentation prête**    | Contenus authentiques à fournir et valider                  |
-| Couverture géographique      | ✅ **Maquettée**             | Hauts-de-France et cinq départements représentés            |
-| FAQ                          | 🟡 **Présentation prête**    | Réponses métier à confirmer avec Fouad                      |
-| Footer responsive            | ✅ **Maquetté**              | Navigation compacte et appels séparés                       |
-| Numéro d’urgence             | ✅ **Activé pour les tests** | `06 49 62 16 19` — lien `tel:` fonctionnel attendu          |
-| Numéro standard              | ⏳ **À renseigner**          | Doit rester clairement identifié comme non disponible       |
-| Pages détaillées             | ⏳ **À construire**          | Urgences, métiers, zones et informations juridiques         |
-| Audit prépublication         | 🔍 **À exécuter**            | Vérifications techniques, responsive, SEO et GitHub Pages   |
-| Déploiement de démonstration | ⏳ **À réaliser**            | GitHub Pages après audit satisfaisant                       |
-| Publication officielle       | ⛔ **Hors périmètre actuel** | Domaine, contenus et recette finale non validés             |
+| Périmètre                    | Statut                       | État actuel                                                        |
+| ---------------------------- | ---------------------------- | ------------------------------------------------------------------ |
+| Direction artistique         | ✅ **Maquettée**             | Noir profond, blanc abricot et orange de sécurité                  |
+| Navigation desktop / mobile  | ✅ **Maquettée**             | Barre sticky, menu hamburger, barre d’appel mobile permanente      |
+| Landing page                 | ✅ **Maquettée**             | Hero, urgences, domaines, prise en charge, confiance, FAQ, zones   |
+| Pages métiers dédiées        | ✅ **Construites**           | Plomberie, Chauffage, Serrurerie, Vitrerie, Rideaux métalliques    |
+| Pages juridiques             | ✅ **Construites**           | Mentions légales et Politique de confidentialité                   |
+| Modale « Demander un devis » | ✅ **Fonctionnelle (UI)**    | Partagée sur tout le site ; envoi réel non branché (voir plus bas) |
+| Avis Google                  | 🟡 **Structure prête**       | Note et nombre d’avis à confirmer avec la fiche Google réelle      |
+| Interventions récentes       | 🟡 **Présentation prête**    | Contenus authentiques à fournir et valider                         |
+| Numéro d’urgence             | ✅ **Activé**                | `06 49 62 16 19` — lien `tel:` réel et fonctionnel                 |
+| Numéro standard              | ⏳ **À renseigner**          | Doit rester clairement identifié comme non disponible              |
+| Formulaire de devis (envoi)  | ⏳ **À connecter**           | Hébergement LWS + endpoint PHP non encore disponibles              |
+| Images desktop/mobile        | ✅ **Optimisées**            | `astro:assets` → WebP/AVIF responsive, voir section dédiée         |
+| Déploiement de démonstration | ✅ **En ligne**              | GitHub Pages, non indexé (voir section Déploiement)                |
+| Audit SEO/perf/images        | ✅ **Réalisé (04/09/2026)**  | Voir `RAPPORT_AUDIT_AVANT_PUSH_SEO_PERFORMANCE.md`                 |
+| Publication officielle       | ⛔ **Hors périmètre actuel** | Domaine, contenus, formulaire et recette finale non validés        |
 
 ---
 
-## 🧭 Sections de la landing page
+## 🗺️ Routes disponibles
 
-### 1. Navigation et appel
+9 routes sont réellement générées par le build (`npm run build`) :
 
-- identité Belkhir Dépannage ;
-- navigation sticky ;
-- numéro standard distinct du numéro d’urgence ;
-- menu mobile ;
-- barre d’appel permanente sur téléphone.
+| Route                            | Contenu                                                     |
+| -------------------------------- | ----------------------------------------------------------- |
+| `/`                              | Landing page (hero, urgences, domaines, confiance, avis…)   |
+| `/plomberie/`                    | Page métier dédiée — plomberie                              |
+| `/chauffage/`                    | Page métier dédiée — chauffage                              |
+| `/serrurerie/`                   | Page métier dédiée — serrurerie                             |
+| `/vitrerie/`                     | Page métier dédiée — vitrerie                               |
+| `/rideaux-metalliques/`          | Page métier dédiée — rideaux métalliques                    |
+| `/mentions-legales/`             | Identité légale de l’entreprise (SASU, SIREN/SIRET, RCS…)   |
+| `/politique-de-confidentialite/` | Données personnelles, cookies (aucun sur ce site), sécurité |
+| `/404`                           | Page d’erreur (exclue du sitemap et non indexée)            |
 
-Le numéro d’urgence communiqué pour les tests est le **06 49 62 16 19**. Son format fonctionnel est :
+Chaque page métier suit le même gabarit (Hero dédié, urgences/FAQ propres, section « zones couvertes », schéma JSON-LD `FAQPage`) avec un contenu rédactionnel réellement distinct — jamais un copier-coller du même texte.
+
+La page/fonctionnalité **« Vérifier mon secteur »** en tant que page dédiée reste **volontairement différée** : le bouton du même nom renvoie aujourd’hui vers la section « Zones couvertes » de la landing (`#zones-couvertes`), pas vers une page satellite.
+
+---
+
+## 🧩 Composants partagés
 
 ```text
-tel:+33649621619
+src/layouts/BaseLayout.astro     — <head> SEO, styles globaux, modale de devis (rendue une fois par page)
+src/components/layout/
+  ├─ AvailabilityBar.astro       — bandeau « ouvert 24h/24 » en tête de page
+  ├─ Navbar.astro                — navigation sticky desktop + déclencheur du menu mobile
+  ├─ MobileDrawer.astro          — menu mobile (Astro pur, sans framework — voir Stack technique)
+  ├─ MobileCallBar.astro         — barre d’appel fixe en bas d’écran sur mobile
+  └─ Footer.astro                — liens métiers, navigation, pages juridiques, coordonnées
+src/components/ui/
+  ├─ Icon.astro                  — jeu d’icônes SVG inline, dessinées pour le projet
+  ├─ PhoneCta.astro              — bouton d’appel (garde-fou : jamais de faux numéro)
+  └─ QuoteModal.astro            — modale « Demander un devis », partagée sur tout le site
+src/components/sections/         — blocs réutilisés par plusieurs pages métiers (alerte sécurité,
+                                    conseils, résumé de couverture, carte, réassurance)
+src/components/seo/Seo.astro     — <title>, meta description, canonical, Open Graph, JSON-LD
 ```
 
-Le numéro standard n’étant pas encore fourni, il ne doit jamais être remplacé par un faux numéro ni devenir cliquable par erreur.
+Chaque page (landing, métier, juridique) assemble ces briques via `BaseLayout`, sans dupliquer la navigation, le pied de page ou la modale de devis.
 
-### 2. Hero
+---
 
-Le premier écran met immédiatement en avant :
+## 🧱 Gestion du `base` Astro
 
-- le dépannage d’urgence 24 h/24 et 7 j/7 ;
-- la couverture des Hauts-de-France ;
-- les cinq métiers prioritaires ;
-- une demande de devis ;
-- la preuve Google intégrée dans la direction artistique.
+Le site est publié en **site de projet** GitHub Pages (pas à la racine du compte) :
 
-Les deux numéros ne sont pas répétés dans le hero : ils restent accessibles dans la navigation sticky et dans les dispositifs mobiles permanents.
+```js
+// astro.config.mjs
+site: 'https://spiritzen.github.io',
+base: '/belkhir-depannage/',
+```
 
-### 3. Votre sécurité d’abord
+Ces deux valeurs sont l’**unique source** de l’URL et du sous-chemin publics : elles alimentent automatiquement le canonical, l’Open Graph, le sitemap et `robots.txt` via `src/lib/site-config.ts` (`resolveSiteUrl`). Toute URL absolue interne passe par `withBase()` (`src/lib/url.ts`) plutôt que par une concaténation manuelle, pour ne jamais produire un lien qui oublierait le sous-chemin `/belkhir-depannage`.
 
-La section **« Quelle est votre urgence ? »** aide le visiteur à reconnaître sa situation :
+Faire évoluer la cible de déploiement (nouveau dépôt, domaine personnalisé) ne demande donc de modifier que `astro.config.mjs` — jamais une seconde constante codée en dur ailleurs.
 
-- fuite d’eau ;
-- chauffage en panne ;
-- porte bloquée ;
-- vitre cassée ;
-- rideau métallique bloqué ;
-- autre urgence.
+---
 
-Chaque carte doit conduire, à terme, vers une page dédiée présentant :
+## 🖼️ Images desktop/mobile et optimisation WebP/AVIF
 
-- les premiers gestes sûrs ;
-- les actions à ne surtout pas réaliser ;
-- la protection des personnes en priorité ;
-- les moyens raisonnables de limiter les dégâts matériels ;
-- les informations à préparer avant l’appel ;
-- le contact adapté.
+Toutes les images de contenu passent par **`astro:assets`** (`<Image>` ou `<Picture>`) — aucune image lourde n’est servie en PNG/JPEG brut, aucune `background-image: url(...)` CSS n’est utilisée sur le site.
 
-> Les conseils publiés ne devront jamais encourager un visiteur à manipuler une installation électrique, un mécanisme, une chaudière, une vitre ou tout autre équipement dangereux.
+- **Images Hero** (landing et pages métiers) : `loading="eager"` + `fetchpriority="high"` (jamais de lazy-loading sur l’image LCP), dimensions explicites, `srcset`/`sizes` responsive. Les pages métiers utilisent un `<picture>` avec sources AVIF puis WebP, scindées par `media` mobile/desktop — un seul fichier est réellement téléchargé par appareil.
+- **Cadrage desktop/mobile** : géré en CSS (`object-position` différent par breakpoint) plutôt que par deux images totalement distinctes lorsque la même photo convient aux deux formats ; les pages métiers, elles, fournissent une image mobile et une image desktop dédiées quand le cadrage l’exige.
+- **Images sous la ligne de flottaison** (accordéons, cartes « interventions récentes », illustrations) : toutes en `loading="lazy"`, dimensions explicites, `srcset` responsive.
+- **Formats livrés** : WebP partout, avec une variante AVIF supplémentaire sur les heros des pages métiers (négociation de format via `<picture>`).
+- **Textes alternatifs** : descriptifs et réels sur les photographies de contenu ; `alt=""` volontaire sur les visuels purement décoratifs (fond du hero, silhouettes d’illustration).
 
-### 4. Nos domaines d’intervention
+Le détail chiffré (poids avant/après, formats réellement livrés) est documenté dans `RAPPORT_AUDIT_AVANT_PUSH_SEO_PERFORMANCE.md`.
 
-Une grille immersive en six cartes présente :
+---
 
-- plomberie ;
-- fuites et anomalies ;
-- chauffage ;
-- serrurerie ;
-- vitrerie ;
-- rideaux métalliques.
+## 💬 Modale « Demander un devis »
 
-Sur desktop, les cartes utilisent le survol et le focus clavier. Sur mobile, aucune information essentielle ne doit dépendre d’un `hover` inexistant.
+Un unique composant partagé (`src/components/ui/QuoteModal.astro`, `<dialog>` natif, sans dépendance nouvelle) est rendu une seule fois par page depuis `BaseLayout.astro` et s’ouvre depuis n’importe quel élément portant `data-quote-trigger` (aujourd’hui : le bouton du Hero de la landing).
 
-### 5. Prise en charge
+Fonctionnement actuel :
 
-Le processus est expliqué en quatre étapes :
+- ouverture centrée, focus déplacé dans la modale, défilement de la page bloqué puis restauré exactement à la fermeture ;
+- fermeture par la croix, « Annuler », Échap ou un vrai clic extérieur — jamais par un clic à l’intérieur du formulaire ;
+- validation locale des champs (nom, téléphone, commune, type d’intervention, description, consentement) ;
+- **aucun envoi réseau réel** : la soumission est interceptée, validée localement puis explicitement bloquée avec un message honnête, tant que l’hébergement LWS et son endpoint PHP ne sont pas disponibles. Rien n’est simulé, rien n’est stocké.
 
-1. le client contacte la ligne adaptée ;
-2. l’équipe qualifie la situation ;
-3. la solution et les conditions sont expliquées ;
-4. l’intervention est réalisée puis contrôlée.
-
-Cette section doit rassurer sans promettre de délai universel ni de résultat non vérifié.
-
-### 6. Confiance et expertise
-
-La landing comporte plusieurs niveaux de réassurance :
-
-- avis Google ;
-- arguments « Pourquoi choisir Belkhir Dépannage ? » ;
-- animations de compteurs ;
-- interventions récentes ;
-- couverture régionale ;
-- FAQ.
-
-Les compteurs, avis et réalisations restent des données sensibles : toute valeur affichée devra être attribuable et approuvée avant la mise en production.
+Le point de branchement du futur endpoint est documenté par un commentaire dédié dans le `<script>` du composant (« FUTUR ENDPOINT PHP »).
 
 ---
 
@@ -192,43 +186,38 @@ La maquette suit une direction **« urgence maîtrisée + technicien premium »*
 - lueurs orangées très légères dans les sections sombres ;
 - grands visuels métier ;
 - cartes arrondies et hiérarchie typographique forte ;
-- animations brèves, lisibles et rejouables lorsque cela apporte du sens.
+- animations brèves, lisibles, désactivées via `prefers-reduced-motion`.
 
 La signature de marque colore notamment le **B** de _Belkhir_ et le **D** de _Dépannage_ en orange.
 
-### Médias temporaires
+### Médias
 
-La V1 réutilise provisoirement :
-
-- le logo du site existant ;
-- l’image actuelle du hero ;
-- les photographies historiques de services et d’activités ;
-- certains principes d’animation de l’ancien site.
-
-Les médias sont intégrés localement au projet, sans hotlinking. Leur maintien dans la version officielle dépendra de la validation du client et des droits d’utilisation.
+Les photographies métiers et le logo sont intégrés localement au projet, sans hotlinking. Leur maintien dans la version officielle dépendra de la validation du client et des droits d’utilisation.
 
 ---
 
 ## 🛠 Stack technique
 
-| Couche                       | Technologie       | Rôle                                        |
-| ---------------------------- | ----------------- | ------------------------------------------- |
-| Génération                   | Astro 7           | Production de pages statiques rapides       |
-| Langage                      | TypeScript strict | Données et composants typés                 |
-| Interactivité                | React             | Îlots ciblés, notamment pour le menu mobile |
-| Styles                       | CSS natif         | Tokens, responsive et animations            |
-| Images                       | `astro:assets`    | Optimisation et dimensions explicites       |
-| Tests                        | Vitest            | Garde-fous fonctionnels et techniques       |
-| Vérification                 | Astro Check       | Validation Astro et TypeScript              |
-| Hébergement de démonstration | GitHub Pages      | Présentation de la maquette à Fouad         |
+| Couche                       | Technologie       | Rôle                                                                |
+| ---------------------------- | ----------------- | ------------------------------------------------------------------- |
+| Génération                   | Astro 7           | Production de pages statiques rapides                               |
+| Langage                      | TypeScript strict | Données et composants typés                                         |
+| Interactivité                | Astro + JS natif  | `<dialog>` natif, IntersectionObserver — voir note React ci-dessous |
+| Styles                       | CSS natif         | Tokens, responsive et animations                                    |
+| Images                       | `astro:assets`    | WebP/AVIF responsive, dimensions explicites                         |
+| Tests                        | Vitest            | Garde-fous fonctionnels et techniques                               |
+| Vérification                 | Astro Check       | Validation Astro et TypeScript                                      |
+| Hébergement de démonstration | GitHub Pages      | Présentation de la maquette à Fouad                                 |
+
+> **Note** : l’intégration `@astrojs/react` reste installée (`astro.config.mjs`, `package.json`) mais **n’est plus utilisée** — aucun composant `.tsx` ni aucune directive `client:*` ne subsiste dans le code actuel (le menu mobile, un temps envisagé en React, est un composant Astro pur avec piège de focus manuel). Retirer cette dépendance inutilisée est une amélioration à faible risque, documentée dans le rapport d’audit plutôt qu’appliquée en cours de sprint.
 
 ### Principes d’architecture
 
 - rendu statique par défaut ;
-- JavaScript client limité aux interactions utiles ;
-- données commerciales centralisées ;
+- JavaScript client limité aux interactions utiles (menu mobile, modale de devis, révélations au scroll) ;
+- données commerciales centralisées (`src/lib/site-config.ts`) ;
 - numéros d’appel non dupliqués manuellement ;
-- composants réutilisables ;
+- composants réutilisables (voir « Composants partagés ») ;
 - responsive mobile-first ;
 - aucune base de données ni authentification dans ce MVP.
 
@@ -256,14 +245,18 @@ npm run dev
 
 Astro affiche ensuite l’adresse locale dans le terminal, généralement `http://localhost:4321`.
 
-### Build de production
+### Vérification, build et prévisualisation
 
 ```bash
-npm run build
-npm run preview
+npm run check     # Astro Check (TypeScript + templates)
+npm run lint       # ESLint
+npm run build      # Build de production dans dist/
+npm run preview    # Sert dist/ localement, pour mesurer les performances réelles
+npm run test:run   # Suite de tests Vitest (une seule fois, sans watch)
+npm run validate   # Enchaîne check + lint + build + test:run
 ```
 
-Les scripts de contrôle complémentaires doivent être exécutés d’après le `package.json` réellement présent dans le dépôt. L’audit prépublication doit confirmer leur disponibilité et leurs résultats avant le premier déploiement.
+> Les mesures de performance (Lighthouse, poids réel des pages) doivent toujours être faites sur `npm run preview`, jamais sur `npm run dev` — le serveur de développement n’est pas représentatif (pas de minification, HMR actif, etc.).
 
 ---
 
@@ -271,10 +264,9 @@ Les scripts de contrôle complémentaires doivent être exécutés d’après le
 
 La maquette ne doit pas être déclarée publiable sur la seule base de son rendu visuel.
 
-L’audit prépublication doit vérifier au minimum :
+Chaque évolution vérifie au minimum :
 
-- installation reproductible avec `npm ci` ;
-- Astro Check, lint, tests et build ;
+- Astro Check, lint, tests et build (`npm run validate`) ;
 - absence de liens et d’ancres mortes ;
 - fonctionnement des appels `tel:` ;
 - présence du numéro d’urgence dans tous les emplacements prévus ;
@@ -289,42 +281,42 @@ L’audit prépublication doit vérifier au minimum :
 - présence d’une protection contre l’indexation prématurée ;
 - cohérence des mentions et absence de promesse commerciale inventée.
 
-Le rapport doit produire un verdict clair :
-
-| Verdict       | Signification                                             |
-| ------------- | --------------------------------------------------------- |
-| 🟢 **VERT**   | Démonstration publiable sans anomalie bloquante           |
-| 🟠 **ORANGE** | Publication possible uniquement après arbitrage documenté |
-| 🔴 **ROUGE**  | Déploiement à interrompre jusqu’à correction              |
+Un audit SEO/performance/images complet a été réalisé le 04/09/2026 — voir `RAPPORT_AUDIT_AVANT_PUSH_SEO_PERFORMANCE.md` pour le verdict détaillé, les mesures Lighthouse et la roadmap.
 
 ---
 
-## 🌐 Déploiement de démonstration
+## 🌐 Déploiement
 
-Le dépôt cible est :
+Le dépôt est :
 
 ```text
 belkhir-depannage
 ```
 
-L’URL GitHub Pages envisagée est :
+La démonstration est **en ligne** à :
 
 ```text
 https://spiritzen.github.io/belkhir-depannage/
 ```
 
-Cette URL aura pour seul objectif de permettre à Fouad de consulter la maquette sur desktop et mobile.
-
-Avant le déploiement, il faudra notamment confirmer :
-
-- la valeur `site` d’Astro ;
-- le chemin de base `/belkhir-depannage` ;
-- le fonctionnement des images et liens depuis un sous-répertoire ;
-- la sensibilité à la casse sous Linux ;
-- le workflow GitHub Actions ;
-- l’absence d’indexation ou l’ajout d’un avertissement explicite de démonstration.
+Le site reste explicitement **non indexé** (`robots.txt` en `Disallow: /`, `<meta name="robots" content="noindex, nofollow">` sur chaque page) tant que les informations commerciales (numéro standard, avis Google réels) ne sont pas toutes confirmées — voir `src/lib/site-config.ts` (`resolveAllowIndexing`). Le retrait de cette protection est une étape volontairement contrôlée, listée en priorité P0 de la roadmap SEO (voir plus bas).
 
 > La publication GitHub Pages ne constitue pas le lancement officiel du site Belkhir Dépannage et ne remplace pas le futur domaine professionnel.
+
+---
+
+## 🔍 Roadmap SEO (résumé)
+
+Le détail complet (actions, justification, statut) vit dans `RAPPORT_AUDIT_AVANT_PUSH_SEO_PERFORMANCE.md`. Résumé :
+
+**P0 — avant mise en production définitive**
+Domaine définitif, hébergement LWS, canonical définitif, retrait contrôlé du `noindex`, numéro standard réel, endpoint sécurisé du formulaire de devis, mise à jour RGPD après activation du formulaire, informations légales restant à compléter (médiateur de la consommation), vérification finale de tous les CTA.
+
+**P1 — lancement SEO**
+Google Search Console, envoi du sitemap, cohérence avec la fiche Google Business Profile, données structurées `LocalBusiness` (une fois l’adresse/le numéro définitifs), indexation des pages métiers, suivi Core Web Vitals et des erreurs d’indexation.
+
+**P2 — SEO local**
+Pages des principales villes desservies, contenu réellement distinct par ville (jamais des pages satellites dupliquées), intentions de recherche métier + urgence + localisation, maillage interne, FAQ locales, page/fonctionnalité **« Vérifier mon secteur »** (différée, non réalisée à ce stade).
 
 ---
 
@@ -354,22 +346,21 @@ Le dossier `docs/`, utilisé pour les prompts et rapports de travail, n’a pas 
 
 ---
 
-## 🚧 Limites assumées du MVP
+## 🚧 Limites assumées
 
 Cette version ne comprend pas encore :
 
-- les pages détaillées de premiers gestes ;
-- les pages métiers complètes ;
-- les pages locales et départementales ;
-- un formulaire réellement connecté ;
+- un formulaire de devis réellement connecté (hébergement LWS + endpoint PHP à venir) ;
 - un back-office ;
 - une base de données ;
 - une prise de rendez-vous ;
 - un système de paiement ;
-- une mesure fiable des conversions ;
-- les mentions légales définitives ;
+- une mesure fiable des conversions (aucun outil Analytics installé à ce stade) ;
+- les mentions légales définitivement complètes (médiateur de la consommation notamment) ;
+- une page dédiée « Vérifier mon secteur » (fonctionnalité différée, volontairement) ;
+- les pages locales et départementales (SEO local, priorité P2) ;
 - la validation éditoriale et juridique finale ;
-- le domaine officiel et la configuration SEO de production.
+- le domaine officiel et la configuration SEO de production (indexation encore bloquée).
 
 Les boutons non reliés à une destination réelle doivent rester désactivés, être redirigés vers une section existante ou porter un libellé honnête. Aucun faux parcours ne doit être présenté comme fonctionnel.
 
@@ -377,20 +368,9 @@ Les boutons non reliés à une destination réelle doivent rester désactivés, 
 
 ## 📋 Prochaines étapes
 
-### Démonstration
-
-- [ ] Exécuter l’audit prépublication complet
-- [ ] Corriger les anomalies bloquantes
-- [ ] Vérifier le `.gitignore` et l’absence de secrets
-- [ ] Initialiser le dépôt `belkhir-depannage`
-- [ ] Configurer GitHub Pages
-- [ ] Déployer la maquette
-- [ ] Tester l’URL depuis desktop et mobile
-- [ ] Présenter la landing à Fouad
-
 ### Validation client
 
-- [ ] Recueillir les retours de Fouad
+- [ ] Recueillir les retours de Fouad sur la démonstration en ligne
 - [ ] Valider le numéro standard
 - [ ] Confirmer tous les horaires et niveaux de disponibilité
 - [ ] Valider les prestations et exclusions
@@ -401,15 +381,15 @@ Les boutons non reliés à une destination réelle doivent rester désactivés, 
 
 ### Version officielle
 
-- [ ] Créer les pages d’urgence avec premiers gestes sécurisés
-- [ ] Créer les pages métiers prioritaires
-- [ ] Construire l’architecture SEO locale sans pages artificielles
-- [ ] Finaliser les pages juridiques
-- [ ] Réaliser les audits SEO, accessibilité et performance
+- [ ] Connecter l’envoi réel du formulaire de devis (hébergement LWS + endpoint PHP)
+- [ ] Mettre à jour la politique de confidentialité une fois le formulaire actif
+- [ ] Compléter les informations légales restantes (médiateur de la consommation)
+- [ ] Construire l’architecture SEO locale sans pages artificielles (priorité P2)
+- [ ] Réaliser un nouvel audit SEO/accessibilité/performance avant le retrait du `noindex`
 - [ ] Choisir et configurer le domaine officiel
 - [ ] Tester tous les canaux de contact en conditions réelles
 - [ ] Obtenir la recette finale de Fouad
-- [ ] Publier le site officiel
+- [ ] Retirer le `noindex` et publier officiellement le site
 
 ---
 

@@ -122,15 +122,21 @@ describe('landing page — contenu et garde-fous (section 29 du prompt de missio
       // d'urgence. Page chauffage (04/09/2026, PROMPT_CLAUDE_CODE_PAGE_
       // CHAUFFAGE_PATTERN_COMPLET.txt) puis serrurerie puis vitrerie puis
       // rideaux métalliques (même jour) : pages métier réelles suivantes,
-      // même traitement.
+      // même traitement. Pages politique de confidentialité puis mentions
+      // légales (même jour, PROMPT_CLAUDE_CODE_PAGE_POLITIQUE_
+      // CONFIDENTIALITE.txt puis PROMPT_CLAUDE_CODE_PAGE_MENTIONS_LEGALES.txt) :
+      // les deux liens footer juridiques sont désormais activés vers ces
+      // pages réelles non-métier.
       const isMetierPage =
         href.endsWith('/plomberie/') ||
         href.endsWith('/chauffage/') ||
         href.endsWith('/serrurerie/') ||
         href.endsWith('/vitrerie/') ||
         href.endsWith('/rideaux-metalliques/');
+      const isLegalPage =
+        href.endsWith('/politique-de-confidentialite/') || href.endsWith('/mentions-legales/');
       expect(
-        isAnchor || isExternal || isRoot || isEmergencyTel || isMetierPage,
+        isAnchor || isExternal || isRoot || isEmergencyTel || isMetierPage || isLegalPage,
         `unexpected internal route link: ${href}`,
       ).toBe(true);
     }
@@ -147,8 +153,8 @@ describe('landing page — contenu et garde-fous (section 29 du prompt de missio
     expect(logoOccurrences.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('17. uses the legacy hero image locally (built asset derived from 2151015241.jpg)', () => {
-    expect(html).toContain('hero-intervention-urgence');
+  it('17. uses a local hero image, self-hosted (desktop photo intentionally swapped for the brand photo by a later, explicit micro-correction — 04/09/2026, PROMPT_CLAUDE_CODE_MICRO_CORRECTION_HERO_DESKTOP_IMAGE.txt)', () => {
+    expect(html).toContain('hero-belkhir-depannage-desktop-bd');
   });
 
   it('18. documents the legacy media manifest with real source URLs and local paths', () => {
