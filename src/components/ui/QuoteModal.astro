@@ -175,10 +175,29 @@ import Icon from './Icon.astro';
     // fermeture — même principe que MobileDrawer.astro.
     let lastFocused: HTMLElement | null = null;
 
+    // Préremplissage optionnel (page /zones-intervention/, PROMPT_CLAUDE_
+    // CODE_PAGE_ZONES_INTERVENTION_RADAR.txt, section 9, 04/09/2026) :
+    // extension documentée du mécanisme d'ouverture existant plutôt qu'un
+    // deuxième système — tout élément `[data-quote-trigger]` peut poser un
+    // attribut `data-quote-location` (ex. "Albert — 80300"), lu ici au
+    // moment de l'ouverture pour préremplir « Commune ou code postal »,
+    // sans jamais vider les autres champs déjà saisis. La valeur ne
+    // provient jamais du HTML fourni par l'utilisateur : c'est une simple
+    // chaîne texte posée par le script appelant (voir CoverageChecker.astro),
+    // jamais une manipulation `innerHTML`.
     function openModal(trigger: HTMLElement): void {
       lastFocused = trigger;
       document.documentElement.classList.add('quote-modal-open');
       dialog!.showModal();
+
+      const prefillLocation = trigger.dataset.quoteLocation;
+      if (prefillLocation) {
+        const locationEl = document.getElementById('quote-location') as HTMLInputElement | null;
+        if (locationEl) {
+          locationEl.value = prefillLocation;
+        }
+      }
+
       // `autofocus` HTML n'est fiable qu'au premier rendu de page ; à
       // chaque réouverture, on replace explicitement le focus sur le
       // premier champ du formulaire.

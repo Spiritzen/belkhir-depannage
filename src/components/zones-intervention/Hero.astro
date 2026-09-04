@@ -1,0 +1,190 @@
+---
+/**
+ * Hero « radar d'intervention » de la page /zones-intervention/
+ * (PROMPT_CLAUDE_CODE_PAGE_ZONES_INTERVENTION_RADAR.txt, sections 1 et 4,
+ * 04/09/2026).
+ *
+ * Composition volontairement sans nouvelle photo (section 4 du prompt) :
+ * fond sombre anthracite/noir avec lueur orange maîtrisée, dans la même
+ * continuité que les Hero abstraits déjà validés (Confidentialité,
+ * Mentions légales). Colonne gauche : copy + moteur de recherche
+ * (`CoverageChecker`, qui porte aussi la fiche de résultat). Colonne
+ * droite : la carte SVG partagée des cinq départements (`CoverageMapGraphic`,
+ * `src/components/sections/CoverageMapGraphic.astro` — mêmes contours et
+ * mêmes données que la landing, jamais une deuxième carte).
+ *
+ * Ordre mobile (section 4 du prompt) : texte + recherche en premier
+ * (`CoverageChecker` inclut déjà sa propre fiche de résultat juste sous le
+ * champ, satisfaisant « résultat immédiatement sous la recherche »), puis
+ * la carte.
+ */
+import CoverageChecker from '../sections/CoverageChecker.astro';
+import CoverageMapGraphic from '../sections/CoverageMapGraphic.astro';
+import { coverageZones } from '../../data/landing';
+---
+
+<section class="zones-hero" aria-label="Vérifier votre secteur d’intervention">
+  <div class="zones-hero__container">
+    <div class="zones-hero__content">
+      <p class="zones-hero__eyebrow" data-reveal="down">
+        <span class="zones-hero__eyebrow-bar" aria-hidden="true"></span>
+        ZONE D’INTERVENTION · HAUTS-DE-FRANCE
+      </p>
+
+      <h1 class="zones-hero__title" data-reveal="left">
+        Dépannage d’urgence dans les Hauts-de-France
+      </h1>
+
+      <p class="zones-hero__lead" data-reveal="left">
+        Saisissez votre commune ou votre code postal pour vérifier si votre demande se situe dans
+        notre secteur d’intervention. La disponibilité et le délai sont toujours confirmés lors de
+        votre appel.
+      </p>
+
+      <ul class="zones-hero__depts" data-reveal="up" aria-hidden="true">
+        {
+          coverageZones.map((zone, index) => (
+            <>
+              <li>{zone.name}</li>
+              {index < coverageZones.length - 1 && <li class="zones-hero__depts-sep">·</li>}
+            </>
+          ))
+        }
+      </ul>
+
+      <div class="zones-hero__checker" data-reveal="up">
+        <CoverageChecker />
+      </div>
+    </div>
+
+    <div class="zones-hero__map" data-reveal="right" aria-hidden="false">
+      <CoverageMapGraphic variant="subtle" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .zones-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(52% 42% at 88% 10%, rgba(255, 105, 0, 0.14), transparent 72%),
+      radial-gradient(42% 40% at 6% 92%, rgba(255, 105, 0, 0.07), transparent 72%),
+      var(--color-anthracite-950);
+  }
+
+  .zones-hero__container {
+    position: relative;
+    width: min(100%, var(--container-max));
+    margin-inline: auto;
+    box-sizing: border-box;
+    padding: clamp(2.5rem, 6vw, 4.5rem) 48px;
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    align-items: center;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    min-height: calc(100vh - var(--header-total-height));
+    min-height: calc(100svh - var(--header-total-height));
+  }
+
+  .zones-hero__content {
+    max-width: 38rem;
+    display: flex;
+    flex-direction: column;
+    color: var(--color-white);
+  }
+
+  .zones-hero__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--color-orange-500);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+  }
+
+  .zones-hero__eyebrow-bar {
+    width: 28px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--color-orange-500);
+  }
+
+  .zones-hero__title {
+    margin-top: clamp(1rem, 0.85rem + 0.4vw, 1.25rem);
+    font-size: clamp(1.9rem, 1.5rem + 1.6vw, 2.75rem);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.14;
+  }
+
+  .zones-hero__lead {
+    margin-top: clamp(1.1rem, 1rem + 0.3vw, 1.4rem);
+    max-width: 34rem;
+    font-size: clamp(1rem, 0.92rem + 0.3vw, 1.1rem);
+    line-height: 1.6;
+    color: var(--color-gray-100);
+  }
+
+  .zones-hero__depts {
+    margin: clamp(1rem, 0.9rem + 0.3vw, 1.35rem) 0 clamp(1.5rem, 1.3rem + 0.4vw, 2rem);
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-gray-300);
+  }
+
+  .zones-hero__depts-sep {
+    color: var(--color-orange-500);
+  }
+
+  .zones-hero__checker {
+    max-width: 30rem;
+  }
+
+  /* ---------- Carte ---------- */
+
+  .zones-hero__map {
+    position: relative;
+    justify-self: center;
+    width: min(100%, 22rem);
+  }
+
+  /* ---------- Mobile ---------- */
+
+  @media (max-width: 56rem) {
+    .zones-hero__container {
+      grid-template-columns: 1fr;
+      padding: clamp(2rem, 6vw, 3rem) 24px;
+      min-height: auto;
+    }
+
+    .zones-hero__content {
+      max-width: 100%;
+      order: 0;
+    }
+
+    .zones-hero__checker {
+      max-width: 100%;
+    }
+
+    .zones-hero__map {
+      order: 1;
+      width: min(70%, 16rem);
+      margin-inline: auto;
+      margin-top: clamp(1.5rem, 4vw, 2rem);
+    }
+  }
+
+  @media (max-width: 23rem) {
+    .zones-hero__container {
+      padding-inline: 20px;
+    }
+  }
+</style>

@@ -58,11 +58,19 @@ export interface NavLink {
  */
 export const homeHref = `${import.meta.env.BASE_URL}#top`;
 
+// PAGE « ZONES D'INTERVENTION » / RADAR DE COMMUNES (04/09/2026,
+// PROMPT_CLAUDE_CODE_PAGE_ZONES_INTERVENTION_RADAR.txt, section 12) : «
+// Zones couvertes » cible désormais la page dédiée réelle plutôt que
+// l'ancre `#zones-couvertes` de la landing — celle-ci reste néanmoins en
+// place, inchangée, sur la landing (section conservée telle quelle, jamais
+// supprimée). Cette seule constante alimente Navbar (desktop), MobileDrawer
+// (hamburger) ET la colonne « Navigation » du Footer (tous trois
+// consomment `navLinks`) : aucune duplication de logique.
 export const navLinks: NavLink[] = [
   { label: 'Accueil', href: homeHref },
   { label: 'Dépannages', href: `${import.meta.env.BASE_URL}#depannages` },
   { label: 'Interventions', href: `${import.meta.env.BASE_URL}#interventions-recentes` },
-  { label: 'Zones couvertes', href: `${import.meta.env.BASE_URL}#zones-couvertes` },
+  { label: 'Zones couvertes', href: `${import.meta.env.BASE_URL}zones-intervention/` },
   { label: 'Avis', href: `${import.meta.env.BASE_URL}#avis` },
 ];
 

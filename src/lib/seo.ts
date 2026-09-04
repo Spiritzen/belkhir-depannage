@@ -1,4 +1,10 @@
-import type { BreadcrumbListSchema, FaqPageSchema, JsonLdSchema } from '../types/seo';
+import type {
+  AdministrativeAreaSchema,
+  BreadcrumbListSchema,
+  FaqPageSchema,
+  JsonLdSchema,
+  ServiceSchema,
+} from '../types/seo';
 
 /**
  * Construit un schéma JSON-LD BreadcrumbList à partir d'éléments de fil
@@ -43,6 +49,34 @@ export function buildFaqPageSchema(
         text: item.answer,
       },
     })),
+  };
+}
+
+/**
+ * Construit un schéma JSON-LD Service avec des zones `areaServed`
+ * explicitement typées `AdministrativeArea` (PROMPT_CLAUDE_CODE_PAGE_
+ * ZONES_INTERVENTION_RADAR.txt, section 13, 04/09/2026) — `serviceType`
+ * doit toujours correspondre réellement aux métiers proposés, `areaZones`
+ * aux départements réellement couverts (jamais de donnée inventée).
+ */
+export function buildServiceSchema(params: {
+  name: string;
+  serviceTypes: string[];
+  areaZones: string[];
+  url: string;
+}): ServiceSchema {
+  const areaServed: AdministrativeAreaSchema[] = params.areaZones.map((name) => ({
+    '@type': 'AdministrativeArea',
+    name,
+  }));
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: params.name,
+    serviceType: params.serviceTypes,
+    areaServed,
+    url: params.url,
   };
 }
 

@@ -33,13 +33,14 @@ import { getPhoneCta } from '../../lib/phone';
 // provisoire : aucun faux lien `tel:` ne serait alors généré.
 const emergencyCta = getPhoneCta(siteConfig.emergencyPhone);
 
-// CTA secondaire : ancre RÉELLE vers la section couverture de la landing
-// (Coverage.astro, id="zones-couvertes"), jamais une ancre inventée.
-// `import.meta.env.BASE_URL` se termine déjà par un slash (valeur littérale
-// de `base` dans astro.config.mjs) : la concaténation directe fonctionne
-// donc aussi bien en local (dev) que sous le sous-chemin GitHub Pages, sans
-// dépendre d'une hypothèse supplémentaire sur son format.
-const coverageHref = `${import.meta.env.BASE_URL}#zones-couvertes`;
+// CTA secondaire : page RÉELLE dédiée à la vérification de secteur
+// (PROMPT_CLAUDE_CODE_PAGE_ZONES_INTERVENTION_RADAR.txt, section 12,
+// 04/09/2026) — pointait auparavant vers l'ancre `#zones-couvertes` de la
+// landing. `import.meta.env.BASE_URL` se termine déjà par un slash (valeur
+// littérale de `base` dans astro.config.mjs) : la concaténation directe
+// fonctionne donc aussi bien en local (dev) que sous le sous-chemin GitHub
+// Pages, sans dépendre d'une hypothèse supplémentaire sur son format.
+const coverageHref = `${import.meta.env.BASE_URL}zones-intervention/`;
 
 // Preuve Google : même source de données que le Hero de la landing
 // (googleReviewSummary, src/data/landing.ts) — aucune nouvelle note

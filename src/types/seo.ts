@@ -28,11 +28,21 @@ export interface LocalBusinessSchema extends JsonLdBase {
   url: string;
 }
 
+export interface AdministrativeAreaSchema {
+  '@type': 'AdministrativeArea';
+  name: string;
+}
+
 export interface ServiceSchema extends JsonLdBase {
   '@type': 'Service';
   name: string;
-  serviceType: string;
-  areaServed: string[];
+  serviceType: string[];
+  /**
+   * Zones `AdministrativeArea` explicites (PROMPT_CLAUDE_CODE_PAGE_ZONES_
+   * INTERVENTION_RADAR.txt, section 13, 04/09/2026) — jamais de simples
+   * chaînes, pour rester conforme au schéma schema.org réel.
+   */
+  areaServed: AdministrativeAreaSchema[];
 }
 
 export interface BreadcrumbListItem {

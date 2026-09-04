@@ -117,22 +117,26 @@ describe('refonte « wahou » — Couverture Hauts-de-France', () => {
     // Ni numéro français en dur, ni troncature par ellipsis dans le composant.
     expect(sectionHtml).not.toMatch(/0[1-9](?:[\s.-]?\d{2}){4}/);
     expect(componentSource).not.toContain('text-overflow: ellipsis');
-    // Un seul CTA téléphonique dans la section (aucun second CTA d'urgence).
+    // CORRECTION (PAGE ZONES D'INTERVENTION, 04/09/2026) : le CTA n'est
+    // plus un CTA téléphonique (voir test 10 ci-dessous) — plus aucun
+    // `data-phone-role` dans cette section.
     const phoneRoleAttrs = sectionHtml.match(/data-phone-role=/g) ?? [];
-    expect(phoneRoleAttrs).toHaveLength(1);
+    expect(phoneRoleAttrs).toHaveLength(0);
   });
 
-  it('10. the CTA never produces a fake tel: link when the standard number is still a placeholder', () => {
-    // Avec la configuration de développement actuelle (numéros placeholders),
-    // le CTA doit être un bouton désactivé, jamais un lien tel:.
+  // CORRECTION (PAGE ZONES D'INTERVENTION, 04/09/2026,
+  // PROMPT_CLAUDE_CODE_PAGE_ZONES_INTERVENTION_RADAR.txt, section 12) : le
+  // CTA « Vérifier mon secteur » ne déclenche plus un appel téléphonique
+  // (jamais désactivé, jamais dépendant du numéro standard) — il pointe
+  // vers la page dédiée réelle /zones-intervention/, toujours active.
+  it('10. the CTA is a real, always-enabled link to the dedicated /zones-intervention/ page, never a phone CTA', () => {
     const ctaMatch = sectionHtml.match(/<(a|button)[^>]*class="coverage__cta"[^>]*>/);
     expect(ctaMatch).not.toBeNull();
-    if (ctaMatch?.[1] === 'button') {
-      expect(ctaMatch[0]).toContain('disabled');
-      expect(sectionHtml).not.toMatch(/class="coverage__cta"[^>]*href="tel:/);
-    } else {
-      expect(ctaMatch![0]).toMatch(/href="tel:\+/);
-    }
+    expect(ctaMatch?.[1]).toBe('a');
+    expect(ctaMatch?.[0]).toContain('href="');
+    expect(ctaMatch?.[0]).not.toContain('disabled');
+    expect(ctaMatch?.[0]).not.toMatch(/href="tel:/);
+    expect(ctaMatch?.[0]).toMatch(/href="[^"]*zones-intervention\/"/);
   });
 
   it('11. the availability precision uses the exact validated wording', () => {

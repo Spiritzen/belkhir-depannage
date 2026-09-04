@@ -1,0 +1,160 @@
+---
+/**
+ * Section B — « Un même secteur, cinq domaines d’intervention »
+ * (PROMPT_CLAUDE_CODE_PAGE_ZONES_INTERVENTION_RADAR.txt, section 10,
+ * 04/09/2026). Fond sombre anthracite (alternance avec la section claire
+ * précédente). Cinq vraies cartes/liens vers les pages métiers existantes —
+ * URL construites avec `import.meta.env.BASE_URL`, jamais
+ * `/belkhir-depannage/` en dur (même convention que
+ * src/components/landing/Hero.astro, ServicesAccordion.astro, Footer.astro).
+ */
+import Icon from '../ui/Icon.astro';
+
+interface ServiceLink {
+  title: string;
+  href: string;
+  description: string;
+  icon: 'droplet' | 'flame' | 'key' | 'window' | 'shutter';
+}
+
+const serviceLinks: ServiceLink[] = [
+  {
+    title: 'Plomberie',
+    href: `${import.meta.env.BASE_URL}plomberie/`,
+    description: 'Fuite, canalisation bouchée ou équipement sanitaire en panne.',
+    icon: 'droplet',
+  },
+  {
+    title: 'Chauffage',
+    href: `${import.meta.env.BASE_URL}chauffage/`,
+    description: 'Chaudière arrêtée, radiateurs froids ou chauffage irrégulier.',
+    icon: 'flame',
+  },
+  {
+    title: 'Serrurerie',
+    href: `${import.meta.env.BASE_URL}serrurerie/`,
+    description: 'Porte claquée, clé cassée ou serrure bloquée.',
+    icon: 'key',
+  },
+  {
+    title: 'Vitrerie',
+    href: `${import.meta.env.BASE_URL}vitrerie/`,
+    description: 'Vitre cassée, fissurée ou fenêtre endommagée.',
+    icon: 'window',
+  },
+  {
+    title: 'Rideaux métalliques',
+    href: `${import.meta.env.BASE_URL}rideaux-metalliques/`,
+    description: 'Rideau bloqué, désaxé ou motorisation silencieuse.',
+    icon: 'shutter',
+  },
+];
+---
+
+<section class="services-links" id="metiers" aria-labelledby="services-links-title">
+  <div class="container">
+    <div class="section-heading" data-reveal="up">
+      <h2 id="services-links-title">Un même secteur, cinq domaines d’intervention</h2>
+    </div>
+
+    <div class="services-links__grid" data-reveal-group="services-links">
+      {
+        serviceLinks.map((service) => (
+          <a class="services-links__card" href={service.href} data-reveal="up">
+            <Icon name={service.icon} class="services-links__card-icon" />
+            <p class="services-links__card-title">{service.title}</p>
+            <p class="services-links__card-desc">{service.description}</p>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .services-links {
+    padding-block: clamp(5rem, 7vw, 7rem);
+    background:
+      radial-gradient(46% 38% at 15% 15%, rgba(255, 105, 0, 0.08), transparent 70%),
+      radial-gradient(50% 42% at 88% 88%, rgba(255, 105, 0, 0.06), transparent 72%),
+      var(--color-anthracite-950);
+  }
+
+  .section-heading {
+    max-width: 44rem;
+    margin-bottom: clamp(2.25rem, 3.5vw, 3rem);
+  }
+
+  #services-links-title {
+    color: var(--color-white);
+    font-size: clamp(1.6rem, 2.9vw, 2.1rem);
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .services-links__grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .services-links__card {
+    display: block;
+    padding: 1.35rem 1.25rem;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    text-decoration: none;
+    transition:
+      border-color 220ms ease,
+      background-color 220ms ease,
+      transform 220ms ease;
+  }
+
+  .services-links__card:hover,
+  .services-links__card:focus-visible {
+    border-color: rgba(255, 105, 0, 0.5);
+    background: rgba(255, 105, 0, 0.1);
+    transform: translateY(-3px);
+  }
+
+  .services-links__card-icon {
+    width: 1.4rem;
+    height: 1.4rem;
+    color: var(--color-orange-500);
+    margin-bottom: 0.75rem;
+  }
+
+  .services-links__card-title {
+    margin: 0 0 0.4rem;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--color-white);
+  }
+
+  .services-links__card-desc {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--color-gray-300);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .services-links__card:hover,
+    .services-links__card:focus-visible {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 64rem) {
+    .services-links__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .services-links__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

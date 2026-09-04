@@ -184,17 +184,18 @@ describe('page /plomberie/ — section 4 : zone-plomberie (CoverageSummary)', ()
     }
   });
 
-  it('the "Vérifier mon secteur" CTA calls the standard phone line (same behavior as the landing coverage CTA)', () => {
+  // CORRECTION (PAGE ZONES D'INTERVENTION, 04/09/2026,
+  // PROMPT_CLAUDE_CODE_PAGE_ZONES_INTERVENTION_RADAR.txt, section 12) : le
+  // CTA « Vérifier mon secteur » n'appelle plus le standard (jamais
+  // désactivé, jamais dépendant du numéro standard) — il pointe vers la
+  // page dédiée réelle /zones-intervention/, toujours active.
+  it('the "Vérifier mon secteur" CTA is a real, always-enabled link to the dedicated /zones-intervention/ page', () => {
     const section = extractSection(plomberieHtml, 'zone-plomberie');
     expect(section).toContain('Vérifier mon secteur');
-    // Le numéro standard reste provisoire dans cette maquette : bouton
-    // désactivé, jamais un faux tel:.
     const linkMatch = section.match(/class="coverage-summary__cta"[^>]*href="([^"]+)"/);
-    if (linkMatch) {
-      expect(linkMatch[1]).toMatch(/^tel:\+/);
-    } else {
-      expect(section).toMatch(/<button[^>]*class="coverage-summary__cta"[^>]*disabled/);
-    }
+    expect(linkMatch).not.toBeNull();
+    expect(linkMatch?.[1]).toMatch(/zones-intervention\/$/);
+    expect(section).not.toMatch(/<button[^>]*class="coverage-summary__cta"[^>]*disabled/);
   });
 
   it('never claims permanent coverage of every commune', () => {

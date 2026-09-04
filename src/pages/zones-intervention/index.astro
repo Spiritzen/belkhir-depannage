@@ -1,0 +1,93 @@
+---
+/**
+ * Page « Zones d'intervention » / radar de communes
+ * (PROMPT_CLAUDE_CODE_PAGE_ZONES_INTERVENTION_RADAR.txt, 04/09/2026).
+ *
+ * Résout proprement tous les CTA « Vérifier mon secteur » du site,
+ * auparavant renvoyés vers la section `#zones-couvertes` de la landing.
+ * Même assemblage de coquille que les pages métiers (BaseLayout + bande de
+ * disponibilité + navbar + tiroir mobile + footer + barre d'appel mobile,
+ * tous réutilisés à l'identique — aucune deuxième navbar/footer).
+ *
+ * Aucune page départementale ni page ville n'est créée dans ce sprint
+ * (section « IMPORTANT » du prompt) : uniquement cette page régionale
+ * unique, avec un moteur de recherche communal local.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AvailabilityBar from '../../components/layout/AvailabilityBar.astro';
+import Navbar from '../../components/layout/Navbar.astro';
+import MobileDrawer from '../../components/layout/MobileDrawer.astro';
+import Footer from '../../components/layout/Footer.astro';
+import MobileCallBar from '../../components/layout/MobileCallBar.astro';
+import Hero from '../../components/zones-intervention/Hero.astro';
+import DepartmentsShowcase from '../../components/zones-intervention/DepartmentsShowcase.astro';
+import ServicesLinks from '../../components/zones-intervention/ServicesLinks.astro';
+import ProcessSteps from '../../components/zones-intervention/ProcessSteps.astro';
+import Reassurance from '../../components/zones-intervention/Reassurance.astro';
+import Faq from '../../components/landing/Faq.astro';
+import { siteConfig } from '../../lib/site-config';
+import { buildFaqPageSchema, buildBreadcrumbList, buildServiceSchema } from '../../lib/seo';
+import { zonesInterventionFaqItems } from '../../data/zones-intervention';
+import { buildCanonicalUrl } from '../../lib/url';
+
+const title = 'Zones d’intervention dépannage Hauts-de-France | Belkhir Dépannage';
+const description =
+  'Vérifiez si Belkhir Dépannage étudie les urgences de plomberie, chauffage, serrurerie, ' +
+  'vitrerie et rideaux métalliques dans votre commune des Hauts-de-France.';
+
+const pagePath = '/zones-intervention/';
+const canonicalUrl = buildCanonicalUrl(siteConfig.siteUrl, pagePath);
+const homeUrl = buildCanonicalUrl(siteConfig.siteUrl, '/');
+
+// Donnée structurée FAQPage : alimentée par EXACTEMENT les mêmes questions
+// et réponses que celles rendues visuellement par <Faq items={...} />
+// ci-dessous (même tableau `zonesInterventionFaqItems`), comme sur les
+// pages métiers — jamais des données structurées différentes du contenu
+// affiché.
+const faqSchema = buildFaqPageSchema(zonesInterventionFaqItems);
+
+const breadcrumbSchema = buildBreadcrumbList([
+  { name: 'Accueil', url: homeUrl },
+  { name: 'Zones d’intervention', url: canonicalUrl },
+]);
+
+// serviceType/areaServed reflètent réellement les cinq métiers et les cinq
+// départements couverts, déjà affichés sur cette page (sections B et A
+// ci-dessous) — aucune donnée inventée, aucun avis auto-déclaré.
+const serviceSchema = buildServiceSchema({
+  name: 'Dépannage d’urgence Belkhir Dépannage',
+  serviceTypes: ['Plomberie', 'Chauffage', 'Serrurerie', 'Vitrerie', 'Rideaux métalliques'],
+  areaZones: ['Somme', 'Nord', 'Pas-de-Calais', 'Oise', 'Aisne'],
+  url: canonicalUrl,
+});
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  path={pagePath}
+  hasMobileCallBar
+  structuredData={[faqSchema, breadcrumbSchema, serviceSchema]}
+>
+  <Fragment slot="header">
+    <AvailabilityBar />
+    <Navbar />
+    <MobileDrawer />
+  </Fragment>
+
+  <Hero />
+  <DepartmentsShowcase />
+  <ServicesLinks />
+  <ProcessSteps />
+  <Reassurance />
+
+  <Faq
+    id="faq-zones-intervention"
+    eyebrow="QUESTIONS FRÉQUENTES"
+    title="Questions sur votre secteur d’intervention"
+    items={zonesInterventionFaqItems}
+  />
+
+  <Footer slot="footer" />
+  <MobileCallBar slot="mobile-call-bar" />
+</BaseLayout>

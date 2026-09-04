@@ -1,0 +1,154 @@
+---
+/**
+ * Section A — « Cinq départements couverts en Hauts-de-France »
+ * (PROMPT_CLAUDE_CODE_PAGE_ZONES_INTERVENTION_RADAR.txt, section 10,
+ * 04/09/2026). Fond clair blanc abricot (même pattern que Faq.astro,
+ * ReassuranceCallout.astro, etc.) — cinq cartes départementales
+ * sémantiques, communes présentées explicitement comme des EXEMPLES, jamais
+ * une liste exhaustive ni des pages réelles (aucun `<a>` sur les communes).
+ */
+import { coverageZones } from '../../data/landing';
+
+interface DepartmentExample {
+  code: string;
+  cities: string[];
+}
+
+// Villes principales données par le prompt de mission (section 10) — de
+// simples exemples illustratifs, jamais présentés comme des pages ou une
+// liste exhaustive (voir la phrase de clôture ci-dessous).
+const examples: DepartmentExample[] = [
+  { code: '80', cities: ['Amiens', 'Abbeville', 'Albert', 'Péronne', 'Doullens'] },
+  {
+    code: '59',
+    cities: [
+      'Lille',
+      'Roubaix',
+      'Tourcoing',
+      'Dunkerque',
+      'Valenciennes',
+      'Douai',
+      'Cambrai',
+      'Maubeuge',
+    ],
+  },
+  { code: '62', cities: ['Arras', 'Calais', 'Boulogne-sur-Mer', 'Lens', 'Béthune', 'Saint-Omer'] },
+  { code: '60', cities: ['Beauvais', 'Compiègne', 'Creil', 'Senlis', 'Noyon'] },
+  { code: '02', cities: ['Saint-Quentin', 'Soissons', 'Laon', 'Château-Thierry', 'Chauny'] },
+];
+
+const departments = coverageZones.map((zone) => ({
+  ...zone,
+  cities: examples.find((e) => e.code === zone.code)?.cities ?? [],
+}));
+---
+
+<section class="depts-showcase" id="departements" aria-labelledby="depts-showcase-title">
+  <div class="container">
+    <div class="section-heading" data-reveal="up">
+      <h2 id="depts-showcase-title">Cinq départements couverts en Hauts-de-France</h2>
+      <p class="depts-showcase__intro">
+        Belkhir Dépannage étudie les demandes de dépannage dans la Somme, le Nord, le Pas-de-Calais,
+        l’Oise et l’Aisne. La commune permet de qualifier le secteur ; la nature de l’urgence et la
+        disponibilité sont ensuite confirmées par téléphone.
+      </p>
+    </div>
+
+    <div class="depts-showcase__grid" data-reveal-group="depts-showcase">
+      {
+        departments.map((dept) => (
+          <div class="depts-showcase__card" data-reveal="up">
+            <p class="depts-showcase__card-name">
+              {dept.name} <span class="depts-showcase__card-code">({dept.code})</span>
+            </p>
+            <p class="depts-showcase__card-cities">{dept.cities.join(', ')}</p>
+          </div>
+        ))
+      }
+    </div>
+
+    <p class="depts-showcase__note" data-reveal="up">
+      Votre commune n’apparaît pas dans ces exemples&nbsp;? Utilisez le moteur de recherche&nbsp;:
+      il contient l’ensemble des communes actives des cinq départements.
+    </p>
+  </div>
+</section>
+
+<style>
+  .depts-showcase {
+    padding-block: clamp(5rem, 7vw, 7rem);
+    background: radial-gradient(circle at 20% 0%, rgba(255, 105, 0, 0.1), transparent 34%), #fff7f0;
+  }
+
+  .section-heading {
+    max-width: 44rem;
+    margin-bottom: clamp(2.25rem, 3.5vw, 3rem);
+  }
+
+  #depts-showcase-title {
+    color: var(--color-anthracite-900);
+    font-size: clamp(1.6rem, 2.9vw, 2.1rem);
+    line-height: 1.2;
+    margin: 0 0 0.9rem;
+  }
+
+  .depts-showcase__intro {
+    margin: 0;
+    font-size: clamp(1rem, 0.92rem + 0.3vw, 1.1rem);
+    line-height: 1.65;
+    color: var(--color-anthracite-700);
+  }
+
+  .depts-showcase__grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: clamp(1.75rem, 3vw, 2.25rem);
+  }
+
+  .depts-showcase__card {
+    padding: 1.15rem 1.25rem;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 105, 0, 0.18);
+    background: var(--color-white);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .depts-showcase__card-name {
+    margin: 0 0 0.5rem;
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--color-anthracite-900);
+  }
+
+  .depts-showcase__card-code {
+    color: var(--color-brand);
+    font-weight: 600;
+  }
+
+  .depts-showcase__card-cities {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--color-anthracite-700);
+  }
+
+  .depts-showcase__note {
+    margin: 0;
+    max-width: 40rem;
+    font-size: 0.92rem;
+    color: var(--color-anthracite-700);
+  }
+
+  @media (max-width: 64rem) {
+    .depts-showcase__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .depts-showcase__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

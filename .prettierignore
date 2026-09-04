@@ -3,3 +3,9 @@ dist
 node_modules
 coverage
 package-lock.json
+
+# Snapshot statique généré par scripts/generate-coverage-communes.mjs
+# (PROMPT_CLAUDE_CODE_PAGE_ZONES_INTERVENTION_RADAR.txt, 04/09/2026) —
+# minifié en une seule ligne volontairement (poids), jamais reformaté à la
+# main ni par Prettier.
+public/data/communes-hauts-de-france.json

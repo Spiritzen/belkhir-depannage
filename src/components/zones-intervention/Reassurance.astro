@@ -1,0 +1,174 @@
+---
+/**
+ * Section D — « Une disponibilité confirmée avant le déplacement »
+ * (PROMPT_CLAUDE_CODE_PAGE_ZONES_INTERVENTION_RADAR.txt, section 10,
+ * 04/09/2026). Fond sombre anthracite, alternance avec la section claire
+ * précédente. Deux CTA (appel + devis), en réutilisant les composants et
+ * garde-fous existants : `getPhoneCta` (jamais de faux `tel:`) et la
+ * modale de devis partagée (`data-quote-trigger`, jamais une deuxième
+ * modale).
+ */
+import Icon from '../ui/Icon.astro';
+import { getPhoneCta } from '../../lib/phone';
+import { siteConfig } from '../../lib/site-config';
+
+const emergencyCta = getPhoneCta(siteConfig.emergencyPhone);
+---
+
+<section class="zones-reassurance" id="reassurance" aria-labelledby="zones-reassurance-title">
+  <div class="container">
+    <div class="zones-reassurance__inner" data-reveal="up">
+      <h2 id="zones-reassurance-title">Une disponibilité confirmée avant le déplacement</h2>
+      <p class="zones-reassurance__text">
+        La présence d’une commune dans le moteur indique qu’elle appartient au secteur déclaré. Elle
+        ne constitue pas une promesse automatique d’intervention ou de délai. Chaque demande est
+        qualifiée afin de proposer une réponse adaptée et d’éviter un déplacement annoncé sans
+        confirmation.
+      </p>
+
+      <div class="zones-reassurance__actions">
+        {
+          emergencyCta.kind === 'link' ? (
+            <a
+              class="zones-reassurance__cta zones-reassurance__cta--call"
+              href={emergencyCta.href}
+              data-phone-role={emergencyCta.role}
+            >
+              <Icon name="phone" class="zones-reassurance__cta-icon" />
+              Appeler en urgence
+            </a>
+          ) : (
+            <button
+              type="button"
+              class="zones-reassurance__cta zones-reassurance__cta--call"
+              disabled
+              aria-describedby="zones-reassurance-call-note"
+              data-phone-role={emergencyCta.role}
+            >
+              <Icon name="phone" class="zones-reassurance__cta-icon" />
+              Appeler en urgence
+              <span id="zones-reassurance-call-note" class="visually-hidden">
+                Numéro d’urgence non encore renseigné dans cette maquette.
+              </span>
+            </button>
+          )
+        }
+
+        <button
+          type="button"
+          class="zones-reassurance__cta zones-reassurance__cta--quote"
+          data-quote-trigger
+        >
+          <Icon name="arrow-right" class="zones-reassurance__cta-icon" />
+          Demander un devis
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .zones-reassurance {
+    padding-block: clamp(5rem, 7vw, 7rem);
+    background:
+      radial-gradient(48% 40% at 85% 15%, rgba(255, 105, 0, 0.09), transparent 72%),
+      radial-gradient(42% 40% at 12% 85%, rgba(255, 105, 0, 0.06), transparent 72%),
+      var(--color-anthracite-950);
+  }
+
+  .zones-reassurance__inner {
+    max-width: 44rem;
+  }
+
+  #zones-reassurance-title {
+    color: var(--color-white);
+    font-size: clamp(1.6rem, 2.9vw, 2.1rem);
+    line-height: 1.2;
+    margin: 0 0 1rem;
+  }
+
+  .zones-reassurance__text {
+    margin: 0 0 clamp(1.75rem, 3vw, 2.25rem);
+    font-size: clamp(1rem, 0.92rem + 0.3vw, 1.1rem);
+    line-height: 1.65;
+    color: var(--color-gray-300);
+  }
+
+  .zones-reassurance__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+  }
+
+  .zones-reassurance__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: var(--touch-target-min);
+    padding: 0.85rem 1.5rem;
+    border-radius: var(--radius-pill);
+    border: 2px solid transparent;
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition:
+      transform 260ms ease,
+      box-shadow 260ms ease,
+      background-color 260ms ease;
+  }
+
+  .zones-reassurance__cta--call {
+    background: var(--color-red-600);
+    color: var(--color-white);
+  }
+
+  .zones-reassurance__cta--call:hover,
+  .zones-reassurance__cta--call:focus-visible {
+    background: var(--color-red-700);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(215, 49, 39, 0.28);
+  }
+
+  .zones-reassurance__cta--call:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .zones-reassurance__cta--quote {
+    background: var(--color-orange-600);
+    color: var(--color-white);
+  }
+
+  .zones-reassurance__cta--quote:hover,
+  .zones-reassurance__cta--quote:focus-visible {
+    background: var(--color-orange-700);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(255, 105, 0, 0.28);
+  }
+
+  .zones-reassurance__cta-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .zones-reassurance__cta:hover,
+    .zones-reassurance__cta:focus-visible {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 26rem) {
+    .zones-reassurance__actions {
+      flex-direction: column;
+    }
+    .zones-reassurance__cta {
+      justify-content: center;
+    }
+  }
+</style>

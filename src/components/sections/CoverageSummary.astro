@@ -33,6 +33,18 @@ interface Props {
   zones: CoverageZone[];
   ctaLabel: string;
   phone: PhoneNumberConfig;
+  /**
+   * Destination réelle du CTA « Vérifier mon secteur » (PROMPT_CLAUDE_CODE_
+   * PAGE_ZONES_INTERVENTION_RADAR.txt, section 12, 04/09/2026) — quand
+   * fournie, le CTA devient un vrai lien vers cette page, toujours actif
+   * (jamais désactivé, contrairement à l'ancien CTA téléphonique ci-dessous
+   * qui restait indisponible tant que `phone` n'était pas configuré).
+   * Optionnelle et rétrocompatible : sans elle, le CTA reste construit à
+   * partir de `phone` comme avant (aucun appel actuel de ce composant ne
+   * l'omet cependant, `phone` reste donc accepté sans être nécessairement
+   * utilisé pour le rendu du bouton).
+   */
+  ctaHref?: string;
   tone?: 'dark' | 'light';
 }
 
@@ -46,6 +58,7 @@ const {
   zones,
   ctaLabel,
   phone,
+  ctaHref,
   tone = 'dark',
 } = Astro.props;
 
@@ -95,7 +108,15 @@ const titleAfter = accentIndex >= 0 ? title.slice(accentIndex + (titleAccent?.le
 
     <div class="coverage-summary__cta-wrap" data-reveal="up">
       {
-        cta.kind === 'link' ? (
+        ctaHref ? (
+          <>
+            <a class="coverage-summary__cta" href={ctaHref}>
+              <Icon name="map-pin" class="coverage-summary__cta-icon" />
+              {ctaLabel}
+            </a>
+            <p class="coverage-summary__cta-hint">Recherchez votre commune sur la page dédiée.</p>
+          </>
+        ) : cta.kind === 'link' ? (
           <>
             <a class="coverage-summary__cta" href={cta.href} data-phone-role={cta.role}>
               <Icon name="map-pin" class="coverage-summary__cta-icon" />

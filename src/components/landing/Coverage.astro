@@ -24,8 +24,6 @@ import vanImg from '../../assets/legacy/illustration-equipe.png';
 import Icon from '../ui/Icon.astro';
 import CoverageMapGraphic from '../sections/CoverageMapGraphic.astro';
 import { coverageZones } from '../../data/landing';
-import { siteConfig } from '../../lib/site-config';
-import { getPhoneCta } from '../../lib/phone';
 import {
   COVERAGE_MAP_VIEWBOX,
   COVERAGE_ROUTE_PATH,
@@ -34,7 +32,15 @@ import {
   COVERAGE_VAN_ANCHOR,
 } from '../../data/coverage-map';
 
-const standardCta = getPhoneCta(siteConfig.standardPhone);
+// PAGE « ZONES D'INTERVENTION » / RADAR DE COMMUNES (04/09/2026,
+// PROMPT_CLAUDE_CODE_PAGE_ZONES_INTERVENTION_RADAR.txt, section 12) : le
+// CTA « Vérifier mon secteur » de cette section pointait vers un appel
+// téléphonique (`getPhoneCta(siteConfig.standardPhone)`, souvent désactivé
+// tant que le numéro standard n'est pas renseigné) — il cible désormais la
+// page dédiée réelle, toujours active, jamais désactivée. La section
+// #zones-couvertes elle-même (design, carte, badges) reste strictement
+// inchangée.
+const coverageCheckerHref = `${import.meta.env.BASE_URL}zones-intervention/`;
 
 // Position du fourgon dérivée du même repère que la carte (pourcentages :
 // reste cohérent quelle que soit la largeur réelle rendue de la section 20).
@@ -81,31 +87,11 @@ const vanWidthPct = COVERAGE_VAN_ANCHOR.widthRatio * 100;
     </ul>
 
     <div class="coverage__cta-wrap">
-      {
-        standardCta.kind === 'link' ? (
-          <>
-            <a href={standardCta.href} class="coverage__cta" data-phone-role={standardCta.role}>
-              <Icon name="map-pin" class="coverage__cta-icon" />
-              Vérifier mon secteur
-            </a>
-            <p class="coverage__cta-hint">Indiquez votre commune lors de l’appel.</p>
-          </>
-        ) : (
-          <button
-            type="button"
-            class="coverage__cta"
-            disabled
-            aria-describedby="coverage-cta-note"
-            data-phone-role={standardCta.role}
-          >
-            <Icon name="map-pin" class="coverage__cta-icon" />
-            Vérifier mon secteur
-            <span id="coverage-cta-note" class="visually-hidden">
-              Numéro standard non encore renseigné dans cette maquette.
-            </span>
-          </button>
-        )
-      }
+      <a href={coverageCheckerHref} class="coverage__cta">
+        <Icon name="map-pin" class="coverage__cta-icon" />
+        Vérifier mon secteur
+      </a>
+      <p class="coverage__cta-hint">Recherchez votre commune sur la page dédiée.</p>
     </div>
 
     <p class="coverage__caution">
@@ -519,13 +505,6 @@ const vanWidthPct = COVERAGE_VAN_ANCHOR.widthRatio * 100;
   .coverage__cta:hover .coverage__cta-icon,
   .coverage__cta:focus-visible .coverage__cta-icon {
     transform: translateX(2px);
-  }
-
-  .coverage__cta:disabled {
-    cursor: not-allowed;
-    opacity: 0.55;
-    transform: none;
-    box-shadow: none;
   }
 
   .coverage__cta-icon {

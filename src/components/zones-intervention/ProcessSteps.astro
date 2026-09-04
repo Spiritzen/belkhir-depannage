@@ -1,0 +1,142 @@
+---
+/**
+ * Section C — « Comment votre demande est-elle prise en charge ? »
+ * (PROMPT_CLAUDE_CODE_PAGE_ZONES_INTERVENTION_RADAR.txt, section 10,
+ * 04/09/2026). Trois étapes propres à cette page (jamais les quatre étapes
+ * de `Process.astro`, dont la mise en page/timeline est dimensionnée pour
+ * ce nombre précis et reste réservée à la landing/aux pages métiers —
+ * aucune modification de ce composant partagé). Fond clair blanc abricot,
+ * alternance avec la section sombre précédente.
+ */
+import Icon from '../ui/Icon.astro';
+
+interface Step {
+  title: string;
+  description: string;
+  icon: 'map-pin' | 'search' | 'shield-check';
+}
+
+const steps: Step[] = [
+  {
+    title: 'Indiquez votre commune',
+    description:
+      'Le secteur géographique est vérifié sans transmettre ni conserver votre recherche.',
+    icon: 'map-pin',
+  },
+  {
+    title: 'Décrivez votre urgence',
+    description:
+      'Précisez le métier concerné, les signes observés et les éventuels risques immédiats.',
+    icon: 'search',
+  },
+  {
+    title: 'Obtenez une confirmation',
+    description:
+      'La disponibilité, le déplacement et la réponse adaptée sont confirmés lors de l’échange téléphonique.',
+    icon: 'shield-check',
+  },
+];
+---
+
+<section class="zones-process" id="prise-en-charge" aria-labelledby="zones-process-title">
+  <div class="container">
+    <div class="section-heading" data-reveal="up">
+      <h2 id="zones-process-title">Comment votre demande est-elle prise en charge ?</h2>
+    </div>
+
+    <ol class="zones-process__list" data-reveal-group="zones-process">
+      {
+        steps.map((step, index) => (
+          <li class="zones-process__step" data-reveal="up">
+            <span class="zones-process__step-number" aria-hidden="true">
+              {index + 1}
+            </span>
+            <Icon name={step.icon} class="zones-process__step-icon" />
+            <p class="zones-process__step-title">{step.title}</p>
+            <p class="zones-process__step-desc">{step.description}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .zones-process {
+    padding-block: clamp(5rem, 7vw, 7rem);
+    background: radial-gradient(circle at 80% 0%, rgba(255, 105, 0, 0.1), transparent 34%), #fff7f0;
+  }
+
+  .section-heading {
+    max-width: 44rem;
+    margin-bottom: clamp(2.25rem, 3.5vw, 3rem);
+  }
+
+  #zones-process-title {
+    color: var(--color-anthracite-900);
+    font-size: clamp(1.6rem, 2.9vw, 2.1rem);
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .zones-process__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .zones-process__step {
+    position: relative;
+    padding: 1.5rem 1.35rem;
+    border-radius: var(--radius-md);
+    background: var(--color-white);
+    border: 1px solid rgba(255, 105, 0, 0.14);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .zones-process__step-number {
+    position: absolute;
+    top: -0.75rem;
+    left: 1.35rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 999px;
+    background: var(--color-brand);
+    color: var(--color-white);
+    font-weight: 800;
+    font-size: 0.82rem;
+  }
+
+  .zones-process__step-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--color-orange-500);
+    margin: 0.5rem 0 0.9rem;
+  }
+
+  .zones-process__step-title {
+    margin: 0 0 0.5rem;
+    font-weight: 700;
+    font-size: 1.02rem;
+    color: var(--color-anthracite-900);
+  }
+
+  .zones-process__step-desc {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--color-anthracite-700);
+  }
+
+  @media (max-width: 48rem) {
+    .zones-process__list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

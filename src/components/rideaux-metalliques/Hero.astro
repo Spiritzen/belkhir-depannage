@@ -23,7 +23,10 @@ import { getPhoneCta } from '../../lib/phone';
 
 const emergencyCta = getPhoneCta(siteConfig.emergencyPhone);
 
-const coverageHref = `${import.meta.env.BASE_URL}#zones-couvertes`;
+// Page réelle dédiée (04/09/2026, PROMPT_CLAUDE_CODE_PAGE_ZONES_
+// INTERVENTION_RADAR.txt, section 12) — pointait auparavant vers l'ancre
+// `#zones-couvertes` de la landing.
+const coverageHref = `${import.meta.env.BASE_URL}zones-intervention/`;
 
 const googleHref = siteConfig.googleReviewsUrl ?? `${import.meta.env.BASE_URL}#avis`;
 const googleRatingDisplay = googleReviewSummary.rating.toFixed(1).replace('.', ',');
