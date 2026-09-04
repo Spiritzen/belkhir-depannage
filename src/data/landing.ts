@@ -18,12 +18,40 @@ export interface NavLink {
 // page Contact dédiée n'existe encore — mieux vaut aucun lien qu'une ancre
 // morte (les deux lignes d'appel restent visibles en permanence dans la
 // navbar et le footer).
+//
+// Micro-correction « navigation depuis les pages métiers » (03/09/2026) :
+// ces ancres appartiennent toutes à la landing page. Depuis une page métier
+// comme /plomberie/ (créée au micro-sprint précédent), une simple ancre
+// locale (`#depannages`) ne ciblerait aucune section existante sur CETTE
+// page — elle doit pointer vers la landing elle-même. Chaque `href` est
+// donc préfixé par `import.meta.env.BASE_URL` (toujours terminé par un
+// slash, valeur littérale de `base` dans astro.config.mjs), pointant ainsi
+// vers la racine de la landing suivie de l'ancre réelle. Ce même préfixe
+// fonctionne aussi bien EN RESTANT sur la landing : un navigateur reconnaît
+// une URL qui ne diffère de la page courante que par son fragment comme une
+// navigation dans le même document (pas de rechargement), et continue donc
+// d'appliquer le défilement fluide existant (`scroll-behavior: smooth`,
+// voir src/styles/global.css) — le comportement sur la landing reste donc
+// identique à avant. Les cinq ancres ci-dessous ont toutes été vérifiées
+// comme réellement présentes sur la landing avant cette correction :
+// #accueil (Hero.astro), #depannages (EmergencySelector.astro),
+// #interventions-recentes (LatestInterventions.astro), #zones-couvertes
+// (Coverage.astro), #avis (Reviews.astro).
+/**
+ * Destination du logo de marque (navbar et footer) : même ancre
+ * « Accueil » que `navLinks[0]` ci-dessous, mais le logo n'est pas
+ * construit à partir de `navLinks` (balisage `<img>` + nom de marque
+ * distinct du reste de la navigation) — exportée séparément plutôt que
+ * dupliquée en dur dans chaque composant.
+ */
+export const homeHref = `${import.meta.env.BASE_URL}#accueil`;
+
 export const navLinks: NavLink[] = [
-  { label: 'Accueil', href: '#accueil' },
-  { label: 'Dépannages', href: '#depannages' },
-  { label: 'Interventions', href: '#interventions-recentes' },
-  { label: 'Zones couvertes', href: '#zones-couvertes' },
-  { label: 'Avis', href: '#avis' },
+  { label: 'Accueil', href: homeHref },
+  { label: 'Dépannages', href: `${import.meta.env.BASE_URL}#depannages` },
+  { label: 'Interventions', href: `${import.meta.env.BASE_URL}#interventions-recentes` },
+  { label: 'Zones couvertes', href: `${import.meta.env.BASE_URL}#zones-couvertes` },
+  { label: 'Avis', href: `${import.meta.env.BASE_URL}#avis` },
 ];
 
 export interface HeroPill {

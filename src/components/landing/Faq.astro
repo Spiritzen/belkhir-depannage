@@ -1,35 +1,82 @@
 ---
-/** FAQ accessible (section 19 du prompt de mission). */
+/**
+ * FAQ accessible (section 19 du prompt de mission).
+ *
+ * Rendu paramétrable (micro-sprint 2 page plomberie, 04/09/2026) : `id`,
+ * `eyebrow`, `title` et `items` acceptent une valeur différente par page
+ * métier, avec pour valeur par défaut EXACTEMENT le contenu actuel de la
+ * landing (aucun `eyebrow` sur la landing, jamais rendu par défaut) — un
+ * appel sans props (`<Faq />`, voir src/pages/index.astro, inchangé)
+ * produit donc un rendu strictement identique à avant. Les id des
+ * déclencheurs/panneaux sont préfixés par `id` plutôt que codés en dur
+ * (`faq-trigger-0`...) pour rester uniques si une future page en avait
+ * besoin — la landing garde `id="faq"` par défaut, donc exactement les
+ * mêmes id qu'avant (`faq-trigger-0`, `faq-panel-0`...).
+ *
+ * `tone` (défaut `"light"`, rendu landing inchangé) permet à une page
+ * métier de basculer le fond en noir/charbon avec lueur orange
+ * (`"dark"`) pour respecter sa propre alternance stricte de fonds — voir
+ * `.faq--dark` dans le <style>, purement additif.
+ */
 import Icon from '../ui/Icon.astro';
-import { faqItems } from '../../data/landing';
+import { faqItems, type FaqItem } from '../../data/landing';
+
+interface Props {
+  id?: string;
+  headingId?: string;
+  /** Absente par défaut : la landing n'affiche aucun surtitre ici. */
+  eyebrow?: string;
+  title?: string;
+  items?: FaqItem[];
+  tone?: 'light' | 'dark';
+}
+
+const {
+  id = 'faq',
+  headingId = 'faq-title',
+  eyebrow,
+  title = 'Questions fréquentes',
+  items = faqItems,
+  tone = 'light',
+} = Astro.props;
+
+const sectionClass = tone === 'dark' ? 'faq faq--dark' : 'faq';
 ---
 
-<section class="faq" id="faq" aria-labelledby="faq-title">
+<section class={sectionClass} id={id} aria-labelledby={headingId}>
   <div class="container">
     <div class="section-heading" data-reveal="up">
-      <h2 id="faq-title">Questions fréquentes</h2>
+      {
+        eyebrow && (
+          <p class="faq__eyebrow">
+            <span class="faq__eyebrow-bar" aria-hidden="true" />
+            {eyebrow}
+          </p>
+        )
+      }
+      <h2 id={headingId}>{title}</h2>
     </div>
 
     <div class="faq__list" data-reveal-group="faq">
       {
-        faqItems.map((item, index) => (
+        items.map((item, index) => (
           <div class="faq__item" data-reveal="up">
             <h3 class="faq__heading">
               <button
                 type="button"
                 class="faq__trigger"
                 aria-expanded="false"
-                aria-controls={`faq-panel-${index}`}
-                id={`faq-trigger-${index}`}
+                aria-controls={`${id}-panel-${index}`}
+                id={`${id}-trigger-${index}`}
               >
                 <span>{item.question}</span>
                 <Icon name="chevron-down" class="faq__chevron" />
               </button>
             </h3>
             <div
-              id={`faq-panel-${index}`}
+              id={`${id}-panel-${index}`}
               role="region"
-              aria-labelledby={`faq-trigger-${index}`}
+              aria-labelledby={`${id}-trigger-${index}`}
               class="faq__panel"
               hidden
             >
@@ -59,6 +106,30 @@ import { faqItems } from '../../data/landing';
 </script>
 
 <style>
+  /* Surtitre optionnel (micro-sprint 2 page plomberie, 04/09/2026) : jamais
+     rendu sur la landing (prop `eyebrow` absente par défaut, voir
+     frontmatter), donc sans aucun effet sur son rendu actuel. Même recette
+     que l'eyebrow déjà utilisé ailleurs sur le site — aucune nouvelle
+     valeur. */
+  .faq__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--color-brand);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.9rem;
+  }
+
+  .faq__eyebrow-bar {
+    width: 28px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--color-brand);
+  }
+
   .faq {
     padding-block: var(--space-7);
     /* Fond blanc abricot déjà validé pour « Votre sécurité d'abord »
@@ -67,6 +138,49 @@ import { faqItems } from '../../data/landing';
        centralisé n'existe pour ce dégradé (vérifié avant modification),
        valeur réutilisée telle quelle pour rester strictement identique. */
     background: radial-gradient(circle at 20% 0%, rgba(255, 105, 0, 0.1), transparent 34%), #fff7f0;
+  }
+
+  /*
+   * Variante sombre (micro-sprint 2 page plomberie, 04/09/2026) : purement
+   * additive, sans effet sur la landing (classe `.faq--dark` jamais posée
+   * par défaut, voir frontmatter). Fond anthracite + lueur orange déjà
+   * utilisés ailleurs sur le site (Process.astro, Coverage.astro) ; cartes
+   * en verre sombre reprenant exactement la recette de `.process__card`.
+   */
+  .faq--dark {
+    background:
+      radial-gradient(46% 38% at 84% 8%, rgba(255, 105, 0, 0.08), transparent 70%),
+      radial-gradient(42% 40% at 8% 94%, rgba(255, 105, 0, 0.06), transparent 72%),
+      var(--color-anthracite-950);
+  }
+
+  .faq--dark .section-heading h2 {
+    color: var(--color-white);
+  }
+
+  .faq--dark .faq__item {
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .faq--dark .faq__trigger {
+    background: rgba(35, 40, 56, 0.55);
+    backdrop-filter: blur(10px) saturate(115%);
+    -webkit-backdrop-filter: blur(10px) saturate(115%);
+    color: var(--color-white);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .faq--dark .faq__trigger {
+      background: rgba(24, 28, 40, 0.92);
+    }
+  }
+
+  .faq--dark .faq__chevron {
+    color: var(--color-orange-500);
+  }
+
+  .faq--dark .faq__panel {
+    color: var(--color-gray-100);
   }
 
   .faq__list {

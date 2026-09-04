@@ -97,20 +97,40 @@ describe('landing page — contenu et garde-fous (section 29 du prompt de missio
     }
   });
 
-  it('14. never links to a non-existent route (only anchors, external links, tel: links, or disabled placeholders)', () => {
+  it('14. never links to a non-existent route (only anchors, external links, tel: links, real known pages, or disabled placeholders)', () => {
     // Ne cible que les liens de navigation (<a href>), pas les <link> techniques
     // (favicon, sitemap...) qui pointent légitimement vers un asset statique.
     const hrefs = Array.from(html.matchAll(/<a\b[^>]*\shref="([^"]+)"/g)).map((match) => match[1]);
     expect(hrefs.length).toBeGreaterThan(0);
     for (const href of hrefs) {
-      const isAnchor = href.startsWith('#');
+      // Micro-correction « navigation depuis les pages métiers » (03/09/2026) :
+      // la navigation partagée (navbar, drawer mobile, footer) préfixe
+      // désormais ses ancres avec `base` pour fonctionner aussi depuis une
+      // page métier comme /plomberie/ (ex. "/#depannages" en local, voir
+      // src/data/landing.ts) — un fragment n'est donc plus forcément en
+      // toute première position du href.
+      const isAnchor = href.includes('#');
       const isExternal = /^https?:\/\//.test(href);
       const isRoot = href === '/';
       // Le numéro d'urgence est désormais officiel : son unique lien tel:
       // réel est légitime (correctif d'architecture, 01/09/2026).
       const isEmergencyTel = href === 'tel:+33649621619';
+      // Micro-sprint « accès à la page /plomberie/ » (03/09/2026, prompt
+      // « ACCÈS À LA PAGE DEPUIS LA LANDING PAGE ») : première page métier
+      // réelle (créée au micro-sprint précédent), désormais liée depuis le
+      // Hero, l'accordéon des domaines d'intervention et le sélecteur
+      // d'urgence. Page chauffage (04/09/2026, PROMPT_CLAUDE_CODE_PAGE_
+      // CHAUFFAGE_PATTERN_COMPLET.txt) puis serrurerie puis vitrerie puis
+      // rideaux métalliques (même jour) : pages métier réelles suivantes,
+      // même traitement.
+      const isMetierPage =
+        href.endsWith('/plomberie/') ||
+        href.endsWith('/chauffage/') ||
+        href.endsWith('/serrurerie/') ||
+        href.endsWith('/vitrerie/') ||
+        href.endsWith('/rideaux-metalliques/');
       expect(
-        isAnchor || isExternal || isRoot || isEmergencyTel,
+        isAnchor || isExternal || isRoot || isEmergencyTel || isMetierPage,
         `unexpected internal route link: ${href}`,
       ).toBe(true);
     }
@@ -159,17 +179,39 @@ describe('landing page — contenu et garde-fous (section 29 du prompt de missio
     expect(html).toContain('accordeon-serrurerie');
   });
 
-  it('23. the photographic services grid renders six non-interactive cards, no dead #contact link (micro-retouche 01/09/2026)', () => {
+  it('23. the photographic services grid renders two non-interactive cards and four real links to dedicated pages, no dead #contact link', () => {
     // Historique : d'abord des <button> qui dépliaient un panneau en place,
     // puis de vrais liens <a href> vers #contact (refonte « Nos domaines
     // d'intervention »). Depuis la suppression de FinalCta (01/09/2026) et
-    // en l'absence de pages métier dédiées, les cartes ne sont plus des
-    // liens (<article>, sans href) plutôt que de pointer vers une ancre
-    // morte. Couverture complète dans tests/services-accordion-domaines.test.ts
-    // et tests/final-cta-removal.test.ts.
-    const matches = html.match(/<article id="service-[^"]+" class="service-card"/g) ?? [];
-    expect(matches).toHaveLength(6);
-    expect(html).not.toMatch(/<a\s[^>]*id="service-[^"]+" class="service-card"/);
+    // en l'absence de pages métier dédiées, les six cartes n'étaient plus
+    // des liens (<article>, sans href) plutôt que de pointer vers une ancre
+    // morte. Micro-sprint « accès à la page /plomberie/ » (03/09/2026) :
+    // Plomberie et Fuites et anomalies redeviennent de vrais liens vers la
+    // page dédiée réelle. Page chauffage puis serrurerie puis vitrerie puis
+    // rideaux métalliques (04/09/2026) rejoignent ce groupe ; les six
+    // cartes sont désormais toutes des liens réels. Couverture complète
+    // dans tests/services-accordion-domaines.test.ts.
+    const articles = html.match(/<article id="service-[^"]+" class="service-card"/g) ?? [];
+    expect(articles).toHaveLength(0);
+
+    const links = Array.from(
+      html.matchAll(
+        /<a id="(service-plomberie|service-fuites-anomalies|service-chauffage|service-serrurerie|service-vitrerie|service-rideaux-metalliques)" href="([^"]+)" class="service-card"/g,
+      ),
+    );
+    expect(links).toHaveLength(6);
+    // Affiné au micro-sprint 2 (04/09/2026) : « Plomberie »/« Chauffage »/
+    // « Serrurerie »/« Vitrerie »/« Rideaux métalliques » pointent vers le
+    // haut de leur page dédiée, « Fuites et anomalies » vers sa section
+    // « premiers gestes » réelle (id="urgences-plomberie").
+    const hrefById = Object.fromEntries(links.map(([, id, href]) => [id, href]));
+    expect(hrefById['service-plomberie']).toMatch(/\/plomberie\/$/);
+    expect(hrefById['service-fuites-anomalies']).toMatch(/\/plomberie\/#urgences-plomberie$/);
+    expect(hrefById['service-chauffage']).toMatch(/\/chauffage\/$/);
+    expect(hrefById['service-serrurerie']).toMatch(/\/serrurerie\/$/);
+    expect(hrefById['service-vitrerie']).toMatch(/\/vitrerie\/$/);
+    expect(hrefById['service-rideaux-metalliques']).toMatch(/\/rideaux-metalliques\/$/);
+
     expect(html).not.toContain('href="#contact"');
   });
 

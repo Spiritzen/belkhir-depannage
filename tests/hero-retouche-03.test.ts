@@ -67,17 +67,33 @@ describe('retouche 03 — hero (structure large, contenu et garde-fous)', () => 
     expect(heroHtml).not.toContain('<a href="#" class="hero__trade"');
   });
 
-  it('7. targets real, existing sections of the landing (no dead/fake routes)', () => {
+  it('7. targets real, existing sections of the landing, or a real dedicated page (no dead/fake routes)', () => {
     const hrefs = Array.from(heroHtml.matchAll(/<a href="([^"]+)" class="hero__trade"/g)).map(
       (m) => m[1],
     );
     for (const href of hrefs) {
+      // Micro-sprint « accès à la page /plomberie/ » (03/09/2026) puis pages
+      // chauffage, serrurerie, vitrerie et rideaux métalliques (04/09/2026) :
+      // les cinq métiers du ruban pointent désormais tous vers une vraie
+      // page dédiée (plus aucune ancre interne dans ce ruban).
+      if (
+        href.endsWith('/plomberie/') ||
+        href.endsWith('/chauffage/') ||
+        href.endsWith('/serrurerie/') ||
+        href.endsWith('/vitrerie/') ||
+        href.endsWith('/rideaux-metalliques/')
+      ) {
+        continue;
+      }
       expect(href.startsWith('#')).toBe(true);
       const anchorId = href.slice(1);
       // L'ID ciblé doit exister réellement ailleurs dans la page rendue
       // (panneau de l'accordéon des métiers), jamais une ancre fantôme.
       expect(pageHtml).toContain(`id="${anchorId}"`);
     }
+    expect(hrefs.some((href) => href.endsWith('/plomberie/'))).toBe(true);
+    expect(hrefs.some((href) => href.endsWith('/chauffage/'))).toBe(true);
+    expect(hrefs.some((href) => href.endsWith('/serrurerie/'))).toBe(true);
   });
 
   it('8. the paragraph contains the five trades and the validated emergency examples', () => {

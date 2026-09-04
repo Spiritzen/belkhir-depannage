@@ -77,23 +77,52 @@ describe('refonte « Nos domaines d’intervention »', () => {
     ]);
   });
 
-  it('7. each card is a non-interactive <article> (no link, no button) since FinalCta removal (01/09/2026)', () => {
+  it('7. all six cards are now real links to dedicated pages (accès pages métiers)', () => {
     // Historique : d'abord des <button> (panneau en place), puis de vrais
-    // liens <a href="#contact">. FinalCta a depuis été supprimée et aucune
-    // page métier dédiée n'existe encore : plutôt que de pointer vers une
-    // ancre morte, les cartes ne sont plus des liens.
+    // liens <a href="#contact">. FinalCta a depuis été supprimée et, tant
+    // qu'aucune page métier dédiée n'existait, les six cartes n'étaient plus
+    // des liens. La page /plomberie/ existe depuis le micro-sprint « accès à
+    // la page /plomberie/ » (03/09/2026) : Plomberie et Fuites et anomalies
+    // redeviennent de vrais liens vers elle. Les pages /chauffage/ puis
+    // /serrurerie/ puis /vitrerie/ puis /rideaux-metalliques/ existent
+    // depuis le 04/09/2026 : elles rejoignent ce groupe — plus aucune carte
+    // n'est un <article> non interactif.
     const articles = Array.from(
       sectionHtml.matchAll(/<article id="(service-[^"]+)" class="service-card"/g),
     );
-    expect(articles).toHaveLength(6);
+    expect(articles).toHaveLength(0);
+
+    const links = Array.from(
+      sectionHtml.matchAll(/<a id="(service-[^"]+)" href="([^"]+)" class="service-card"/g),
+    );
+    expect(links).toHaveLength(6);
+    expect(links.map((m) => m[1])).toEqual([
+      'service-plomberie',
+      'service-fuites-anomalies',
+      'service-chauffage',
+      'service-serrurerie',
+      'service-vitrerie',
+      'service-rideaux-metalliques',
+    ]);
+    // Affiné au micro-sprint 2 (04/09/2026) : « Plomberie »/« Chauffage »/
+    // « Serrurerie »/« Vitrerie »/« Rideaux métalliques » pointent vers le
+    // haut de leur page dédiée, « Fuites et anomalies » vers sa section
+    // « premiers gestes » réelle (id="urgences-plomberie").
+    const hrefById = Object.fromEntries(links.map(([, id, href]) => [id, href]));
+    expect(hrefById['service-plomberie']).toMatch(/\/plomberie\/$/);
+    expect(hrefById['service-chauffage']).toMatch(/\/chauffage\/$/);
+    expect(hrefById['service-serrurerie']).toMatch(/\/serrurerie\/$/);
+    expect(hrefById['service-vitrerie']).toMatch(/\/vitrerie\/$/);
+    expect(hrefById['service-rideaux-metalliques']).toMatch(/\/rideaux-metalliques\/$/);
+    expect(hrefById['service-fuites-anomalies']).toMatch(/\/plomberie\/#urgences-plomberie$/);
+
     expect(sectionHtml).not.toContain('accordion-panel__trigger');
     expect(sectionHtml).not.toMatch(/<button[^>]*data-service-panel/);
-    expect(sectionHtml).not.toMatch(/<a\s[^>]*class="service-card"/);
   });
 
-  it('8. no card produces a dead #contact link or a fake href of any kind (no 404, no "#")', () => {
+  it('8. no card produces a dead #contact link or a fake href ("#")', () => {
     expect(sectionHtml).not.toContain('href="#contact"');
-    expect(sectionHtml).not.toMatch(/class="service-card"[^>]*href=/);
+    expect(sectionHtml).not.toContain('href="#"');
   });
 
   it('9. each card keeps its stable anchor id (Hero and EmergencySelector links still resolve)', () => {

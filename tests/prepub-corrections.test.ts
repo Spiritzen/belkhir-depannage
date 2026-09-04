@@ -144,8 +144,28 @@ describe('PREPUB-006 — single URL source of truth, no temporary placeholder le
     expect(distSitemapIndex).toContain(
       '<loc>https://spiritzen.github.io/belkhir-depannage/sitemap-0.xml</loc>',
     );
+    // Mise à jour micro-sprint 1 « page plomberie » (03/09/2026,
+    // PROMPT_CLAUDE_CODE_MICRO_SPRINT_1_PAGE_PLOMBERIE_HERO.txt), puis pages
+    // chauffage, serrurerie, vitrerie et rideaux métalliques (04/09/2026) :
+    // le site compte désormais six pages réelles (landing + /plomberie/ +
+    // /chauffage/ + /serrurerie/ + /vitrerie/ + /rideaux-metalliques/),
+    // toutes légitimement listées par @astrojs/sitemap. L'intention
+    // d'origine de ce test — repérer un doublon accidentel de l'URL racine
+    // (avec et sans slash final) — reste vérifiée via `new Set(...)`, sans
+    // figer l'ordre exact ni le nombre total de pages du site (dépend de
+    // l'ordre de build du générateur).
     const locs = distSitemap0.match(/<loc>[^<]+<\/loc>/g) ?? [];
-    expect(locs).toEqual(['<loc>https://spiritzen.github.io/belkhir-depannage/</loc>']);
+    expect(new Set(locs)).toEqual(
+      new Set([
+        '<loc>https://spiritzen.github.io/belkhir-depannage/</loc>',
+        '<loc>https://spiritzen.github.io/belkhir-depannage/plomberie/</loc>',
+        '<loc>https://spiritzen.github.io/belkhir-depannage/chauffage/</loc>',
+        '<loc>https://spiritzen.github.io/belkhir-depannage/serrurerie/</loc>',
+        '<loc>https://spiritzen.github.io/belkhir-depannage/vitrerie/</loc>',
+        '<loc>https://spiritzen.github.io/belkhir-depannage/rideaux-metalliques/</loc>',
+      ]),
+    );
+    expect(new Set(locs).size).toBe(locs.length);
   });
 
   it('11. robots.txt still fully disallows indexing (maquette non indexée, garde-fou préservé)', () => {

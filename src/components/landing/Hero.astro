@@ -59,6 +59,26 @@ const heroTrades = heroTradeOrder
   .map((id) => services.find((service) => service.id === id))
   .filter((service): service is (typeof services)[number] => Boolean(service));
 
+// Accès aux pages métiers depuis la landing (03/09/2026, prompt « ACCÈS À LA
+// PAGE DEPUIS LA LANDING PAGE » ; étendu au chauffage le 04/09/2026,
+// PROMPT_CLAUDE_CODE_PAGE_CHAUFFAGE_PATTERN_COMPLET.txt, puis à la
+// serrurerie le même jour, PROMPT_CLAUDE_CODE_PAGE_SERRURERIE_PATTERN_
+// COMPLET.txt, puis vitrerie le 04/09/2026, PROMPT_CLAUDE_CODE_PAGE_
+// VITRERIE_PATTERN_COMPLET.txt, puis rideaux métalliques le même jour,
+// PROMPT_CLAUDE_CODE_PAGE_RIDEAUX_METALLIQUES_PATTERN_COMPLET.txt) : les
+// cinq boutons du ruban pointent désormais tous vers leur vraie page dédiée
+// plutôt que vers l'ancre de l'accordéon — construits avec `base`
+// (import.meta.env.BASE_URL, toujours terminé par un slash, voir
+// astro.config.mjs) pour fonctionner aussi bien en local que sous le
+// sous-chemin GitHub Pages.
+const metierHrefByService: Partial<Record<ServiceId, string>> = {
+  plomberie: `${import.meta.env.BASE_URL}plomberie/`,
+  chauffage: `${import.meta.env.BASE_URL}chauffage/`,
+  serrurerie: `${import.meta.env.BASE_URL}serrurerie/`,
+  vitrerie: `${import.meta.env.BASE_URL}vitrerie/`,
+  'rideaux-metalliques': `${import.meta.env.BASE_URL}rideaux-metalliques/`,
+};
+
 // Micro-retouche suppression FinalCta (01/09/2026) : le bouton de devis
 // pointait vers #contact (FinalCta.astro), désormais supprimé. Il devient un
 // CTA vers la ligne standard centralisée, avec le même garde-fou que
@@ -127,7 +147,11 @@ const heroMobileOptimized = await getImage({
     <nav class="hero__trades" aria-label="Métiers pris en charge" data-reveal-group="hero-trades">
       {
         heroTrades.map((service) => (
-          <a href={`#${service.anchor}`} class="hero__trade" data-reveal="up">
+          <a
+            href={metierHrefByService[service.id] ?? `#${service.anchor}`}
+            class="hero__trade"
+            data-reveal="up"
+          >
             {service.title}
           </a>
         ))

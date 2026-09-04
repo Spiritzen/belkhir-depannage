@@ -53,8 +53,12 @@ describe('réordonnancement — suppression AvailabilityBlock, déplacement des 
     expect(sectionHtml).toContain('Emplacement réservé à connecter à notre fiche Google');
   });
 
-  it('6. the navbar "Avis" link still targets #avis', () => {
-    expect(pageHtml).toMatch(/<a href="#avis"[^>]*>Avis<\/a>/);
+  it('6. the navbar "Avis" link still targets the #avis anchor', () => {
+    // Micro-correction « navigation depuis les pages métiers » (03/09/2026) :
+    // le href est désormais préfixé par `base` (voir src/data/landing.ts,
+    // `navLinks`) pour fonctionner aussi depuis une page métier comme
+    // /plomberie/ — l'ancre elle-même (#avis) reste inchangée.
+    expect(pageHtml).toMatch(/<a href="[^"]*#avis"[^>]*>Avis<\/a>/);
   });
 
   it('7. the reviews section keeps its scroll-margin-top protection against the sticky navbar', () => {

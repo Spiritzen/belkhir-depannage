@@ -8,18 +8,26 @@
  * documentées dans `src/data/coverage-map.ts`), synchronisée avec une liste
  * de badges interactifs, un tracé de mobilité stylisé et le fourgon Belkhir
  * Dépannage déjà utilisé ailleurs sur le site (aucun nouvel asset généré).
+ *
+ * MICRO-SPRINT « ajouter la carte aux sections de couverture des pages
+ * métiers » (04/09/2026) : le contour + les cinq formes départementales ont
+ * été extraits dans `../sections/CoverageMapGraphic.astro` (variante
+ * `animated` ici) pour être réutilisés sans duplication par
+ * `CoverageSummary.astro`. Modification strictement interne — balisage,
+ * classes, CSS calculée et script d'orchestration (`playSequence`,
+ * `resetSequence`, l'unique `IntersectionObserver`) restent inchangés ; le
+ * tracé de mobilité et le fourgon restent ici, propres à la landing, injectés
+ * dans le composant partagé via ses slots `route`/`van`.
  */
 import { Image } from 'astro:assets';
 import vanImg from '../../assets/legacy/illustration-equipe.png';
 import Icon from '../ui/Icon.astro';
+import CoverageMapGraphic from '../sections/CoverageMapGraphic.astro';
 import { coverageZones } from '../../data/landing';
 import { siteConfig } from '../../lib/site-config';
 import { getPhoneCta } from '../../lib/phone';
 import {
   COVERAGE_MAP_VIEWBOX,
-  COVERAGE_MAP_OUTLINE_PATH,
-  COVERAGE_MAP_OUTLINE_LENGTH,
-  COVERAGE_MAP_DEPARTMENTS,
   COVERAGE_ROUTE_PATH,
   COVERAGE_ROUTE_LENGTH,
   COVERAGE_ROUTE_NODES,
@@ -106,36 +114,8 @@ const vanWidthPct = COVERAGE_VAN_ANCHOR.widthRatio * 100;
     </p>
 
     <div class="coverage__map-wrap">
-      <svg class="coverage-map" viewBox={COVERAGE_MAP_VIEWBOX} aria-hidden="true" focusable="false">
-        <path
-          class="coverage-map__outline"
-          d={COVERAGE_MAP_OUTLINE_PATH}
-          style={`--outline-length:${COVERAGE_MAP_OUTLINE_LENGTH}`}></path>
-
-        <g class="coverage-map__depts">
-          {
-            coverageZones.map((zone) => {
-              const shape = COVERAGE_MAP_DEPARTMENTS[zone.code];
-              if (!shape) return null;
-              return (
-                <g class="coverage-map__dept-group" data-department={zone.code}>
-                  <path class="coverage-map__dept" d={shape.d} />
-                  <circle
-                    class="coverage-map__landmark"
-                    cx={shape.centroid[0]}
-                    cy={shape.centroid[1]}
-                    r="2.4"
-                  />
-                  <text class="coverage-map__code" x={shape.centroid[0]} y={shape.centroid[1] - 7}>
-                    {zone.code}
-                  </text>
-                </g>
-              );
-            })
-          }
-        </g>
-
-        <g class="coverage-map__route-group">
+      <CoverageMapGraphic variant="animated">
+        <g slot="route" class="coverage-map__route-group">
           <path
             class="coverage-map__route"
             d={COVERAGE_ROUTE_PATH}
@@ -146,16 +126,17 @@ const vanWidthPct = COVERAGE_VAN_ANCHOR.widthRatio * 100;
             ))
           }
         </g>
-      </svg>
 
-      <Image
-        src={vanImg}
-        alt=""
-        class="coverage__van"
-        widths={[240, 360]}
-        sizes="(max-width: 56rem) 46vw, 18rem"
-        style={`left:${vanLeftPct.toFixed(2)}%; bottom:${vanBottomPct.toFixed(2)}%; width:${vanWidthPct.toFixed(2)}%;`}
-      />
+        <Image
+          slot="van"
+          src={vanImg}
+          alt=""
+          class="coverage__van"
+          widths={[240, 360]}
+          sizes="(max-width: 56rem) 46vw, 18rem"
+          style={`left:${vanLeftPct.toFixed(2)}%; bottom:${vanBottomPct.toFixed(2)}%; width:${vanWidthPct.toFixed(2)}%;`}
+        />
+      </CoverageMapGraphic>
     </div>
   </div>
 </section>
@@ -591,101 +572,17 @@ const vanWidthPct = COVERAGE_VAN_ANCHOR.widthRatio * 100;
     align-self: center;
   }
 
-  .coverage-map {
-    display: block;
-    width: 100%;
-    height: auto;
-    max-width: 24rem;
-    margin-inline: auto;
-    overflow: visible;
-  }
-
-  .coverage-map__outline {
-    fill: none;
-    stroke: var(--color-orange-500);
-    stroke-width: 1.4;
-    stroke-linejoin: round;
-    opacity: 0.9;
-  }
-
-  .coverage[data-coverage-armed] .coverage-map__outline {
-    stroke-dasharray: var(--outline-length);
-    stroke-dashoffset: var(--outline-length);
-    transition: stroke-dashoffset 900ms ease;
-  }
-
-  .coverage[data-coverage-armed] .coverage-map__outline.is-visible {
-    stroke-dashoffset: 0;
-  }
-
-  .coverage-map__dept-group {
-    opacity: 1;
-  }
-
-  .coverage[data-coverage-armed] .coverage-map__dept-group {
-    opacity: 0;
-    transition: opacity 420ms ease;
-  }
-
-  .coverage[data-coverage-armed] .coverage-map__dept-group.is-visible {
-    opacity: 1;
-  }
-
-  .coverage-map__dept {
-    stroke: rgba(255, 105, 0, 0.4);
-    stroke-width: 1;
-    stroke-linejoin: round;
-    transition:
-      fill 260ms ease,
-      stroke 260ms ease,
-      filter 260ms ease;
-  }
-
-  /* Nuances anthracite légèrement différenciées par département (section 7
-     du prompt), toujours très proches les unes des autres. */
-  .coverage-map__depts > .coverage-map__dept-group:nth-child(1) .coverage-map__dept {
-    fill: #222737;
-  }
-  .coverage-map__depts > .coverage-map__dept-group:nth-child(2) .coverage-map__dept {
-    fill: #262c3f;
-  }
-  .coverage-map__depts > .coverage-map__dept-group:nth-child(3) .coverage-map__dept {
-    fill: #1f2432;
-  }
-  .coverage-map__depts > .coverage-map__dept-group:nth-child(4) .coverage-map__dept {
-    fill: #262b3d;
-  }
-  .coverage-map__depts > .coverage-map__dept-group:nth-child(5) .coverage-map__dept {
-    fill: #202536;
-  }
-
-  .coverage-map__dept-group.is-active .coverage-map__dept {
-    fill: rgba(255, 105, 0, 0.32);
-    stroke: var(--color-orange-500);
-    stroke-width: 1.6;
-    filter: drop-shadow(0 0 7px rgba(255, 105, 0, 0.55));
-  }
-
-  .coverage-map__landmark {
-    fill: rgba(255, 154, 77, 0.7);
-  }
-
-  .coverage-map__dept-group.is-active .coverage-map__landmark {
-    fill: var(--color-orange-500);
-  }
-
-  .coverage-map__code {
-    font-size: 10px;
-    font-family: var(--font-sans);
-    font-weight: 700;
-    fill: rgba(255, 255, 255, 0.55);
-    text-anchor: middle;
-    transition: fill 260ms ease;
-  }
-
-  .coverage-map__dept-group.is-active .coverage-map__code {
-    fill: var(--color-white);
-  }
+  /*
+   * Contour régional + cinq formes départementales (y compris le
+   * dimensionnement `.coverage-map`) : balisage ET CSS
+   * déplacés dans `../sections/CoverageMapGraphic.astro` (MICRO-SPRINT
+   * « ajouter la carte aux sections de couverture des pages métiers »,
+   * 04/09/2026) — élément désormais rendu par ce composant partagé, sa
+   * styling scoped y vit donc obligatoirement (mécanisme de scoping CSS
+   * Astro, cf. `.process__accent` dans Process.astro pour le même
+   * principe). Le tracé de mobilité et le fourgon ci-dessous restent
+   * propres à la landing et continuent d'être stylés ici, INCHANGÉS.
+   */
 
   .coverage-map__route-group {
     opacity: 1;
@@ -742,12 +639,13 @@ const vanWidthPct = COVERAGE_VAN_ANCHOR.widthRatio * 100;
   }
 
   @media (prefers-reduced-motion: reduce) {
+    /* Le safety-net équivalent pour .coverage-map__outline et
+       .coverage-map__dept-group (désormais rendus par
+       CoverageMapGraphic.astro) vit dans le <style> de ce composant. */
     .coverage[data-coverage-armed] .coverage__intro,
     .coverage[data-coverage-armed] .coverage__depts > li,
     .coverage[data-coverage-armed] .coverage__cta-wrap,
     .coverage[data-coverage-armed] .coverage__caution,
-    .coverage[data-coverage-armed] .coverage-map__outline,
-    .coverage[data-coverage-armed] .coverage-map__dept-group,
     .coverage[data-coverage-armed] .coverage-map__route-group,
     .coverage[data-coverage-armed] .coverage-map__route,
     .coverage[data-coverage-armed] .coverage__van {
@@ -771,15 +669,11 @@ const vanWidthPct = COVERAGE_VAN_ANCHOR.widthRatio * 100;
     }
   }
 
-  @media (max-width: 64rem) {
-    .coverage-map {
-      max-width: 20rem;
-    }
-  }
-
   @media (max-width: 56rem) {
     /* Ordre mobile demandé (section 20 du prompt) : eyebrow/titre/narration,
-       puis la carte pleine largeur, puis la liste, le CTA et la précision. */
+       puis la carte pleine largeur, puis la liste, le CTA et la précision.
+       Les largeurs de `.coverage-map` elle-même (20rem/22rem) vivent
+       désormais dans CoverageMapGraphic.astro. */
     .coverage__grid {
       grid-template-columns: 1fr;
       grid-template-areas:
@@ -796,10 +690,6 @@ const vanWidthPct = COVERAGE_VAN_ANCHOR.widthRatio * 100;
 
     .coverage__map-wrap {
       align-self: auto;
-    }
-
-    .coverage-map {
-      max-width: 22rem;
     }
   }
 

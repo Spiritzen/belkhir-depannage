@@ -1,0 +1,590 @@
+---
+/**
+ * Hero de la page /plomberie/ — micro-sprint 1 « fondation page plomberie »
+ * (PROMPT_CLAUDE_CODE_MICRO_SPRINT_1_PAGE_PLOMBERIE_HERO.txt, 03/09/2026).
+ *
+ * Fond photographique plein cadre avec art direction responsive réelle :
+ * `hero-plomberie-desktop.png` (technicien à droite, cuisine sombre à
+ * gauche) au-dessus de 47.9375rem, `hero-plomberie-mobile.png` (cadrage
+ * portrait dédié, jamais un simple recadrage du desktop) en dessous — même
+ * seuil que le Hero de la landing (src/components/landing/Hero.astro), déjà
+ * aligné sur le passage en navigation hamburger. AVIF puis WebP par
+ * `<source>`, secours final en WebP via `<Image>` (même secours que le Hero
+ * de la landing, dont le support navigateur est déjà jugé suffisant sur ce
+ * projet).
+ *
+ * Contenu, CTA et politique SEO définis au mot près par le prompt de
+ * mission ; aucune section additionnelle (diagnostic, processus, preuves,
+ * FAQ, zones couvertes) n'est construite ici — elles font l'objet des
+ * micro-sprints suivants.
+ */
+import { Image, getImage } from 'astro:assets';
+import heroDesktopImg from '../../assets/plomberie/hero-plomberie-desktop.png';
+import heroMobileImg from '../../assets/plomberie/hero-plomberie-mobile.png';
+import Icon from '../ui/Icon.astro';
+import { googleReviewSummary } from '../../data/landing';
+import { siteConfig } from '../../lib/site-config';
+import { getPhoneCta } from '../../lib/phone';
+
+// Ligne d'urgence extrême : donnée réelle et centralisée (voir
+// src/lib/site-config.ts), jamais recopiée à la main. `getPhoneCta` reste
+// utilisé (plutôt qu'un lien `tel:` écrit en dur) pour bénéficier du même
+// garde-fou que le reste du site si cette ligne redevenait un jour
+// provisoire : aucun faux lien `tel:` ne serait alors généré.
+const emergencyCta = getPhoneCta(siteConfig.emergencyPhone);
+
+// CTA secondaire : ancre RÉELLE vers la section couverture de la landing
+// (Coverage.astro, id="zones-couvertes"), jamais une ancre inventée.
+// `import.meta.env.BASE_URL` se termine déjà par un slash (valeur littérale
+// de `base` dans astro.config.mjs) : la concaténation directe fonctionne
+// donc aussi bien en local (dev) que sous le sous-chemin GitHub Pages, sans
+// dépendre d'une hypothèse supplémentaire sur son format.
+const coverageHref = `${import.meta.env.BASE_URL}#zones-couvertes`;
+
+// Preuve Google : même source de données que le Hero de la landing
+// (googleReviewSummary, src/data/landing.ts) — aucune nouvelle note
+// inventée. `siteConfig.googleReviewsUrl` reste `null` tant qu'aucune fiche
+// Google Business n'est validée ; en attendant, le badge pointe vers la
+// section avis réelle de la landing (Reviews.astro, id="avis") plutôt que
+// vers une URL inventée ou un `href="#"`.
+const googleHref = siteConfig.googleReviewsUrl ?? `${import.meta.env.BASE_URL}#avis`;
+const googleRatingDisplay = googleReviewSummary.rating.toFixed(1).replace('.', ',');
+const googleAccessibleLabel = `${googleReviewSummary.label}, note de ${googleRatingDisplay} sur 5 basée sur ${googleReviewSummary.reviewCount} avis ${googleReviewSummary.platform}`;
+
+// Art direction responsive (astro:assets) : deux photographies distinctes,
+// jamais un recadrage CSS d'une seule image. AVIF + WebP pour chaque
+// breakpoint, dimensions natives comme plafond de `widths` pour ne jamais
+// demander un agrandissement (desktop : 1672px de large ; mobile : 941px,
+// identique à la largeur native déjà utilisée pour le Hero de la landing,
+// voir src/components/landing/Hero.astro).
+const heroMobileAvif = await getImage({
+  src: heroMobileImg,
+  widths: [375, 480, 640, 828, 941],
+  formats: ['avif'],
+  format: 'avif',
+});
+const heroMobileWebp = await getImage({
+  src: heroMobileImg,
+  widths: [375, 480, 640, 828, 941],
+  formats: ['webp'],
+  format: 'webp',
+});
+const heroDesktopAvif = await getImage({
+  src: heroDesktopImg,
+  widths: [640, 960, 1280, 1600, 1672],
+  formats: ['avif'],
+  format: 'avif',
+});
+---
+
+<section class="hero" aria-label="Dépannage plomberie d’urgence">
+  <picture>
+    <source
+      media="(max-width: 47.9375rem)"
+      type="image/avif"
+      srcset={heroMobileAvif.srcSet.attribute}
+      sizes="100vw"
+    />
+    <source
+      media="(max-width: 47.9375rem)"
+      type="image/webp"
+      srcset={heroMobileWebp.srcSet.attribute}
+      sizes="100vw"
+    />
+    <source type="image/avif" srcset={heroDesktopAvif.srcSet.attribute} sizes="100vw" />
+    <Image
+      src={heroDesktopImg}
+      alt="Technicien Belkhir Dépannage intervenant sur une fuite sous un évier"
+      class="hero__bg"
+      widths={[640, 960, 1280, 1600, 1672]}
+      sizes="100vw"
+      loading="eager"
+      fetchpriority="high"
+    />
+  </picture>
+  <div class="hero__overlay" aria-hidden="true"></div>
+
+  <div class="hero__container">
+    <div class="hero__content">
+      <p class="hero__eyebrow" data-reveal="down">
+        <span class="hero__eyebrow-group">PLOMBERIE D’URGENCE</span> · <span
+          class="hero__eyebrow-group">{siteConfig.region.toUpperCase()}</span
+        > · <span class="hero__eyebrow-group">24H/24</span> · <span class="hero__eyebrow-group"
+          >7J/7</span
+        >
+      </p>
+
+      <h1 class="hero__title" data-reveal="left">
+        Dépannage plomberie <span class="hero__title-accent">d’urgence</span> dans les <span
+          class="hero__title-accent hero__title-region">Hauts-de-France</span
+        >
+      </h1>
+
+      <p class="hero__lead" data-reveal="left">
+        Fuite d’eau, canalisation bouchée, robinet ou chasse d’eau défectueuse : notre équipe
+        qualifie la situation dès l’appel, vous indique les premiers gestes de sécurité et organise
+        une intervention adaptée.
+      </p>
+
+      <div class="hero__cta-row" data-reveal="up">
+        {
+          emergencyCta.kind === 'link' ? (
+            <a class="hero__call-cta" href={emergencyCta.href} data-phone-role={emergencyCta.role}>
+              <Icon name="phone" class="hero__call-cta-icon" />
+              <span class="hero__call-cta-text">
+                <span class="hero__call-cta-label">Appeler en urgence</span>
+                <span class="hero__call-cta-number">{emergencyCta.display}</span>
+              </span>
+            </a>
+          ) : (
+            <button
+              type="button"
+              class="hero__call-cta"
+              disabled
+              aria-describedby="plomberie-hero-call-note"
+              data-phone-role={emergencyCta.role}
+            >
+              <Icon name="phone" class="hero__call-cta-icon" />
+              <span class="hero__call-cta-text">
+                <span class="hero__call-cta-label">Appeler en urgence</span>
+                <span class="hero__call-cta-number">{emergencyCta.display}</span>
+              </span>
+              <span id="plomberie-hero-call-note" class="visually-hidden">
+                Numéro d’urgence non encore renseigné dans cette maquette.
+              </span>
+            </button>
+          )
+        }
+
+        <a class="hero__coverage-cta" href={coverageHref}>
+          <Icon name="map-pin" class="hero__coverage-cta-icon" />
+          Vérifier mon secteur
+        </a>
+      </div>
+
+      <a
+        class="hero__google-proof"
+        href={googleHref}
+        aria-label={googleAccessibleLabel}
+        data-reveal="up"
+      >
+        <span class="hero__google-proof-stars" aria-hidden="true">
+          {
+            Array.from({ length: 5 }).map(() => (
+              <Icon name="star" class="hero__google-proof-star" />
+            ))
+          }
+        </span>
+        <span class="hero__google-proof-rating">{googleRatingDisplay}/5</span>
+        <span class="hero__google-proof-meta" aria-hidden="true">
+          — {googleReviewSummary.reviewCount} avis {googleReviewSummary.platform}
+        </span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .hero__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Cadrage desktop : technicien déjà positionné à droite dans la photo
+       elle-même (aucun recadrage CSS ne le déplace) ; léger biais vers la
+       droite pour garder la fenêtre/suspension visibles sur les très
+       larges écrans sans pousser le technicien hors cadre. */
+    object-position: 62% 38%;
+    z-index: -2;
+  }
+
+  /*
+   * Voile de lisibilité contrôlé (jamais un rectangle noir opaque) : la
+   * partie gauche de la photographie est déjà sombre (cuisine de nuit) —
+   * ce dégradé horizontal renforce modérément le contraste du texte côté
+   * gauche tout en laissant la partie droite (technicien, cuisine) presque
+   * intacte. Un léger voile bas protège la ligne de CTA/preuve Google sans
+   * assombrir le bas de l'image plus que nécessaire.
+   */
+  .hero__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(
+        90deg,
+        rgba(9, 10, 14, 0.82) 0%,
+        rgba(9, 10, 14, 0.58) 34%,
+        rgba(9, 10, 14, 0.22) 58%,
+        transparent 76%
+      ),
+      linear-gradient(0deg, rgba(9, 10, 14, 0.55) 0%, transparent 26%),
+      radial-gradient(45% 40% at 88% 10%, rgba(255, 105, 0, 0.22), transparent 72%);
+  }
+
+  .hero__container {
+    position: relative;
+    z-index: 1;
+    width: min(100%, var(--container-max));
+    margin-inline: auto;
+    box-sizing: border-box;
+    padding: 48px;
+    display: flex;
+    align-items: center;
+    color: var(--color-white);
+    min-height: calc(100vh - var(--header-total-height));
+    min-height: calc(100svh - var(--header-total-height));
+  }
+
+  .hero__content {
+    max-width: 34rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero__eyebrow {
+    font-size: clamp(0.72rem, 0.5rem + 0.45vw, 0.9rem);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.4;
+    color: var(--color-orange-500);
+  }
+
+  .hero__eyebrow-group {
+    white-space: nowrap;
+  }
+
+  .hero__title {
+    margin-top: clamp(1rem, 0.85rem + 0.4vw, 1.25rem);
+    font-size: clamp(2rem, 1.55rem + 1.9vw, 3.2rem);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.08;
+  }
+
+  .hero__title-accent {
+    color: var(--color-orange-500);
+  }
+
+  .hero__title-region {
+    white-space: nowrap;
+  }
+
+  .hero__lead {
+    margin-top: clamp(1.1rem, 1rem + 0.3vw, 1.4rem);
+    max-width: 33rem;
+    font-size: clamp(1rem, 0.92rem + 0.3vw, 1.15rem);
+    line-height: 1.6;
+    color: var(--color-gray-100);
+  }
+
+  .hero__cta-row {
+    margin-top: clamp(1.75rem, 1.6rem + 0.4vw, 2.25rem);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: clamp(0.85rem, 0.75rem + 0.3vw, 1.1rem);
+  }
+
+  .hero__call-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 56px;
+    padding: 0.85rem 1.5rem;
+    border: none;
+    border-radius: var(--radius-md);
+    /* Rôle « urgence extrême » : même code couleur rouge que le reste du
+       site (PhoneCta.astro, .phone-cta--emergency), jamais une nouvelle
+       teinte. */
+    background: var(--color-red-600);
+    color: var(--color-white);
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: var(--shadow-sm);
+    transition:
+      background-color 200ms ease,
+      transform 200ms ease,
+      box-shadow 200ms ease;
+  }
+
+  .hero__call-cta:hover,
+  .hero__call-cta:focus-visible {
+    background: var(--color-red-700);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .hero__call-cta:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .hero__call-cta-icon {
+    width: 1.15rem;
+    height: 1.15rem;
+    flex-shrink: 0;
+  }
+
+  .hero__call-cta-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+    text-align: left;
+  }
+
+  .hero__call-cta-label {
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .hero__call-cta-number {
+    margin-top: 0.15rem;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.95rem;
+    opacity: 0.92;
+  }
+
+  .hero__coverage-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 56px;
+    padding: 0.85rem 1.4rem;
+    border-radius: var(--radius-md);
+    border: 2px solid rgba(255, 255, 255, 0.55);
+    background: transparent;
+    color: var(--color-white);
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+    transition:
+      border-color 200ms ease,
+      background-color 200ms ease,
+      transform 200ms ease;
+  }
+
+  .hero__coverage-cta:hover,
+  .hero__coverage-cta:focus-visible {
+    border-color: var(--color-orange-500);
+    background: rgba(255, 105, 0, 0.14);
+    transform: translateY(-2px);
+  }
+
+  .hero__coverage-cta-icon {
+    width: 1.05rem;
+    height: 1.05rem;
+    flex-shrink: 0;
+  }
+
+  /*
+   * Badge de confiance Google — même donnée que le Hero de la landing
+   * (googleReviewSummary), délibérément secondaire (taille et position
+   * sous la ligne de CTA) : jamais avant le H1 ni les appels à l'action.
+   */
+  .hero__google-proof {
+    margin-top: clamp(1.1rem, 1rem + 0.25vw, 1.4rem);
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    row-gap: 0.2rem;
+    gap: 0.4rem;
+    width: fit-content;
+    padding: 0.55rem 0.9rem;
+    border-radius: var(--radius-md);
+    background: rgba(15, 20, 26, 0.68);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(14px) saturate(115%);
+    -webkit-backdrop-filter: blur(14px) saturate(115%);
+    text-decoration: none;
+    color: var(--color-white);
+    font-size: 0.85rem;
+    transition:
+      border-color 200ms ease,
+      transform 200ms ease;
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .hero__google-proof {
+      background: rgba(13, 15, 20, 0.92);
+    }
+  }
+
+  .hero__google-proof:hover,
+  .hero__google-proof:focus-visible {
+    border-color: rgba(255, 255, 255, 0.32);
+    transform: translateY(-1px);
+  }
+
+  .hero__google-proof-stars {
+    display: inline-flex;
+    gap: 0.12rem;
+  }
+
+  .hero__google-proof-star {
+    width: 0.85rem;
+    height: 0.85rem;
+    color: #ffb400;
+    fill: #ffb400;
+  }
+
+  .hero__google-proof-rating {
+    font-weight: 800;
+  }
+
+  .hero__google-proof-meta {
+    color: var(--color-gray-100);
+  }
+
+  /* Mobile (sous 768px, seuil déjà utilisé par le Hero de la landing) :
+     contenu ancré en haut du cadre (le technicien occupe le bas/droite de
+     la photo portrait, jamais recouvert par le titre/CTA), avec l'espace
+     de sécurité nécessaire au-dessus de la barre d'appel sticky. */
+  @media (max-width: 47.9375rem) {
+    .hero__bg {
+      /*
+       * Micro-correction Hero mobile (04/09/2026) : le contenu texte
+       * occupe désormais moins de hauteur (surtitre et CTA d'appel retirés
+       * ci-dessous), ce qui libère de la place pour révéler davantage la
+       * partie basse du cadrage — le technicien et son intervention sous
+       * l'évier — sans jamais recouvrir le H1/la description. Décalage
+       * vertical uniquement (12 % → 24 %), même photo, aucun recadrage
+       * horizontal. Cadrage desktop (règle de base ci-dessus) inchangé.
+       */
+      object-position: 60% 24%;
+    }
+
+    /*
+     * Le surtitre orange et le CTA d'appel rouge sont retirés du rendu
+     * mobile (jamais simplement masqués visuellement : `display: none`,
+     * hors du rendu ET de l'arbre d'accessibilité/tabulation) — le numéro
+     * d'urgence reste joignable en permanence via la barre d'appel sticky
+     * mobile (MobileCallBar.astro, déjà visible sur cette page), le
+     * répéter ici ferait doublon avec le premier écran. Contenu et
+     * libellés strictement inchangés sur desktop, où les deux restent
+     * affichés (règles de base ci-dessus, non touchées).
+     */
+    .hero__eyebrow {
+      display: none;
+    }
+
+    .hero__call-cta {
+      display: none;
+    }
+
+    /*
+     * Réordonnancement purement visuel du contenu restant (H1 →
+     * description → preuve Google → bouton « Vérifier mon secteur »), via
+     * `order` sur les enfants flex de `.hero__content` (déjà `display:
+     * flex; flex-direction: column`) — entièrement scopé à ce point de
+     * rupture mobile, sans toucher au DOM ni à aucune règle desktop.
+     * `.hero__cta-row` ne porte plus que le bouton « Vérifier mon
+     * secteur » ici, le CTA d'appel étant retiré ci-dessus.
+     */
+    .hero__title {
+      order: 1;
+    }
+
+    .hero__lead {
+      order: 2;
+    }
+
+    .hero__google-proof {
+      order: 3;
+    }
+
+    .hero__cta-row {
+      order: 4;
+    }
+
+    .hero__overlay {
+      background:
+        linear-gradient(
+          0deg,
+          rgba(9, 10, 14, 0.34) 0%,
+          transparent 30%,
+          transparent 55%,
+          rgba(9, 10, 14, 0.3) 100%
+        ),
+        linear-gradient(
+          180deg,
+          rgba(9, 10, 14, 0.82) 0%,
+          rgba(9, 10, 14, 0.4) 46%,
+          transparent 62%
+        ),
+        radial-gradient(55% 35% at 85% 6%, rgba(255, 105, 0, 0.2), transparent 72%);
+    }
+
+    .hero__container {
+      align-items: flex-start;
+      padding: 24px;
+      padding-top: clamp(1.5rem, 5vh, 2.5rem);
+      /* Réserve l'espace occupé par la barre d'appel mobile fixe
+         (MobileCallBar.astro), quelle que soit la position de scroll —
+         même formule que le Hero de la landing (voir son commentaire
+         détaillé). */
+      min-height: calc(
+        100vh - var(--header-total-height) - var(--mobile-callbar-height) -
+          env(safe-area-inset-bottom) - 16px
+      );
+      min-height: calc(
+        100svh - var(--header-total-height) - var(--mobile-callbar-height) -
+          env(safe-area-inset-bottom) - 16px
+      );
+    }
+
+    .hero__content {
+      max-width: 100%;
+    }
+
+    .hero__lead {
+      max-width: 100%;
+    }
+
+    .hero__cta-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .hero__call-cta,
+    .hero__coverage-cta {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 56rem) and (min-width: 48rem) {
+    .hero__container {
+      padding: 32px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__call-cta:hover,
+    .hero__call-cta:focus-visible,
+    .hero__coverage-cta:hover,
+    .hero__coverage-cta:focus-visible,
+    .hero__google-proof:hover,
+    .hero__google-proof:focus-visible {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 23rem) {
+    .hero__container {
+      padding: 20px;
+    }
+  }
+</style>

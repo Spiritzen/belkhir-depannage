@@ -1,0 +1,147 @@
+---
+/**
+ * Page métier « Serrurerie » — réplication du pattern validé de
+ * `/plomberie/` et `/chauffage/` (PROMPT_CLAUDE_CODE_PAGE_SERRURERIE_
+ * PATTERN_COMPLET.txt, 04/09/2026). Même assemblage de coquille
+ * (BaseLayout + bande de disponibilité + navbar + tiroir mobile + footer +
+ * barre d'appel mobile, tous réutilisés à l'identique), même six sections
+ * dans le même ordre, en réutilisant les composants génériques et
+ * paramétrables déjà construits — aucun composant dupliqué au-delà du Hero
+ * (voir son commentaire d'en-tête).
+ *
+ * Alternance stricte des fonds, après le Hero photographique :
+ *   1. urgences-serrurerie      — blanc abricot (+ encart effraction/danger)
+ *   2. appel-serrurerie         — noir/charbon + lueur orange
+ *   3. prise-en-charge-serrurerie — blanc abricot (Process, tone="light")
+ *   4. zone-serrurerie          — noir/charbon + lueur orange
+ *   5. avis-serrurerie          — blanc abricot (Reviews, tone par défaut)
+ *   6. faq-serrurerie           — noir/charbon + lueur orange (Faq, tone="dark")
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AvailabilityBar from '../../components/layout/AvailabilityBar.astro';
+import Navbar from '../../components/layout/Navbar.astro';
+import MobileDrawer from '../../components/layout/MobileDrawer.astro';
+import Footer from '../../components/layout/Footer.astro';
+import MobileCallBar from '../../components/layout/MobileCallBar.astro';
+import Hero from '../../components/serrurerie/Hero.astro';
+import SafetyTips from '../../components/sections/SafetyTips.astro';
+import SafetyAlert from '../../components/sections/SafetyAlert.astro';
+import ReassuranceCallout from '../../components/sections/ReassuranceCallout.astro';
+import CoverageSummary from '../../components/sections/CoverageSummary.astro';
+import Process from '../../components/landing/Process.astro';
+import Reviews from '../../components/landing/Reviews.astro';
+import Faq from '../../components/landing/Faq.astro';
+import { siteConfig } from '../../lib/site-config';
+import { coverageZones } from '../../data/landing';
+import { buildFaqPageSchema } from '../../lib/seo';
+import {
+  serrurerieSafetyTips,
+  serrurerieSafetyNote,
+  serrurerieSafetyAlertTitle,
+  serrurerieSafetyAlertText,
+  serrurerieSafetyAlertAdditionalText,
+  serrurerieSafetyAlertContacts,
+  serrurerieSafetyAlertDisclaimer,
+  serrurerieReassurancePoints,
+  serrurerieProcessSteps,
+  serrurerieCoverageIntro,
+  serrurerieFaqItems,
+} from '../../data/serrurerie';
+
+const title = 'Serrurier en urgence Hauts-de-France | Belkhir Dépannage';
+const description =
+  'Porte claquée, clé cassée ou serrure bloquée ? Belkhir Dépannage qualifie votre urgence ' +
+  'serrurerie dans les Hauts-de-France, 24h/24 et 7j/7.';
+
+// Donnée structurée FAQPage : alimentée par EXACTEMENT les mêmes questions
+// et réponses que celles rendues visuellement par <Faq items={...} />
+// ci-dessous (même tableau `serrurerieFaqItems`) — jamais des données
+// structurées différentes du contenu affiché.
+const faqSchema = buildFaqPageSchema(serrurerieFaqItems);
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  path="/serrurerie/"
+  hasMobileCallBar
+  structuredData={[faqSchema]}
+>
+  <Fragment slot="header">
+    <AvailabilityBar />
+    <Navbar />
+    <MobileDrawer />
+  </Fragment>
+
+  <Hero />
+
+  <SafetyTips
+    id="urgences-serrurerie"
+    eyebrow="VOTRE SÉCURITÉ D’ABORD"
+    title="Que faire face à une porte ou une serrure bloquée ?"
+    intro="Forcer une poignée, une clé ou un mécanisme peut transformer un blocage limité en réparation plus importante. Quelques précautions simples permettent de protéger la porte et de décrire utilement la situation."
+    tips={serrurerieSafetyTips}
+    note={serrurerieSafetyNote}
+  >
+    <SafetyAlert
+      slot="alert"
+      title={serrurerieSafetyAlertTitle}
+      text={serrurerieSafetyAlertText}
+      additionalText={serrurerieSafetyAlertAdditionalText}
+      contacts={serrurerieSafetyAlertContacts}
+      disclaimer={serrurerieSafetyAlertDisclaimer}
+    />
+  </SafetyTips>
+
+  <ReassuranceCallout
+    id="appel-serrurerie"
+    eyebrow="VOUS N’AVEZ PAS BESOIN DE CONNAÎTRE LE MÉCANISME"
+    title="Décrivez simplement la porte, la clé et ce qui s’est produit"
+    text="Une porte claquée, une clé qui résiste, un fragment resté dans la serrure ou une poignée devenue inactive suffit pour commencer. Lors de l’appel, notre équipe recueille les informations utiles, vérifie la nature de la demande et organise une prise en charge adaptée à l’accès concerné."
+    points={serrurerieReassurancePoints}
+    ctaLabel="Appeler Belkhir Dépannage"
+    phone={siteConfig.emergencyPhone}
+  />
+
+  <Process
+    id="prise-en-charge-serrurerie"
+    eyebrow="UNE PRISE EN CHARGE CLAIRE"
+    steps={serrurerieProcessSteps}
+    tone="light"
+  >
+    <Fragment slot="title"
+      >Comment se déroule un <span class="process__accent">dépannage serrurerie</span> ?</Fragment
+    >
+    <Fragment slot="lead"></Fragment>
+    <Fragment slot="banner"></Fragment>
+  </Process>
+
+  <CoverageSummary
+    id="zone-serrurerie"
+    eyebrow="UNE ÉQUIPE MOBILE"
+    title="Dépannage serrurerie dans les Hauts-de-France"
+    titleAccent="Hauts-de-France"
+    intro={serrurerieCoverageIntro}
+    zones={coverageZones}
+    ctaLabel="Vérifier mon secteur"
+    phone={siteConfig.standardPhone}
+  />
+
+  <Reviews
+    id="avis-serrurerie"
+    eyebrow="LA CONFIANCE SE CONSTRUIT SUR LE TERRAIN"
+    title="L’expérience de nos clients"
+    intro="Emplacement réservé à connecter à notre fiche Google — aucun avis n’est inventé ici."
+  />
+
+  <Faq
+    id="faq-serrurerie"
+    eyebrow="QUESTIONS FRÉQUENTES"
+    title="Avant d’appeler pour une porte ou une serrure bloquée"
+    items={serrurerieFaqItems}
+    tone="dark"
+  />
+
+  <Footer slot="footer" />
+  <MobileCallBar slot="mobile-call-bar" />
+</BaseLayout>

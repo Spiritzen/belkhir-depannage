@@ -136,17 +136,25 @@ describe('retouche 04 — hero (H1 maîtrisé, devis et confiance Google)', () =
     expect(navbarMatch?.[0]).toContain('APPEL URGENCE');
   });
 
-  it('21. the five trade links and their destinations remain unchanged', () => {
+  it('21. the five trade links keep their order; two unchanged anchors, three real dedicated pages', () => {
     const hrefs = Array.from(heroHtml.matchAll(/<a href="([^"]+)" class="hero__trade"/g)).map(
       (m) => m[1],
     );
-    expect(hrefs).toEqual([
-      '#service-plomberie',
-      '#service-chauffage',
-      '#service-serrurerie',
-      '#service-vitrerie',
-      '#service-rideaux-metalliques',
-    ]);
+    expect(hrefs).toHaveLength(5);
+    // Micro-sprint « accès à la page /plomberie/ » (03/09/2026, prompt
+    // « ACCÈS À LA PAGE DEPUIS LA LANDING PAGE ») : le premier lien
+    // (Plomberie) change de destination, vers la page dédiée réelle. Page
+    // chauffage (04/09/2026) : même traitement pour le deuxième (Chauffage).
+    // Page serrurerie (même jour) : même traitement pour le troisième
+    // (Serrurerie). Page vitrerie (même jour) : même traitement pour le
+    // quatrième (Vitrerie). Page rideaux métalliques (même jour) : même
+    // traitement pour le cinquième et dernier (Rideaux métalliques) — plus
+    // aucune ancre dans ce ruban.
+    expect(hrefs[0].endsWith('/plomberie/')).toBe(true);
+    expect(hrefs[1].endsWith('/chauffage/')).toBe(true);
+    expect(hrefs[2].endsWith('/serrurerie/')).toBe(true);
+    expect(hrefs[3].endsWith('/vitrerie/')).toBe(true);
+    expect(hrefs[4].endsWith('/rideaux-metalliques/')).toBe(true);
   });
 
   it('22. the current hero photo is still used', () => {

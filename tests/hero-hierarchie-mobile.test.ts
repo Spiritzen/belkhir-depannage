@@ -278,7 +278,14 @@ describe('non-régression — pas de nouvelle dépendance, un seul nouveau point
   it('27. the trades ribbon (mini-sprint 3/fluidity-correction territory) is untouched by this mission', () => {
     expect(heroSource).toContain('RIBBON_PASS_DURATION_MS');
     expect(heroSource).toContain('computeLegPosition');
-    const tradeLinks = heroHtml.match(/<a href="#[^"]+" class="hero__trade"/g) ?? [];
-    expect(tradeLinks).toHaveLength(5);
+    // Micro-sprint « accès à la page /plomberie/ » (03/09/2026) : le bouton
+    // « Plomberie » pointe désormais vers la page dédiée réelle plutôt
+    // qu'une ancre interne. Page chauffage (04/09/2026) puis serrurerie puis
+    // vitrerie puis rideaux métalliques (même jour) : même traitement — les
+    // cinq métiers du ruban pointent désormais tous vers une page dédiée.
+    const allTradeLinks = heroHtml.match(/<a\s[^>]*class="hero__trade"/g) ?? [];
+    expect(allTradeLinks).toHaveLength(5);
+    const anchorTradeLinks = heroHtml.match(/<a href="#[^"]+" class="hero__trade"/g) ?? [];
+    expect(anchorTradeLinks).toHaveLength(0);
   });
 });

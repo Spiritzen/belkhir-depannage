@@ -1,0 +1,380 @@
+---
+/**
+ * Résumé de zone desservie, générique — micro-sprint 2 page plomberie
+ * (04/09/2026). Réutilise la vraie source de données des départements
+ * (`coverageZones`, src/data/landing.ts — jamais une deuxième liste) et le
+ * garde-fou téléphonique existant (`getPhoneCta`).
+ *
+ * MICRO-SPRINT « ajouter la carte aux sections de couverture des pages
+ * métiers » (04/09/2026) : la composition à côté de la liste de badges était
+ * trop déséquilibrée en desktop (grande zone vide à droite). Le composant
+ * affiche désormais automatiquement, dans ses quatre appels existants
+ * (`/plomberie/`, `/chauffage/`, `/serrurerie/`, `/vitrerie/`) et pour toute
+ * future page métier réutilisant `CoverageSummary`, la même carte SVG que la
+ * landing (`CoverageMapGraphic`, variante `subtle`) — sans dupliquer les
+ * contours géographiques ni recréer une carte approximative, et sans
+ * reproduire l'animation « wahou » complète (tracé de mobilité, fourgon)
+ * qui reste exclusive à `Coverage.astro`/la landing.
+ */
+import Icon from '../ui/Icon.astro';
+import CoverageMapGraphic from './CoverageMapGraphic.astro';
+import { getPhoneCta } from '../../lib/phone';
+import type { PhoneNumberConfig } from '../../types/site';
+import type { CoverageZone } from '../../data/landing';
+
+interface Props {
+  id: string;
+  headingId?: string;
+  eyebrow: string;
+  title: string;
+  /** Mot ou groupe de mots de `title` à mettre en accent orange (ex. "Hauts-de-France"). */
+  titleAccent?: string;
+  intro: string;
+  zones: CoverageZone[];
+  ctaLabel: string;
+  phone: PhoneNumberConfig;
+  tone?: 'dark' | 'light';
+}
+
+const {
+  id,
+  headingId = `${id}-title`,
+  eyebrow,
+  title,
+  titleAccent,
+  intro,
+  zones,
+  ctaLabel,
+  phone,
+  tone = 'dark',
+} = Astro.props;
+
+const cta = getPhoneCta(phone);
+const sectionClass =
+  tone === 'light' ? 'coverage-summary coverage-summary--light' : 'coverage-summary';
+
+// Découpage du titre autour du mot à accentuer (ex. "Hauts-de-France") :
+// rendu en trois segments (avant / accent / après), jamais une deuxième
+// chaîne de titre recopiée à la main.
+const accentIndex = titleAccent ? title.indexOf(titleAccent) : -1;
+const titleBefore = accentIndex >= 0 ? title.slice(0, accentIndex) : title;
+const titleAfter = accentIndex >= 0 ? title.slice(accentIndex + (titleAccent?.length ?? 0)) : '';
+---
+
+<section class={sectionClass} id={id} aria-labelledby={headingId}>
+  <div class="container coverage-summary__grid">
+    <div class="coverage-summary__intro" data-reveal="up">
+      <p class="coverage-summary__eyebrow">
+        <span class="coverage-summary__eyebrow-bar" aria-hidden="true"></span>
+        {eyebrow}
+      </p>
+      <h2 id={headingId}>
+        {titleBefore}
+        {accentIndex >= 0 && <span class="coverage-summary__accent">{titleAccent}</span>}
+        {titleAfter}
+      </h2>
+      <p class="coverage-summary__text">{intro}</p>
+    </div>
+
+    <ul class="coverage-summary__zones" data-reveal-group={`${id}-zones`}>
+      {
+        zones.map((zone) => (
+          <li data-reveal="up">
+            <span class="coverage-summary__zone-badge">
+              <Icon name="map-pin" class="coverage-summary__zone-icon" />
+              {zone.name} <span class="coverage-summary__zone-code">({zone.code})</span>
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="coverage-summary__map-wrap">
+      <CoverageMapGraphic variant="subtle" />
+    </div>
+
+    <div class="coverage-summary__cta-wrap" data-reveal="up">
+      {
+        cta.kind === 'link' ? (
+          <>
+            <a class="coverage-summary__cta" href={cta.href} data-phone-role={cta.role}>
+              <Icon name="map-pin" class="coverage-summary__cta-icon" />
+              {ctaLabel}
+            </a>
+            <p class="coverage-summary__cta-hint">Indiquez votre commune lors de l’appel.</p>
+          </>
+        ) : (
+          <button
+            type="button"
+            class="coverage-summary__cta"
+            disabled
+            aria-describedby={`${id}-cta-note`}
+            data-phone-role={cta.role}
+          >
+            <Icon name="map-pin" class="coverage-summary__cta-icon" />
+            {ctaLabel}
+            <span id={`${id}-cta-note`} class="visually-hidden">
+              Numéro standard non encore renseigné dans cette maquette.
+            </span>
+          </button>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .coverage-summary {
+    padding-block: clamp(5rem, 7vw, 7rem);
+    background:
+      radial-gradient(48% 40% at 88% 12%, rgba(255, 105, 0, 0.09), transparent 72%),
+      radial-gradient(42% 40% at 10% 90%, rgba(255, 105, 0, 0.06), transparent 72%),
+      var(--color-anthracite-950);
+  }
+
+  .coverage-summary--light {
+    background: radial-gradient(circle at 20% 0%, rgba(255, 105, 0, 0.1), transparent 34%), #fff7f0;
+  }
+
+  /*
+   * Grille nommée (même principe que `.coverage__grid` de la landing,
+   * Coverage.astro) : sur mobile, une seule colonne dans l'ordre du DOM
+   * (intro, badges, carte, CTA — la carte s'intercale avant le CTA comme
+   * demandé) ; à partir de 56.0625rem (même seuil que la landing), la carte
+   * bascule dans une deuxième colonne à droite pendant que texte/badges/CTA
+   * restent groupés à gauche.
+   */
+  .coverage-summary__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'intro'
+      'zones'
+      'map'
+      'cta';
+    align-items: start;
+  }
+
+  .coverage-summary__intro {
+    grid-area: intro;
+    max-width: 42rem;
+    margin-bottom: clamp(2rem, 3.5vw, 2.75rem);
+  }
+
+  .coverage-summary__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--color-brand);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    margin-bottom: clamp(0.75rem, 0.6rem + 0.4vw, 1rem);
+  }
+
+  .coverage-summary__eyebrow-bar {
+    width: 28px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--color-brand);
+  }
+
+  .coverage-summary__intro h2 {
+    color: var(--color-white);
+    font-size: clamp(1.6rem, 3vw, 2.1rem);
+    line-height: 1.2;
+    margin-bottom: clamp(0.9rem, 0.75rem + 0.4vw, 1.1rem);
+  }
+
+  .coverage-summary--light .coverage-summary__intro h2 {
+    color: var(--color-anthracite-900);
+  }
+
+  .coverage-summary__accent {
+    color: var(--color-brand);
+    white-space: nowrap;
+  }
+
+  .coverage-summary__text {
+    font-size: clamp(1rem, 0.92rem + 0.3vw, 1.1rem);
+    line-height: 1.65;
+    color: var(--color-gray-300);
+  }
+
+  .coverage-summary--light .coverage-summary__text {
+    color: var(--color-anthracite-700);
+  }
+
+  .coverage-summary__zones {
+    grid-area: zones;
+    list-style: none;
+    margin: 0 0 clamp(2rem, 3.5vw, 2.5rem);
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  /* Carte SVG partagée (CoverageMapGraphic, variante `subtle`) : sur
+     mobile, occupe toute la largeur entre les badges et le CTA ; à partir
+     de 56.0625rem, bascule en deuxième colonne (voir `.coverage-summary__grid`
+     ci-dessus). */
+  .coverage-summary__map-wrap {
+    grid-area: map;
+    margin: 0 0 clamp(1.5rem, 3.5vw, 2rem);
+  }
+
+  .coverage-summary__zone-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--color-white);
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-align: center;
+  }
+
+  .coverage-summary--light .coverage-summary__zone-badge {
+    border-color: rgba(255, 105, 0, 0.16);
+    background: var(--color-white);
+    color: var(--color-anthracite-900);
+  }
+
+  .coverage-summary__zone-icon {
+    width: 0.95rem;
+    height: 0.95rem;
+    flex-shrink: 0;
+    color: var(--color-orange-500);
+  }
+
+  .coverage-summary__zone-code {
+    color: var(--color-gray-300);
+    font-weight: 500;
+  }
+
+  .coverage-summary--light .coverage-summary__zone-code {
+    color: var(--color-anthracite-700);
+  }
+
+  .coverage-summary__cta-wrap {
+    grid-area: cta;
+  }
+
+  .coverage-summary__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: var(--touch-target-min);
+    padding: 0.85rem 1.5rem;
+    border-radius: var(--radius-pill);
+    border: 2px solid transparent;
+    background: var(--color-orange-600);
+    color: var(--color-white);
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      transform 260ms ease,
+      box-shadow 260ms ease,
+      background-color 260ms ease;
+  }
+
+  .coverage-summary__cta:hover,
+  .coverage-summary__cta:focus-visible {
+    background: var(--color-orange-700);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(255, 105, 0, 0.28);
+  }
+
+  .coverage-summary__cta:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .coverage-summary__cta-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .coverage-summary__cta-hint {
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--color-gray-300);
+  }
+
+  .coverage-summary--light .coverage-summary__cta-hint {
+    color: var(--color-anthracite-700);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .coverage-summary__cta:hover,
+    .coverage-summary__cta:focus-visible {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 56rem) {
+    .coverage-summary__zones {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .coverage-summary__zones {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .coverage-summary__cta {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  /*
+   * Bascule desktop (même seuil que la landing, Coverage.astro : 56rem) :
+   * placée en dernier dans la feuille pour l'emporter en cascade sur les
+   * règles de base ci-dessus (même spécificité, media query qui matche à
+   * cette largeur → dernière déclaration gagne).
+   */
+  @media (min-width: 56.0625rem) {
+    .coverage-summary__grid {
+      grid-template-columns: 0.85fr 1fr;
+      grid-template-areas:
+        'intro map'
+        'zones map'
+        'cta map';
+      gap: clamp(1rem, 1.5vw, 1.5rem) clamp(2.5rem, 4vw, 4rem);
+    }
+
+    /* L'espacement vertical de la colonne de gauche est désormais porté par
+       le `gap` de la grille ci-dessus plutôt que par les marges propres à
+       chaque bloc (sinon double espacement). */
+    .coverage-summary__intro,
+    .coverage-summary__zones {
+      margin-bottom: 0;
+    }
+
+    /* Même choix que la landing (Coverage.astro, `.coverage__depts`) : deux
+       colonnes de badges, plus confortables dans une colonne de gauche
+       étroite qu'un flot de cinq. */
+    .coverage-summary__zones {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .coverage-summary__map-wrap {
+      align-self: center;
+      margin: 0;
+    }
+  }
+</style>

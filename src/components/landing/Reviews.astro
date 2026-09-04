@@ -4,16 +4,50 @@
  * nom ni faux commentaire présenté comme réel — blocs « Avis Google à
  * connecter » explicitement mock. Pas d'intégration de l'API Google dans ce
  * sprint.
+ *
+ * Rendu paramétrable (micro-sprint 2 page plomberie, 04/09/2026) : `id`,
+ * `eyebrow`, `title` et `intro` acceptent une valeur différente par page
+ * métier, avec pour valeur par défaut EXACTEMENT le contenu actuel de la
+ * landing (aucun `eyebrow` sur la landing, jamais rendu par défaut) — un
+ * appel sans props (`<Reviews />`, voir src/pages/index.astro, inchangé)
+ * produit donc un rendu strictement identique à avant. Toujours la même
+ * donnée `reviewsPreview` (placeholders honnêtes, jamais un faux
+ * témoignage) : aucune deuxième source créée pour une page métier.
  */
 import Icon from '../ui/Icon.astro';
 import { reviewsPreview } from '../../data/landing';
+
+interface Props {
+  id?: string;
+  headingId?: string;
+  /** Absente par défaut : la landing n'affiche aucun surtitre ici. */
+  eyebrow?: string;
+  title?: string;
+  intro?: string;
+}
+
+const {
+  id = 'avis',
+  headingId = 'reviews-title',
+  eyebrow,
+  title = 'Avis clients',
+  intro = 'Emplacement réservé à connecter à notre fiche Google — aucun avis n’est inventé ici.',
+} = Astro.props;
 ---
 
-<section class="reviews" id="avis" aria-labelledby="reviews-title">
+<section class="reviews" id={id} aria-labelledby={headingId}>
   <div class="container">
     <div class="section-heading" data-reveal="up">
-      <h2 id="reviews-title">Avis clients</h2>
-      <p>Emplacement réservé à connecter à notre fiche Google — aucun avis n’est inventé ici.</p>
+      {
+        eyebrow && (
+          <p class="reviews__eyebrow">
+            <span class="reviews__eyebrow-bar" aria-hidden="true" />
+            {eyebrow}
+          </p>
+        )
+      }
+      <h2 id={headingId}>{title}</h2>
+      <p>{intro}</p>
     </div>
 
     <div class="reviews__grid" data-reveal-group="reviews">
@@ -35,6 +69,30 @@ import { reviewsPreview } from '../../data/landing';
 </section>
 
 <style>
+  /* Surtitre optionnel (micro-sprint 2 page plomberie, 04/09/2026) : jamais
+     rendu sur la landing (prop `eyebrow` absente par défaut, voir
+     frontmatter), donc sans aucun effet sur son rendu actuel. Même recette
+     que l'eyebrow déjà utilisé ailleurs sur le site (EmergencySelector,
+     ServicesAccordion, Process, Coverage) — aucune nouvelle valeur. */
+  .reviews__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--color-brand);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.9rem;
+  }
+
+  .reviews__eyebrow-bar {
+    width: 28px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--color-brand);
+  }
+
   .reviews {
     /* Retouche 04 (Hero) : le badge Google du Hero pointe vers cette section
        (id="avis", déjà réelle) tant qu'aucune URL Google Business validée

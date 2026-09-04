@@ -10,7 +10,7 @@ import Icon from '../ui/Icon.astro';
 import PhoneCta from '../ui/PhoneCta.astro';
 import { siteConfig } from '../../lib/site-config';
 import { getPhoneCta, NAVBAR_PHONE_PREVIEW } from '../../lib/phone';
-import { navLinks } from '../../data/landing';
+import { navLinks, homeHref } from '../../data/landing';
 
 const standardCta = getPhoneCta(siteConfig.standardPhone);
 const emergencyCta = getPhoneCta(siteConfig.emergencyPhone);
@@ -18,7 +18,7 @@ const emergencyCta = getPhoneCta(siteConfig.emergencyPhone);
 
 <header class="navbar" id="navbar">
   <div class="container navbar__inner">
-    <a class="navbar__brand" href="#accueil" aria-label={`${siteConfig.siteName} — Accueil`}>
+    <a class="navbar__brand" href={homeHref} aria-label={`${siteConfig.siteName} — Accueil`}>
       <Image
         src={logoSrc}
         alt={`Logo ${siteConfig.siteName}`}

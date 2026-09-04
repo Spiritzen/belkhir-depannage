@@ -48,27 +48,54 @@ describe('ruban métiers — libellés, ordre et destinations préservés', () =
   });
 
   it('2. the trade order in the DOM matches the existing expected order exactly', () => {
-    const anchors = Array.from(heroHtml.matchAll(/class="hero__trade"[^>]*href="#([^"]+)"/g)).map(
-      (m) => m[1],
-    );
-    // Attribute order can vary; capture hrefs independently of that.
+    // Micro-sprint « accès à la page /plomberie/ » (03/09/2026) : Plomberie
+    // (premier de l'ordre) pointe désormais vers la page dédiée réelle, plus
+    // vers son ancre — capture donc le href complet, sans supposer un `#`.
     const hrefsInOrder = Array.from(
-      heroHtml.matchAll(/<a\s[^>]*href="#([^"]+)"[^>]*class="hero__trade"[^>]*>/g),
+      heroHtml.matchAll(/<a\s[^>]*href="([^"]+)"[^>]*class="hero__trade"[^>]*>/g),
     ).map((m) => m[1]);
-    const combined = anchors.length > 0 ? anchors : hrefsInOrder;
-    expect(combined.length).toBe(EXPECTED_TRADE_ORDER.length);
+    expect(hrefsInOrder).toHaveLength(EXPECTED_TRADE_ORDER.length);
 
-    const expectedAnchors = EXPECTED_TRADE_ORDER.map(
-      (id) => services.find((s) => s.id === id)?.anchor,
+    expect(hrefsInOrder[0].endsWith('/plomberie/')).toBe(true);
+    // Page chauffage (04/09/2026, PROMPT_CLAUDE_CODE_PAGE_CHAUFFAGE_PATTERN_
+    // COMPLET.txt) puis serrurerie (même jour) puis vitrerie (même jour,
+    // PROMPT_CLAUDE_CODE_PAGE_VITRERIE_PATTERN_COMPLET.txt) puis rideaux
+    // métalliques (même jour, PROMPT_CLAUDE_CODE_PAGE_RIDEAUX_METALLIQUES_
+    // PATTERN_COMPLET.txt) : même traitement pour les cinq métiers de
+    // l'ordre — plus aucune ancre dans ce ruban.
+    expect(hrefsInOrder[1].endsWith('/chauffage/')).toBe(true);
+    expect(hrefsInOrder[2].endsWith('/serrurerie/')).toBe(true);
+    expect(hrefsInOrder[3].endsWith('/vitrerie/')).toBe(true);
+    expect(hrefsInOrder[4].endsWith('/rideaux-metalliques/')).toBe(true);
+
+    const expectedAnchors = EXPECTED_TRADE_ORDER.slice(5).map(
+      (id) => `#${services.find((s) => s.id === id)?.anchor}`,
     );
-    expect(combined).toEqual(expectedAnchors);
+    expect(hrefsInOrder.slice(5)).toEqual(expectedAnchors);
   });
 
-  it('3. every trade href still targets its real, existing accordion anchor (no new route, no dead link)', () => {
+  it('3. every trade href still targets its real destination (no new fake route, no dead link)', () => {
+    const realPages: Record<string, string> = {
+      plomberie: '/plomberie/',
+      chauffage: '/chauffage/',
+      serrurerie: '/serrurerie/',
+      vitrerie: '/vitrerie/',
+      'rideaux-metalliques': '/rideaux-metalliques/',
+    };
     for (const id of EXPECTED_TRADE_ORDER) {
       const service = services.find((s) => s.id === id);
       expect(service).toBeDefined();
-      expect(heroHtml).toContain(`href="#${service!.anchor}"`);
+      if (realPages[id]) {
+        // Micro-sprint « accès à la page /plomberie/ » (03/09/2026), étendu
+        // au chauffage le 04/09/2026 : vraie page dédiée plutôt qu'une
+        // ancre de l'accordéon.
+        expect(heroHtml).toMatch(/class="hero__trade"/);
+        expect(heroHtml).toMatch(new RegExp(`href="[^"]*${realPages[id].replace(/\//g, '\\/')}"`));
+      } else {
+        expect(heroHtml).toContain(`href="#${service!.anchor}"`);
+      }
+      // L'ancre reste présente dans la page dans tous les cas (le footer la
+      // cible toujours pour Plomberie, hors périmètre de ce micro-sprint).
       expect(pageHtml).toContain(`id="${service!.anchor}"`);
     }
   });

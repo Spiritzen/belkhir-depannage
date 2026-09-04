@@ -1,0 +1,294 @@
+---
+/**
+ * Représentation SVG partagée des cinq départements des Hauts-de-France
+ * (MICRO-SPRINT « ajouter la carte aux sections de couverture des pages
+ * métiers », 04/09/2026). Extraite de `src/components/landing/Coverage.astro`
+ * pour être réutilisée par `CoverageSummary.astro` (pages métier) SANS
+ * dupliquer les contours géographiques ni recréer une carte approximative :
+ * mêmes données, mêmes chemins `d`, mêmes centroïdes, toujours lus depuis
+ * `src/data/coverage-map.ts` (jamais une deuxième source).
+ *
+ * Ce composant ne rend QUE le contour régional + les cinq formes
+ * départementales. Le tracé de mobilité et le fourgon restent volontairement
+ * hors de ce composant et propres à `Coverage.astro`/la landing (la mission
+ * l'exige explicitement) : deux slots optionnels (`route`, `van`) permettent
+ * à `Coverage.astro` de continuer à les injecter à l'identique, sans qu'ils
+ * n'existent jamais pour les pages métier qui n'utilisent pas ces slots.
+ *
+ * Deux variantes :
+ * - `animated` — RÉSERVÉE à `Coverage.astro`/la landing. Le rendu (classes,
+ *   structure) est strictement celui qui existait avant l'extraction ; toute
+ *   l'orchestration de l'animation « wahou » (IntersectionObserver,
+ *   `data-coverage-armed`, `playSequence`/`resetSequence`) reste entièrement
+ *   dans `Coverage.astro`, INCHANGÉE. Ce composant se contente d'exposer les
+ *   mêmes classes (`coverage-map__outline`, `coverage-map__dept-group`, …)
+ *   pour que ce script existant continue à les trouver par `querySelector`
+ *   — un couplage volontaire et documenté sur le sélecteur ancêtre
+ *   `:global(.coverage[data-coverage-armed])` dans le <style> ci-dessous.
+ *   Ne jamais utiliser cette variante ailleurs que dans Coverage.astro.
+ * - `subtle` — pages métier. Apparition douce autonome (un seul
+ *   IntersectionObserver local, joué une fois, jamais l'animation « wahou »
+ *   complète), respecte `prefers-reduced-motion`.
+ */
+import { coverageZones } from '../../data/landing';
+import {
+  COVERAGE_MAP_VIEWBOX,
+  COVERAGE_MAP_OUTLINE_PATH,
+  COVERAGE_MAP_OUTLINE_LENGTH,
+  COVERAGE_MAP_DEPARTMENTS,
+} from '../../data/coverage-map';
+
+interface Props {
+  variant: 'animated' | 'subtle';
+}
+
+const { variant } = Astro.props;
+const isSubtle = variant === 'subtle';
+---
+
+<div
+  class:list={['coverage-map-graphic', isSubtle && 'coverage-map-graphic--subtle']}
+  data-variant={variant}
+>
+  <svg class="coverage-map" viewBox={COVERAGE_MAP_VIEWBOX} aria-hidden="true" focusable="false">
+    <path
+      class="coverage-map__outline"
+      d={COVERAGE_MAP_OUTLINE_PATH}
+      style={`--outline-length:${COVERAGE_MAP_OUTLINE_LENGTH}`}></path>
+
+    <g class="coverage-map__depts">
+      {
+        coverageZones.map((zone) => {
+          const shape = COVERAGE_MAP_DEPARTMENTS[zone.code];
+          if (!shape) return null;
+          return (
+            <g class="coverage-map__dept-group" data-department={zone.code}>
+              <path class="coverage-map__dept" d={shape.d} />
+              <circle
+                class="coverage-map__landmark"
+                cx={shape.centroid[0]}
+                cy={shape.centroid[1]}
+                r="2.4"
+              />
+              <text class="coverage-map__code" x={shape.centroid[0]} y={shape.centroid[1] - 7}>
+                {zone.code}
+              </text>
+            </g>
+          );
+        })
+      }
+    </g>
+
+    <slot name="route" />
+  </svg>
+</div>
+<slot name="van" />
+
+<script>
+  // Apparition douce autonome, réservée à la variante `subtle` (pages
+  // métier) : un seul passage, jamais l'animation « wahou » complète de la
+  // landing (qui reste entièrement pilotée par Coverage.astro). Toujours
+  // rendu (un <script> conditionnel n'est pas fiable en Astro), mais inerte
+  // tant qu'aucun `.coverage-map-graphic--subtle` n'existe sur la page — la
+  // variante `animated` de la landing n'en génère jamais.
+  const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const graphics = document.querySelectorAll<HTMLElement>('.coverage-map-graphic--subtle');
+
+  for (const graphic of graphics) {
+    if (REDUCED_MOTION || !('IntersectionObserver' in window)) {
+      graphic.classList.add('is-visible');
+      continue;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.2 },
+    );
+    observer.observe(graphic);
+  }
+</script>
+
+<style>
+  .coverage-map {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 24rem;
+    margin-inline: auto;
+    overflow: visible;
+  }
+
+  .coverage-map__outline {
+    fill: none;
+    stroke: var(--color-orange-500);
+    stroke-width: 1.4;
+    stroke-linejoin: round;
+    opacity: 0.9;
+  }
+
+  /*
+   * Animation « wahou » (variante `animated`, landing uniquement) : couplage
+   * volontaire à l'attribut `data-coverage-armed` posé par le script
+   * INCHANGÉ de Coverage.astro sur la section `.coverage` ancêtre — voir le
+   * commentaire d'en-tête. `:global()` est nécessaire car cet ancêtre
+   * appartient à un autre composant (voir la note sur le scoping CSS Astro
+   * documentée pour `.process__accent`, même mécanisme).
+   */
+  :global(.coverage[data-coverage-armed]) .coverage-map__outline {
+    stroke-dasharray: var(--outline-length);
+    stroke-dashoffset: var(--outline-length);
+    transition: stroke-dashoffset 900ms ease;
+  }
+
+  :global(.coverage[data-coverage-armed]) .coverage-map__outline.is-visible {
+    stroke-dashoffset: 0;
+  }
+
+  .coverage-map__dept-group {
+    opacity: 1;
+  }
+
+  :global(.coverage[data-coverage-armed]) .coverage-map__dept-group {
+    opacity: 0;
+    transition: opacity 420ms ease;
+  }
+
+  :global(.coverage[data-coverage-armed]) .coverage-map__dept-group.is-visible {
+    opacity: 1;
+  }
+
+  .coverage-map__dept {
+    stroke: rgba(255, 105, 0, 0.4);
+    stroke-width: 1;
+    stroke-linejoin: round;
+    transition:
+      fill 260ms ease,
+      stroke 260ms ease,
+      filter 260ms ease;
+  }
+
+  /* Nuances anthracite légèrement différenciées par département, toujours
+     très proches les unes des autres — identiques à l'ancien inline de
+     Coverage.astro. */
+  .coverage-map__depts > .coverage-map__dept-group:nth-child(1) .coverage-map__dept {
+    fill: #222737;
+  }
+  .coverage-map__depts > .coverage-map__dept-group:nth-child(2) .coverage-map__dept {
+    fill: #262c3f;
+  }
+  .coverage-map__depts > .coverage-map__dept-group:nth-child(3) .coverage-map__dept {
+    fill: #1f2432;
+  }
+  .coverage-map__depts > .coverage-map__dept-group:nth-child(4) .coverage-map__dept {
+    fill: #262b3d;
+  }
+  .coverage-map__depts > .coverage-map__dept-group:nth-child(5) .coverage-map__dept {
+    fill: #202536;
+  }
+
+  .coverage-map__dept-group.is-active .coverage-map__dept {
+    fill: rgba(255, 105, 0, 0.32);
+    stroke: var(--color-orange-500);
+    stroke-width: 1.6;
+    filter: drop-shadow(0 0 7px rgba(255, 105, 0, 0.55));
+  }
+
+  .coverage-map__landmark {
+    fill: rgba(255, 154, 77, 0.7);
+  }
+
+  .coverage-map__dept-group.is-active .coverage-map__landmark {
+    fill: var(--color-orange-500);
+  }
+
+  .coverage-map__code {
+    font-size: 10px;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    fill: rgba(255, 255, 255, 0.55);
+    text-anchor: middle;
+    transition: fill 260ms ease;
+  }
+
+  .coverage-map__dept-group.is-active .coverage-map__code {
+    fill: var(--color-white);
+  }
+
+  /* ---------- Variante `subtle` (pages métier) ---------- */
+
+  .coverage-map-graphic--subtle {
+    position: relative;
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .coverage-map-graphic--subtle.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Halo orange discret derrière la carte : intègre naturellement l'objet
+     au fond anthracite + lueurs existantes de CoverageSummary, jamais un
+     second système graphique. */
+  .coverage-map-graphic--subtle::before {
+    content: '';
+    position: absolute;
+    inset: -12%;
+    background: radial-gradient(60% 60% at 50% 45%, rgba(255, 105, 0, 0.16), transparent 72%);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* Très léger tracé du contour à l'apparition (jamais l'animation « wahou »
+     complète : ni départements en cascade, ni tracé de mobilité, ni
+     fourgon). */
+  .coverage-map-graphic--subtle .coverage-map__outline {
+    stroke-dasharray: var(--outline-length);
+    stroke-dashoffset: var(--outline-length);
+    transition: stroke-dashoffset 1100ms ease;
+  }
+
+  .coverage-map-graphic--subtle.is-visible .coverage-map__outline {
+    stroke-dashoffset: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(.coverage[data-coverage-armed]) .coverage-map__outline,
+    :global(.coverage[data-coverage-armed]) .coverage-map__dept-group {
+      opacity: 1;
+      transform: none;
+      stroke-dashoffset: 0;
+      transition-duration: 0.001ms;
+    }
+
+    .coverage-map-graphic--subtle,
+    .coverage-map-graphic--subtle .coverage-map__outline {
+      opacity: 1;
+      transform: none;
+      stroke-dashoffset: 0;
+      transition-duration: 0.001ms;
+    }
+  }
+
+  @media (max-width: 64rem) {
+    .coverage-map {
+      max-width: 20rem;
+    }
+  }
+
+  @media (max-width: 56rem) {
+    .coverage-map {
+      max-width: 22rem;
+    }
+  }
+</style>

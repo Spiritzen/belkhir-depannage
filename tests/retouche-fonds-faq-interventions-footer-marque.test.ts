@@ -112,8 +112,11 @@ describe('micro-retouche — signature de marque orange dans le footer', () => {
 
   it('10. the accessible name stays continuous: "Belkhir Dépannage" is read as one unbroken string', () => {
     const footerHtml = pageHtml.match(/<footer[\s\S]*?<\/footer>/)?.[0] ?? '';
+    // Micro-correction « navigation depuis les pages métiers » (03/09/2026) :
+    // le href est désormais préfixé par `base` (voir src/data/landing.ts,
+    // `homeHref`) — l'ancre elle-même (#accueil) reste inchangée.
     const linkMatch = footerHtml.match(
-      /<a href="#accueil" class="footer__brand-link"[^>]*>[\s\S]*?<\/a>/,
+      /<a href="[^"]*#accueil" class="footer__brand-link"[^>]*>[\s\S]*?<\/a>/,
     );
     expect(linkMatch).not.toBeNull();
     const visibleText = (linkMatch?.[0] ?? '')
@@ -131,7 +134,10 @@ describe('micro-retouche — signature de marque orange dans le footer', () => {
     expect(ruleMatch?.[0]).toContain('align-items: center');
     expect(ruleMatch?.[0]).toContain('font-weight: 700');
     expect(ruleMatch?.[0]).toContain('font-size: 1.05rem');
-    expect(footerSource).toContain('href="#accueil" class="footer__brand-link"');
+    // Micro-correction « navigation depuis les pages métiers » (03/09/2026) :
+    // le href littéral `#accueil` a été remplacé par la constante partagée
+    // `homeHref` (src/data/landing.ts), désormais préfixée par `base`.
+    expect(footerSource).toContain('href={homeHref} class="footer__brand-link"');
     expect(footerSource).toContain('class="footer__logo"');
   });
 

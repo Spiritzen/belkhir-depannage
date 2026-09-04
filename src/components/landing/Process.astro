@@ -14,40 +14,88 @@
  * simples extensions CSS scoped à ce composant, branchées sur les classes
  * globales déjà posées par ce même script (`.js-reveal-ready`,
  * `.is-visible`).
+ *
+ * Rendu paramétrable (micro-sprint 2 page plomberie, 04/09/2026,
+ * PROMPT_CLAUDE_CODE_MICRO_SPRINT_2_CONSTRUCTION_SECTIONS_PLOMBERIE.txt) :
+ * `id`, `headingId`, `eyebrow` et `steps` acceptent désormais une valeur
+ * différente par page métier, avec pour valeur par défaut EXACTEMENT le
+ * contenu actuel de la landing — un appel sans props (`<Process />`, voir
+ * src/pages/index.astro, inchangé) produit donc un rendu strictement
+ * identique à avant. Le titre (H2) et le bandeau final restent de vrais
+ * emplacements de contenu (slots nommés `title`/`banner`), pas des props
+ * texte : ils portent chacun un accent orange positionné différemment selon
+ * la page, qu'une simple chaîne ne peut pas exprimer proprement. Le
+ * paragraphe d'intro (slot `lead`) est optionnel : une page métier peut le
+ * omettre en passant un slot vide plutôt que d'hériter du texte landing.
+ * Le sélecteur CSS `#process-title` devient `.process__title-heading`
+ * (classe plutôt qu'id) pour rester valide quel que soit l'id réel du titre
+ * d'une instance donnée — aucun changement de rendu visuel.
+ *
+ * `tone` (défaut `"dark"`, rendu landing inchangé) permet à une page métier
+ * de basculer le fond en blanc abricot (`"light"`) pour respecter sa propre
+ * alternance stricte de fonds — voir `.process--light` dans le <style>.
+ * Seuls le fond de section et le titre directement posé dessus changent de
+ * ton ; les cartes de la timeline restent volontairement en verre sombre
+ * dans les deux cas (déjà conçues pour flotter au-dessus d'un fond
+ * quelconque).
  */
 import Icon from '../ui/Icon.astro';
-import { processSteps } from '../../data/landing';
+import { processSteps, type ProcessStep } from '../../data/landing';
+
+interface Props {
+  /** Id de la <section>, cible des ancres de navigation. */
+  id?: string;
+  /** Id du H2, référencé par `aria-labelledby` — indépendant de `id`. */
+  headingId?: string;
+  eyebrow?: string;
+  steps?: ProcessStep[];
+  tone?: 'dark' | 'light';
+}
+
+const {
+  id = 'interventions',
+  headingId = 'process-title',
+  eyebrow = 'VOTRE INTERVENTION, ÉTAPE PAR ÉTAPE',
+  steps = processSteps,
+  tone = 'dark',
+} = Astro.props;
+
+const sectionClass = tone === 'light' ? 'process process--light' : 'process';
 ---
 
-<section class="process" id="interventions" aria-labelledby="process-title">
+<section class={sectionClass} id={id} aria-labelledby={headingId}>
   <div class="process__texture" aria-hidden="true"></div>
 
   <div class="container">
     <div class="process__header" data-reveal="up">
       <p class="process__eyebrow">
         <span class="process__eyebrow-bar" aria-hidden="true"></span>
-        VOTRE INTERVENTION, ÉTAPE PAR ÉTAPE
+        {eyebrow}
       </p>
 
-      <h2 id="process-title">
-        Une prise en charge claire, même dans l’<span class="process__accent">urgence</span>
+      <h2 id={headingId} class="process__title-heading">
+        <slot name="title">
+          Une prise en charge claire, même dans l’<span class="process__accent">urgence</span>
+        </slot>
       </h2>
 
-      <p class="process__lead">
-        Lorsqu’un problème survient, l’incertitude est souvent aussi difficile à gérer que la panne
-        elle-même. Chez <span class="process__brand"
-          ><span class="process__brand-initial">B</span>elkhir <span class="process__brand-initial"
-            >D</span
-          >épannage</span
-        >, chaque demande suit un parcours simple : comprendre la situation, identifier son niveau
-        d’urgence, expliquer la réponse envisageable, puis intervenir et contrôler. Vous savez ainsi
-        où vous en êtes, ce qui va se passer et quelles informations préparer.
-      </p>
+      <slot name="lead">
+        <p class="process__lead">
+          Lorsqu’un problème survient, l’incertitude est souvent aussi difficile à gérer que la
+          panne elle-même. Chez <span class="process__brand"
+            ><span class="process__brand-initial">B</span>elkhir <span
+              class="process__brand-initial">D</span
+            >épannage</span
+          >, chaque demande suit un parcours simple : comprendre la situation, identifier son niveau
+          d’urgence, expliquer la réponse envisageable, puis intervenir et contrôler. Vous savez
+          ainsi où vous en êtes, ce qui va se passer et quelles informations préparer.
+        </p>
+      </slot>
     </div>
 
     <ol class="process__timeline" data-reveal="draw">
       {
-        processSteps.map((step) => (
+        steps.map((step) => (
           <li class="process__step" data-reveal="up" data-reveal-group="process-steps">
             <span class="process__node" aria-hidden="true">
               <span class="process__node-dot" />
@@ -73,16 +121,18 @@ import { processSteps } from '../../data/landing';
       }
     </ol>
 
-    <div class="process__banner" data-reveal="up" data-reveal-group="process-steps">
-      <Icon name="shield" class="process__banner-icon" />
-      <div class="process__banner-text">
-        <p class="process__banner-title">Un contact clair du premier appel au contrôle final.</p>
-        <p class="process__banner-desc">
-          À chaque étape, la priorité reste la même : protéger les personnes, limiter les dégâts et
-          vous donner une information compréhensible.
-        </p>
+    <slot name="banner">
+      <div class="process__banner" data-reveal="up" data-reveal-group="process-steps">
+        <Icon name="shield" class="process__banner-icon" />
+        <div class="process__banner-text">
+          <p class="process__banner-title">Un contact clair du premier appel au contrôle final.</p>
+          <p class="process__banner-desc">
+            À chaque étape, la priorité reste la même : protéger les personnes, limiter les dégâts
+            et vous donner une information compréhensible.
+          </p>
+        </div>
       </div>
-    </div>
+    </slot>
   </div>
 </section>
 
@@ -102,6 +152,67 @@ import { processSteps } from '../../data/landing';
       radial-gradient(46% 38% at 84% 6%, rgba(255, 105, 0, 0.08), transparent 70%),
       radial-gradient(40% 44% at 6% 96%, rgba(255, 105, 0, 0.06), transparent 72%),
       var(--color-anthracite-950);
+  }
+
+  /*
+   * Variante claire (micro-sprint 2 page plomberie, 04/09/2026) : même
+   * dégradé blanc abricot déjà utilisé ailleurs sur le site (jamais une
+   * nouvelle teinte). Seuls le fond et le titre directement posé dessus
+   * changent — les cartes de la timeline restent en verre sombre dans les
+   * deux tons.
+   */
+  .process--light {
+    background: radial-gradient(circle at 20% 0%, rgba(255, 105, 0, 0.1), transparent 34%), #fff7f0;
+  }
+
+  .process--light .process__texture {
+    display: none;
+  }
+
+  .process--light .process__title-heading {
+    color: var(--color-anthracite-900);
+  }
+
+  .process--light .process__lead {
+    color: var(--color-anthracite-700);
+  }
+
+  /*
+   * Micro-correction UI — cartes du processus plomberie (04/09/2026) : sur
+   * fond blanc abricot, le verre sombre translucide des cartes
+   * (`.process__card`, `rgba(35, 40, 56, 0.55)` + `backdrop-filter`)
+   * laissait transparaître le fond clair environnant et se composait en un
+   * gris moyen peu lisible (contraste insuffisant avec le texte blanc,
+   * numéros 01-04 quasi invisibles). Les cartes en tone="light" reçoivent
+   * donc un fond opaque, noir/charbon chaud (tokens sombres existants +
+   * léger dégradé orange, jamais une nouvelle teinte grise), une bordure
+   * orange un peu plus présente pour se détacher du fond clair, et une
+   * lueur orange très discrète (jamais un effet néon). Disposition,
+   * timeline, icônes, textes, badges, espacements et animations
+   * strictement inchangés — seul le traitement colorimétrique de la carte
+   * change. Le fond sombre de la landing (tone="dark", déjà validé) reste
+   * intact : ces règles ne s'appliquent qu'à `.process--light`.
+   */
+  .process--light .process__card {
+    background:
+      linear-gradient(155deg, rgba(255, 105, 0, 0.12) 0%, transparent 55%),
+      var(--color-anthracite-900);
+    border-color: rgba(255, 105, 0, 0.32);
+    box-shadow: 0 10px 28px rgba(255, 105, 0, 0.1);
+  }
+
+  .process--light .process__card:hover {
+    background:
+      linear-gradient(155deg, rgba(255, 105, 0, 0.18) 0%, transparent 60%),
+      var(--color-anthracite-800);
+    border-color: rgba(255, 105, 0, 0.5);
+  }
+
+  /* Numéro monumental : orange de marque à opacité maîtrisée plutôt que le
+     blanc quasi invisible hérité (0.07) — reste secondaire, jamais en
+     concurrence avec le titre, mais devient réellement perceptible. */
+  .process--light .process__number {
+    color: rgba(255, 138, 61, 0.22);
   }
 
   .process__texture {
@@ -141,7 +252,7 @@ import { processSteps } from '../../data/landing';
     background: var(--color-brand);
   }
 
-  #process-title {
+  .process__title-heading {
     max-width: 34rem;
     color: var(--color-white);
     font-size: clamp(1.9rem, 1.5rem + 1.7vw, 2.6rem);
@@ -150,7 +261,13 @@ import { processSteps } from '../../data/landing';
     margin-bottom: 1.25rem;
   }
 
-  .process__accent {
+  /* `:global()` (micro-sprint 2 page plomberie, 04/09/2026) : le slot
+     `title` peut désormais recevoir un accent orange composé par une page
+     appelante (contenu slotté, donc hors de la portée scopée normale des
+     styles Astro) — nécessaire pour que la mise en forme s'applique aussi à
+     ce markup fourni de l'extérieur. Même valeur, aucun changement pour le
+     titre par défaut de la landing (rendu à l'intérieur du composant). */
+  :global(.process__accent) {
     color: var(--color-brand);
   }
 

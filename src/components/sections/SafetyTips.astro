@@ -1,0 +1,319 @@
+---
+/**
+ * Bloc « premiers gestes » générique — micro-sprint 2 page plomberie
+ * (04/09/2026, PROMPT_CLAUDE_CODE_MICRO_SPRINT_2_CONSTRUCTION_SECTIONS_
+ * PLOMBERIE.txt). Composant de section réutilisable pour les futures pages
+ * métiers (Chauffage, Serrurerie, Vitrerie, Rideaux métalliques) : tout le
+ * contenu (eyebrow, titre, intro, cartes, note) est fourni par des props —
+ * aucune donnée plomberie codée en dur ici, voir `src/data/plomberie.ts`.
+ *
+ * Chaque carte respecte la règle métier obligatoire du prompt de mission :
+ * signe reconnaissable, premier geste concret, interdit clair, réassurance
+ * qui explique l'intérêt de l'appel sans minimiser le risque ni promettre
+ * une réparation.
+ *
+ * Slot optionnel `alert` (page chauffage, 04/09/2026) : emplacement libre
+ * après les cartes, avant la note générique — destiné à un encart de
+ * sécurité prioritaire et sémantiquement distinct (ex. SafetyAlert.astro
+ * pour gaz/monoxyde de carbone). Vide par défaut, sans effet sur la page
+ * plomberie.
+ */
+import Icon from '../ui/Icon.astro';
+
+export interface SafetyTip {
+  id: string;
+  situation: string;
+  advice: string;
+  avoid: string;
+  reassurance: string;
+  icon: 'droplet' | 'alert-triangle' | 'shield' | 'search' | 'flame' | 'key' | 'window' | 'shutter';
+}
+
+interface Props {
+  id: string;
+  headingId?: string;
+  eyebrow: string;
+  title: string;
+  intro: string;
+  tips: SafetyTip[];
+  note?: string;
+  tone?: 'light' | 'dark';
+}
+
+const {
+  id,
+  headingId = `${id}-title`,
+  eyebrow,
+  title,
+  intro,
+  tips,
+  note,
+  tone = 'light',
+} = Astro.props;
+
+const sectionClass = tone === 'dark' ? 'safety-tips safety-tips--dark' : 'safety-tips';
+---
+
+<section class={sectionClass} id={id} aria-labelledby={headingId}>
+  <div class="container">
+    <div class="safety-tips__header" data-reveal="up">
+      <p class="safety-tips__eyebrow">
+        <span class="safety-tips__eyebrow-bar" aria-hidden="true"></span>
+        {eyebrow}
+      </p>
+      <h2 id={headingId}>{title}</h2>
+      <p class="safety-tips__intro">{intro}</p>
+    </div>
+
+    <div class="safety-tips__grid" data-reveal-group={`${id}-cards`}>
+      {
+        tips.map((tip) => (
+          <article class="safety-tips__card" data-reveal="up">
+            <span class="safety-tips__icon-frame" aria-hidden="true">
+              <Icon name={tip.icon} class="safety-tips__icon" />
+            </span>
+            <h3 class="safety-tips__situation">{tip.situation}</h3>
+
+            <div class="safety-tips__block">
+              <p class="safety-tips__label">Premier geste</p>
+              <p class="safety-tips__text">{tip.advice}</p>
+            </div>
+
+            <div class="safety-tips__block safety-tips__block--avoid">
+              <p class="safety-tips__label safety-tips__label--avoid">À éviter</p>
+              <p class="safety-tips__text">{tip.avoid}</p>
+            </div>
+
+            <p class="safety-tips__reassurance">
+              <Icon name="shield" class="safety-tips__reassurance-icon" />
+              {tip.reassurance}
+            </p>
+          </article>
+        ))
+      }
+    </div>
+
+    <slot name="alert" />
+
+    {
+      note && (
+        <p class="safety-tips__note">
+          <Icon name="alert-triangle" class="safety-tips__note-icon" />
+          {note}
+        </p>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .safety-tips {
+    padding-block: clamp(5rem, 7vw, 7rem);
+    /* Blanc abricot déjà validé ailleurs sur le site (EmergencySelector,
+       Reviews, Faq) — même valeur, aucune nouvelle teinte. */
+    background: radial-gradient(circle at 20% 0%, rgba(255, 105, 0, 0.1), transparent 34%), #fff7f0;
+  }
+
+  .safety-tips--dark {
+    background:
+      radial-gradient(46% 38% at 84% 8%, rgba(255, 105, 0, 0.08), transparent 70%),
+      radial-gradient(42% 40% at 8% 94%, rgba(255, 105, 0, 0.06), transparent 72%),
+      var(--color-anthracite-950);
+  }
+
+  .safety-tips__header {
+    max-width: 44rem;
+    margin-bottom: clamp(2.5rem, 4vw, 3.5rem);
+  }
+
+  .safety-tips__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--color-brand);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    margin-bottom: clamp(0.75rem, 0.6rem + 0.4vw, 1rem);
+  }
+
+  .safety-tips__eyebrow-bar {
+    width: 28px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--color-brand);
+  }
+
+  .safety-tips__header h2 {
+    color: var(--color-anthracite-900);
+    font-size: clamp(1.6rem, 3vw, 2.1rem);
+    line-height: 1.2;
+    margin-bottom: clamp(0.9rem, 0.75rem + 0.4vw, 1.1rem);
+  }
+
+  .safety-tips--dark .safety-tips__header h2 {
+    color: var(--color-white);
+  }
+
+  .safety-tips__intro {
+    font-size: clamp(1rem, 0.92rem + 0.3vw, 1.1rem);
+    line-height: 1.6;
+    color: var(--color-anthracite-700);
+  }
+
+  .safety-tips--dark .safety-tips__intro {
+    color: var(--color-gray-100);
+  }
+
+  .safety-tips__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.25rem, 1.5vw, 1.5rem);
+  }
+
+  .safety-tips__card {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(1.5rem, 1.35rem + 0.5vw, 1.75rem);
+    border-radius: var(--radius-lg);
+    background: var(--color-white);
+    border: 1px solid rgba(255, 105, 0, 0.14);
+    box-shadow: 0 1px 2px rgba(13, 15, 20, 0.06);
+  }
+
+  .safety-tips--dark .safety-tips__card {
+    background: rgba(35, 40, 56, 0.55);
+    border-color: rgba(255, 105, 0, 0.18);
+    backdrop-filter: blur(10px) saturate(115%);
+    -webkit-backdrop-filter: blur(10px) saturate(115%);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .safety-tips--dark .safety-tips__card {
+      background: rgba(24, 28, 40, 0.92);
+    }
+  }
+
+  .safety-tips__icon-frame {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-md);
+    background: rgba(255, 105, 0, 0.12);
+    border: 1px solid rgba(255, 105, 0, 0.24);
+    margin-bottom: 1rem;
+  }
+
+  .safety-tips__icon {
+    width: 1.4rem;
+    height: 1.4rem;
+    color: var(--color-orange-600);
+  }
+
+  .safety-tips--dark .safety-tips__icon {
+    color: var(--color-orange-500);
+  }
+
+  .safety-tips__situation {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--color-anthracite-900);
+    margin-bottom: 1rem;
+  }
+
+  .safety-tips--dark .safety-tips__situation {
+    color: var(--color-white);
+  }
+
+  .safety-tips__block {
+    margin-bottom: 0.85rem;
+  }
+
+  .safety-tips__label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-orange-700);
+    margin-bottom: 0.3rem;
+  }
+
+  .safety-tips--dark .safety-tips__label {
+    color: var(--color-orange-500);
+  }
+
+  /* « À éviter » : teinte rouge d'urgence déjà utilisée pour le rôle
+     « urgence extrême » ailleurs sur le site (PhoneCta.astro) — jamais une
+     nouvelle couleur, distinction claire avec le premier geste orange. */
+  .safety-tips__label--avoid {
+    color: var(--color-red-600);
+  }
+
+  .safety-tips__text {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--color-anthracite-700);
+  }
+
+  .safety-tips--dark .safety-tips__text {
+    color: var(--color-gray-100);
+  }
+
+  .safety-tips__reassurance {
+    margin-top: auto;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(255, 105, 0, 0.16);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--color-anthracite-700);
+  }
+
+  .safety-tips--dark .safety-tips__reassurance {
+    border-top-color: rgba(255, 255, 255, 0.12);
+    color: var(--color-gray-100);
+  }
+
+  .safety-tips__reassurance-icon {
+    width: 1.05rem;
+    height: 1.05rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+    color: var(--color-brand);
+  }
+
+  .safety-tips__note {
+    margin-top: clamp(1.75rem, 1.5vw, 2rem);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    max-width: 44rem;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--color-anthracite-700);
+  }
+
+  .safety-tips--dark .safety-tips__note {
+    color: var(--color-gray-300);
+  }
+
+  .safety-tips__note-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+    color: var(--color-brand);
+  }
+
+  @media (max-width: 56rem) {
+    .safety-tips__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

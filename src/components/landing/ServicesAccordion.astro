@@ -11,12 +11,19 @@
  *
  * Micro-retouche suppression FinalCta (01/09/2026) : les six cartes
  * pointaient vers `#contact`, désormais supprimé. Aucune page métier dédiée
- * n'existe encore (`futureRoute`, toujours centralisée dans les données,
+ * n'existait encore (`futureRoute`, toujours centralisée dans les données,
  * jamais exposée tant qu'elle produirait un 404) : plutôt que d'inventer une
- * autre destination, les cartes ne sont plus des liens (`<article>` au lieu
- * de `<a>`) et le CTA « Découvrir ce service » a été retiré — le titre et la
- * description révélée au survol restent la seule promesse faite, jamais une
- * navigation trompeuse.
+ * autre destination, les cartes n'étaient plus des liens (`<article>` au
+ * lieu de `<a>`) et le CTA « Découvrir ce service » avait été retiré — le
+ * titre et la description révélée au survol restaient la seule promesse
+ * faite, jamais une navigation trompeuse.
+ *
+ * Micro-sprint « accès à la page /plomberie/ » (03/09/2026) : la page dédiée
+ * existe désormais. Les cartes « Plomberie » et « Fuites et anomalies »
+ * redeviennent de vrais liens (`<a>`) vers `/plomberie/` — seule leur
+ * destination change, ni leur apparence, ni leurs animations, ni leur
+ * disposition. Les quatre autres cartes, toujours sans page dédiée, restent
+ * des `<article>` non cliquables, inchangées.
  *
  * Effet « rangée indépendante » obtenu sans JavaScript ni double conteneur
  * DOM : un unique conteneur flex avec `flex-wrap: wrap` et une base flexible
@@ -64,6 +71,45 @@ const icons: Record<ServiceId, 'wrench' | 'droplet' | 'flame' | 'key' | 'window'
   vitrerie: 'window',
   'rideaux-metalliques': 'shutter',
 };
+
+// Accès à la page /plomberie/ depuis la landing (03/09/2026, prompt « ACCÈS
+// À LA PAGE DEPUIS LA LANDING PAGE ») : les cartes « Plomberie » et « Fuites
+// et anomalies » deviennent de vrais liens vers cette page dédiée — les
+// quatre autres cartes, sans page dédiée encore, restent des <article> non
+// cliquables, strictement inchangées. `import.meta.env.BASE_URL` se termine
+// déjà par un slash (valeur littérale de `base`, voir astro.config.mjs) :
+// la concaténation directe fonctionne donc aussi bien en local que sous le
+// sous-chemin GitHub Pages. `id={service.anchor}` est conservé sur ces deux
+// cartes même devenues des liens : le footer (« Métiers ») cible toujours
+// ces mêmes ancres, hors périmètre de ce micro-sprint.
+//
+// Maillage affiné (micro-sprint 2, 04/09/2026) : la section « premiers
+// gestes » de la page plomberie existe désormais réellement
+// (id="urgences-plomberie"). « Fuite d'eau » pointant vers un problème
+// concret couvert par cette section, « Fuites et anomalies » pointe
+// directement dessus ; « Plomberie » (le métier en général) continue de
+// pointer vers le haut de la page, inchangé.
+//
+// Page chauffage (04/09/2026, PROMPT_CLAUDE_CODE_PAGE_CHAUFFAGE_PATTERN_
+// COMPLET.txt) puis serrurerie (même jour, PROMPT_CLAUDE_CODE_PAGE_
+// SERRURERIE_PATTERN_COMPLET.txt) puis vitrerie (même jour, PROMPT_CLAUDE_
+// CODE_PAGE_VITRERIE_PATTERN_COMPLET.txt) puis rideaux métalliques (même
+// jour, PROMPT_CLAUDE_CODE_PAGE_RIDEAUX_METALLIQUES_PATTERN_COMPLET.txt) :
+// même traitement pour les cinq métiers, vers le haut de leur propre page
+// dédiée.
+const plomberieHref = `${import.meta.env.BASE_URL}plomberie/`;
+const chauffageHref = `${import.meta.env.BASE_URL}chauffage/`;
+const serrurerieHref = `${import.meta.env.BASE_URL}serrurerie/`;
+const vitrerieHref = `${import.meta.env.BASE_URL}vitrerie/`;
+const rideauxMetalliquesHref = `${import.meta.env.BASE_URL}rideaux-metalliques/`;
+const metierHrefByService: Partial<Record<ServiceId, string>> = {
+  plomberie: plomberieHref,
+  'fuites-anomalies': `${plomberieHref}#urgences-plomberie`,
+  chauffage: chauffageHref,
+  serrurerie: serrurerieHref,
+  vitrerie: vitrerieHref,
+  'rideaux-metalliques': rideauxMetalliquesHref,
+};
 ---
 
 <section class="services-accordion" id="metiers" aria-labelledby="services-accordion-title">
@@ -93,24 +139,48 @@ const icons: Record<ServiceId, 'wrench' | 'droplet' | 'flame' | 'key' | 'window'
 
     <div class="services-grid" data-reveal-group="services-grid">
       {
-        services.map((service) => (
-          <article id={service.anchor} class="service-card" data-reveal="up">
-            <Image
-              src={images[service.id]}
-              alt={service.imageAlt}
-              class="service-card__img"
-              widths={[400, 600, 900]}
-              sizes="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 33vw"
-              loading="lazy"
-            />
-            <span class="service-card__overlay" aria-hidden="true" />
-            <span class="service-card__content">
-              <Icon name={icons[service.id]} class="service-card__icon" />
-              <span class="service-card__title">{service.title}</span>
-              <span class="service-card__description">{service.description}</span>
-            </span>
-          </article>
-        ))
+        services.map((service) =>
+          metierHrefByService[service.id] ? (
+            <a
+              id={service.anchor}
+              href={metierHrefByService[service.id]}
+              class="service-card"
+              data-reveal="up"
+            >
+              <Image
+                src={images[service.id]}
+                alt={service.imageAlt}
+                class="service-card__img"
+                widths={[400, 600, 900]}
+                sizes="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 33vw"
+                loading="lazy"
+              />
+              <span class="service-card__overlay" aria-hidden="true" />
+              <span class="service-card__content">
+                <Icon name={icons[service.id]} class="service-card__icon" />
+                <span class="service-card__title">{service.title}</span>
+                <span class="service-card__description">{service.description}</span>
+              </span>
+            </a>
+          ) : (
+            <article id={service.anchor} class="service-card" data-reveal="up">
+              <Image
+                src={images[service.id]}
+                alt={service.imageAlt}
+                class="service-card__img"
+                widths={[400, 600, 900]}
+                sizes="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 33vw"
+                loading="lazy"
+              />
+              <span class="service-card__overlay" aria-hidden="true" />
+              <span class="service-card__content">
+                <Icon name={icons[service.id]} class="service-card__icon" />
+                <span class="service-card__title">{service.title}</span>
+                <span class="service-card__description">{service.description}</span>
+              </span>
+            </article>
+          ),
+        )
       }
     </div>
   </div>

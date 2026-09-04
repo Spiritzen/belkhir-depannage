@@ -1,0 +1,137 @@
+---
+/**
+ * Page métier « Plomberie » — micro-sprint 1 (fondation, SEO, Hero
+ * responsive) + micro-sprint 2 (corps complet de la page,
+ * PROMPT_CLAUDE_CODE_MICRO_SPRINT_2_CONSTRUCTION_SECTIONS_PLOMBERIE.txt,
+ * 04/09/2026). Sert de référence structurelle aux futures pages métiers
+ * (Chauffage, Serrurerie, Vitrerie, Rideaux métalliques) : même assemblage
+ * de coquille que src/pages/index.astro (BaseLayout + bande de
+ * disponibilité + navbar + tiroir mobile + footer + barre d'appel mobile,
+ * tous réutilisés à l'identique), puis six sections de contenu propres à la
+ * page — trois composants génériques nouveaux (SafetyTips,
+ * ReassuranceCallout, CoverageSummary, src/components/sections/) et trois
+ * composants de la landing rendus paramétrables ce même sprint (Process,
+ * Reviews, Faq), jamais dupliqués.
+ *
+ * Alternance stricte des fonds (règle visuelle absolue du prompt de
+ * mission), après le Hero photographique :
+ *   1. urgences-plomberie      — blanc abricot
+ *   2. appel-plomberie         — noir/charbon + lueur orange
+ *   3. prise-en-charge-plomberie — blanc abricot (Process, tone="light")
+ *   4. zone-plomberie          — noir/charbon + lueur orange
+ *   5. avis-plomberie          — blanc abricot (Reviews, tone par défaut)
+ *   6. faq-plomberie           — noir/charbon + lueur orange (Faq, tone="dark")
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AvailabilityBar from '../../components/layout/AvailabilityBar.astro';
+import Navbar from '../../components/layout/Navbar.astro';
+import MobileDrawer from '../../components/layout/MobileDrawer.astro';
+import Footer from '../../components/layout/Footer.astro';
+import MobileCallBar from '../../components/layout/MobileCallBar.astro';
+import Hero from '../../components/plomberie/Hero.astro';
+import SafetyTips from '../../components/sections/SafetyTips.astro';
+import ReassuranceCallout from '../../components/sections/ReassuranceCallout.astro';
+import CoverageSummary from '../../components/sections/CoverageSummary.astro';
+import Process from '../../components/landing/Process.astro';
+import Reviews from '../../components/landing/Reviews.astro';
+import Faq from '../../components/landing/Faq.astro';
+import { siteConfig } from '../../lib/site-config';
+import { coverageZones } from '../../data/landing';
+import { buildFaqPageSchema } from '../../lib/seo';
+import {
+  plomberieSafetyTips,
+  plomberieSafetyNote,
+  plomberieReassurancePoints,
+  plomberieProcessSteps,
+  plomberieCoverageIntro,
+  plomberieFaqItems,
+} from '../../data/plomberie';
+
+const title = 'Plombier en urgence dans les Hauts-de-France | Belkhir Dépannage';
+const description =
+  'Fuite d’eau, canalisation bouchée ou équipement sanitaire défectueux ? Belkhir Dépannage ' +
+  'organise votre dépannage plomberie dans les Hauts-de-France, 24h/24 et 7j/7.';
+
+// Donnée structurée FAQPage : alimentée par EXACTEMENT les mêmes questions
+// et réponses que celles rendues visuellement par <Faq items={...} />
+// ci-dessous (même tableau `plomberieFaqItems`) — jamais des données
+// structurées différentes du contenu affiché.
+const faqSchema = buildFaqPageSchema(plomberieFaqItems);
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  path="/plomberie/"
+  hasMobileCallBar
+  structuredData={[faqSchema]}
+>
+  <Fragment slot="header">
+    <AvailabilityBar />
+    <Navbar />
+    <MobileDrawer />
+  </Fragment>
+
+  <Hero />
+
+  <SafetyTips
+    id="urgences-plomberie"
+    eyebrow="VOTRE SÉCURITÉ D’ABORD"
+    title="Que faire face à une urgence plomberie ?"
+    intro="Une fuite ou un équipement bouché peut rapidement provoquer des dégâts. L’objectif n’est pas de démonter l’installation, mais de limiter les risques en attendant une prise en charge adaptée."
+    tips={plomberieSafetyTips}
+    note={plomberieSafetyNote}
+  />
+
+  <ReassuranceCallout
+    id="appel-plomberie"
+    eyebrow="VOUS N’AVEZ PAS BESOIN D’AVOIR LE DIAGNOSTIC"
+    title="Décrivez simplement ce que vous voyez, nous vous aidons à qualifier la situation"
+    text="Une trace d’humidité, un écoulement continu, une canalisation qui refoule ou un équipement sanitaire inutilisable suffit pour commencer. Lors de l’appel, notre équipe recueille les informations utiles, évalue les premiers risques et vous indique les gestes adaptés avant d’organiser la suite."
+    points={plomberieReassurancePoints}
+    ctaLabel="Appeler Belkhir Dépannage"
+    phone={siteConfig.emergencyPhone}
+  />
+
+  <Process
+    id="prise-en-charge-plomberie"
+    eyebrow="UNE PRISE EN CHARGE CLAIRE"
+    steps={plomberieProcessSteps}
+    tone="light"
+  >
+    <Fragment slot="title"
+      >Comment se déroule un <span class="process__accent">dépannage plomberie</span> ?</Fragment
+    >
+    <Fragment slot="lead"></Fragment>
+    <Fragment slot="banner"></Fragment>
+  </Process>
+
+  <CoverageSummary
+    id="zone-plomberie"
+    eyebrow="UNE ÉQUIPE MOBILE"
+    title="Dépannage plomberie dans les Hauts-de-France"
+    titleAccent="Hauts-de-France"
+    intro={plomberieCoverageIntro}
+    zones={coverageZones}
+    ctaLabel="Vérifier mon secteur"
+    phone={siteConfig.standardPhone}
+  />
+
+  <Reviews
+    id="avis-plomberie"
+    eyebrow="LA CONFIANCE SE CONSTRUIT SUR LE TERRAIN"
+    title="L’expérience de nos clients"
+    intro="Emplacement réservé à connecter à notre fiche Google — aucun avis n’est inventé ici."
+  />
+
+  <Faq
+    id="faq-plomberie"
+    eyebrow="QUESTIONS FRÉQUENTES"
+    title="Avant d’appeler pour un problème de plomberie"
+    items={plomberieFaqItems}
+    tone="dark"
+  />
+
+  <Footer slot="footer" />
+  <MobileCallBar slot="mobile-call-bar" />
+</BaseLayout>

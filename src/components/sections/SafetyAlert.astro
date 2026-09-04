@@ -1,0 +1,169 @@
+---
+/**
+ * Encart de sécurité prioritaire, générique — page chauffage (04/09/2026,
+ * PROMPT_CLAUDE_CODE_PAGE_CHAUFFAGE_PATTERN_COMPLET.txt). Sémantiquement et
+ * visuellement distinct des CTA commerciaux du site (jamais le rouge
+ * « urgence extrême » de PhoneCta.astro, jamais un style de bouton) :
+ * traitement ambre/rouge dédié, propre à ce composant, pour ne jamais
+ * laisser croire que les numéros listés sont des services Belkhir
+ * Dépannage. Contenu et contacts fournis par des props — aucune donnée
+ * chauffage codée en dur ici, voir src/data/chauffage.ts. Réutilisable par
+ * toute future page métier ayant besoin d'un encart de sécurité comparable
+ * (ex. électricité).
+ */
+import Icon from '../ui/Icon.astro';
+
+export interface SafetyContact {
+  label: string;
+  displayNumber: string;
+  /** Lien `tel:` déjà construit, ex. "tel:+33800473333" ou "tel:15". */
+  tel: string;
+}
+
+interface Props {
+  title: string;
+  text: string;
+  additionalText?: string;
+  contacts: SafetyContact[];
+  disclaimer?: string;
+}
+
+const { title, text, additionalText, contacts, disclaimer } = Astro.props;
+---
+
+<div class="safety-alert" role="note" aria-label={title}>
+  <Icon name="alert-triangle" class="safety-alert__icon" />
+  <div class="safety-alert__body">
+    <h3 class="safety-alert__title">{title}</h3>
+    <p class="safety-alert__text">{text}</p>
+    {additionalText && <p class="safety-alert__text">{additionalText}</p>}
+
+    <ul class="safety-alert__contacts">
+      {
+        contacts.map((contact) => (
+          <li>
+            <a class="safety-alert__contact" href={contact.tel}>
+              <Icon name="phone" class="safety-alert__contact-icon" />
+              <span class="safety-alert__contact-label">{contact.label}</span>
+              <span class="safety-alert__contact-number">{contact.displayNumber}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    {disclaimer && <p class="safety-alert__disclaimer">{disclaimer}</p>}
+  </div>
+</div>
+
+<style>
+  /*
+   * Rouge d'alerte volontairement distinct du rouge « urgence extrême »
+   * (--color-red-600, utilisé par PhoneCta.astro pour les vrais services
+   * Belkhir Dépannage) : ce composant réutilise le même token pour la
+   * cohérence chromatique du site (aucune nouvelle couleur), mais un
+   * traitement (bordure épaisse à gauche, fond neutre, liens soulignés
+   * plutôt que boutons pleins) qui ne peut jamais être confondu visuellement
+   * avec un CTA commercial.
+   */
+  .safety-alert {
+    margin-top: clamp(2rem, 3vw, 2.5rem);
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-lg);
+    background: var(--color-red-100);
+    border: 1px solid rgba(215, 49, 39, 0.35);
+    border-left: 4px solid var(--color-red-600);
+  }
+
+  .safety-alert__icon {
+    flex-shrink: 0;
+    width: 1.6rem;
+    height: 1.6rem;
+    margin-top: 0.15rem;
+    color: var(--color-red-600);
+  }
+
+  .safety-alert__title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--color-anthracite-900);
+    margin-bottom: 0.6rem;
+  }
+
+  .safety-alert__text {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--color-anthracite-700);
+  }
+
+  .safety-alert__text + .safety-alert__text {
+    margin-top: 0.6rem;
+  }
+
+  .safety-alert__contacts {
+    list-style: none;
+    margin: 1rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  /* Liens soulignés dans un contour discret, jamais le pilule pleine
+     couleur de PhoneCta.astro : la distinction visuelle avec les CTA
+     commerciaux du site doit rester immédiate. */
+  .safety-alert__contact {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 44px;
+    padding: 0.5rem 0.85rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(215, 49, 39, 0.4);
+    background: var(--color-white);
+    color: var(--color-red-700);
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition:
+      background-color 200ms ease,
+      border-color 200ms ease;
+  }
+
+  .safety-alert__contact:hover,
+  .safety-alert__contact:focus-visible {
+    background: var(--color-red-100);
+    border-color: var(--color-red-600);
+  }
+
+  .safety-alert__contact-icon {
+    width: 0.95rem;
+    height: 0.95rem;
+    flex-shrink: 0;
+  }
+
+  .safety-alert__contact-number {
+    font-family: var(--font-heading);
+  }
+
+  .safety-alert__disclaimer {
+    margin-top: 0.85rem;
+    font-size: 0.8rem;
+    font-style: italic;
+    color: var(--color-red-700);
+  }
+
+  @media (max-width: 30rem) {
+    .safety-alert {
+      flex-direction: column;
+    }
+
+    .safety-alert__contact {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>

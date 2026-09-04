@@ -1,0 +1,150 @@
+---
+/**
+ * Page métier « Rideaux métalliques » — réplication du pattern validé de
+ * `/plomberie/`, `/chauffage/`, `/serrurerie/` et `/vitrerie/`
+ * (PROMPT_CLAUDE_CODE_PAGE_RIDEAUX_METALLIQUES_PATTERN_COMPLET.txt,
+ * 04/09/2026). Même assemblage de coquille (BaseLayout + bande de
+ * disponibilité + navbar + tiroir mobile + footer + barre d'appel mobile,
+ * tous réutilisés à l'identique), même six sections dans le même ordre, en
+ * réutilisant les composants génériques et paramétrables déjà construits —
+ * aucun composant dupliqué au-delà du Hero (voir son commentaire d'en-tête).
+ * `CoverageSummary` est réutilisé dans son état le plus récent (avec la
+ * carte géographique partagée `CoverageMapGraphic`, variante `subtle`,
+ * ajoutée au micro-sprint du 04/09/2026) — aucun SVG ni donnée dupliqués.
+ *
+ * Alternance stricte des fonds, après le Hero photographique :
+ *   1. urgences-rideaux-metalliques      — blanc abricot (+ encart sécurité)
+ *   2. appel-rideaux-metalliques         — noir/charbon + lueur orange
+ *   3. prise-en-charge-rideaux-metalliques — blanc abricot (Process, tone="light")
+ *   4. zone-rideaux-metalliques          — noir/charbon + lueur orange (+ carte)
+ *   5. avis-rideaux-metalliques          — blanc abricot (Reviews, tone par défaut)
+ *   6. faq-rideaux-metalliques           — noir/charbon + lueur orange (Faq, tone="dark")
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AvailabilityBar from '../../components/layout/AvailabilityBar.astro';
+import Navbar from '../../components/layout/Navbar.astro';
+import MobileDrawer from '../../components/layout/MobileDrawer.astro';
+import Footer from '../../components/layout/Footer.astro';
+import MobileCallBar from '../../components/layout/MobileCallBar.astro';
+import Hero from '../../components/rideaux-metalliques/Hero.astro';
+import SafetyTips from '../../components/sections/SafetyTips.astro';
+import SafetyAlert from '../../components/sections/SafetyAlert.astro';
+import ReassuranceCallout from '../../components/sections/ReassuranceCallout.astro';
+import CoverageSummary from '../../components/sections/CoverageSummary.astro';
+import Process from '../../components/landing/Process.astro';
+import Reviews from '../../components/landing/Reviews.astro';
+import Faq from '../../components/landing/Faq.astro';
+import { siteConfig } from '../../lib/site-config';
+import { coverageZones } from '../../data/landing';
+import { buildFaqPageSchema } from '../../lib/seo';
+import {
+  rideauxMetalliquesSafetyTips,
+  rideauxMetalliquesSafetyNote,
+  rideauxMetalliquesSafetyAlertTitle,
+  rideauxMetalliquesSafetyAlertText,
+  rideauxMetalliquesSafetyAlertAdditionalText,
+  rideauxMetalliquesSafetyAlertContacts,
+  rideauxMetalliquesSafetyAlertDisclaimer,
+  rideauxMetalliquesReassurancePoints,
+  rideauxMetalliquesProcessSteps,
+  rideauxMetalliquesCoverageIntro,
+  rideauxMetalliquesFaqItems,
+} from '../../data/rideaux-metalliques';
+
+const title = 'Dépannage rideaux métalliques Hauts-de-France | Belkhir Dépannage';
+const description =
+  'Rideau métallique bloqué, désaxé ou en panne ? Belkhir Dépannage qualifie votre urgence dans ' +
+  'les Hauts-de-France, 24h/24 et 7j/7.';
+
+// Donnée structurée FAQPage : alimentée par EXACTEMENT les mêmes questions
+// et réponses que celles rendues visuellement par <Faq items={...} />
+// ci-dessous (même tableau `rideauxMetalliquesFaqItems`) — jamais des
+// données structurées différentes du contenu affiché.
+const faqSchema = buildFaqPageSchema(rideauxMetalliquesFaqItems);
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  path="/rideaux-metalliques/"
+  hasMobileCallBar
+  structuredData={[faqSchema]}
+>
+  <Fragment slot="header">
+    <AvailabilityBar />
+    <Navbar />
+    <MobileDrawer />
+  </Fragment>
+
+  <Hero />
+
+  <SafetyTips
+    id="urgences-rideaux-metalliques"
+    eyebrow="VOTRE SÉCURITÉ D’ABORD"
+    title="Que faire face à un rideau métallique bloqué ou en panne ?"
+    intro="Forcer un tablier, tirer sur un rideau bloqué ou insister sur une commande qui ne répond plus peut transformer un blocage limité en risque pour les personnes. Quelques précautions simples permettent de protéger l’accès et de décrire utilement la situation."
+    tips={rideauxMetalliquesSafetyTips}
+    note={rideauxMetalliquesSafetyNote}
+  >
+    <SafetyAlert
+      slot="alert"
+      title={rideauxMetalliquesSafetyAlertTitle}
+      text={rideauxMetalliquesSafetyAlertText}
+      additionalText={rideauxMetalliquesSafetyAlertAdditionalText}
+      contacts={rideauxMetalliquesSafetyAlertContacts}
+      disclaimer={rideauxMetalliquesSafetyAlertDisclaimer}
+    />
+  </SafetyTips>
+
+  <ReassuranceCallout
+    id="appel-rideaux-metalliques"
+    eyebrow="VOUS N’AVEZ PAS BESOIN DE MANIPULER LE MÉCANISME"
+    title="Décrivez simplement le rideau et ce qui s’est produit"
+    text="Un rideau métallique bloqué peut empêcher l’ouverture ou la fermeture d’un commerce, d’un garage ou d’un accès professionnel. Lors de l’appel, notre équipe demande le type de rideau, sa position, son mode de commande, les bruits observés et l’existence éventuelle d’un risque immédiat — vous pouvez décrire ou photographier la situation à distance, sans manipuler le mécanisme."
+    points={rideauxMetalliquesReassurancePoints}
+    ctaLabel="Appeler Belkhir Dépannage"
+    phone={siteConfig.emergencyPhone}
+  />
+
+  <Process
+    id="prise-en-charge-rideaux-metalliques"
+    eyebrow="UNE PRISE EN CHARGE CLAIRE"
+    steps={rideauxMetalliquesProcessSteps}
+    tone="light"
+  >
+    <Fragment slot="title"
+      >Comment se déroule un <span class="process__accent">dépannage de rideau métallique</span> ?</Fragment
+    >
+    <Fragment slot="lead"></Fragment>
+    <Fragment slot="banner"></Fragment>
+  </Process>
+
+  <CoverageSummary
+    id="zone-rideaux-metalliques"
+    eyebrow="UNE ÉQUIPE MOBILE"
+    title="Dépannage de rideaux métalliques dans les Hauts-de-France"
+    titleAccent="Hauts-de-France"
+    intro={rideauxMetalliquesCoverageIntro}
+    zones={coverageZones}
+    ctaLabel="Vérifier mon secteur"
+    phone={siteConfig.standardPhone}
+  />
+
+  <Reviews
+    id="avis-rideaux-metalliques"
+    eyebrow="LA CONFIANCE SE CONSTRUIT SUR LE TERRAIN"
+    title="L’expérience de nos clients"
+    intro="Emplacement réservé à connecter à notre fiche Google — aucun avis n’est inventé ici."
+  />
+
+  <Faq
+    id="faq-rideaux-metalliques"
+    eyebrow="QUESTIONS FRÉQUENTES"
+    title="Avant d’appeler pour un rideau métallique bloqué"
+    items={rideauxMetalliquesFaqItems}
+    tone="dark"
+  />
+
+  <Footer slot="footer" />
+  <MobileCallBar slot="mobile-call-bar" />
+</BaseLayout>

@@ -1,0 +1,147 @@
+---
+/**
+ * Page métier « Vitrerie » — réplication du pattern validé de
+ * `/plomberie/`, `/chauffage/` et `/serrurerie/` (PROMPT_CLAUDE_CODE_PAGE_
+ * VITRERIE_PATTERN_COMPLET.txt, 04/09/2026). Même assemblage de coquille
+ * (BaseLayout + bande de disponibilité + navbar + tiroir mobile + footer +
+ * barre d'appel mobile, tous réutilisés à l'identique), même six sections
+ * dans le même ordre, en réutilisant les composants génériques et
+ * paramétrables déjà construits — aucun composant dupliqué au-delà du Hero
+ * (voir son commentaire d'en-tête).
+ *
+ * Alternance stricte des fonds, après le Hero photographique :
+ *   1. urgences-vitrerie      — blanc abricot (+ encart effraction/danger)
+ *   2. appel-vitrerie         — noir/charbon + lueur orange
+ *   3. prise-en-charge-vitrerie — blanc abricot (Process, tone="light")
+ *   4. zone-vitrerie          — noir/charbon + lueur orange
+ *   5. avis-vitrerie          — blanc abricot (Reviews, tone par défaut)
+ *   6. faq-vitrerie           — noir/charbon + lueur orange (Faq, tone="dark")
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AvailabilityBar from '../../components/layout/AvailabilityBar.astro';
+import Navbar from '../../components/layout/Navbar.astro';
+import MobileDrawer from '../../components/layout/MobileDrawer.astro';
+import Footer from '../../components/layout/Footer.astro';
+import MobileCallBar from '../../components/layout/MobileCallBar.astro';
+import Hero from '../../components/vitrerie/Hero.astro';
+import SafetyTips from '../../components/sections/SafetyTips.astro';
+import SafetyAlert from '../../components/sections/SafetyAlert.astro';
+import ReassuranceCallout from '../../components/sections/ReassuranceCallout.astro';
+import CoverageSummary from '../../components/sections/CoverageSummary.astro';
+import Process from '../../components/landing/Process.astro';
+import Reviews from '../../components/landing/Reviews.astro';
+import Faq from '../../components/landing/Faq.astro';
+import { siteConfig } from '../../lib/site-config';
+import { coverageZones } from '../../data/landing';
+import { buildFaqPageSchema } from '../../lib/seo';
+import {
+  vitrerieSafetyTips,
+  vitrerieSafetyNote,
+  vitrerieSafetyAlertTitle,
+  vitrerieSafetyAlertText,
+  vitrerieSafetyAlertAdditionalText,
+  vitrerieSafetyAlertContacts,
+  vitrerieSafetyAlertDisclaimer,
+  vitrerieReassurancePoints,
+  vitrerieProcessSteps,
+  vitrerieCoverageIntro,
+  vitrerieFaqItems,
+} from '../../data/vitrerie';
+
+const title = 'Vitrier en urgence Hauts-de-France | Belkhir Dépannage';
+const description =
+  'Vitre cassée, fissurée ou fenêtre endommagée ? Belkhir Dépannage qualifie votre urgence ' +
+  'vitrerie dans les Hauts-de-France, 24h/24 et 7j/7.';
+
+// Donnée structurée FAQPage : alimentée par EXACTEMENT les mêmes questions
+// et réponses que celles rendues visuellement par <Faq items={...} />
+// ci-dessous (même tableau `vitrerieFaqItems`) — jamais des données
+// structurées différentes du contenu affiché.
+const faqSchema = buildFaqPageSchema(vitrerieFaqItems);
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  path="/vitrerie/"
+  hasMobileCallBar
+  structuredData={[faqSchema]}
+>
+  <Fragment slot="header">
+    <AvailabilityBar />
+    <Navbar />
+    <MobileDrawer />
+  </Fragment>
+
+  <Hero />
+
+  <SafetyTips
+    id="urgences-vitrerie"
+    eyebrow="VOTRE SÉCURITÉ D’ABORD"
+    title="Que faire face à une vitre cassée ou fissurée ?"
+    intro="Toucher le verre ou forcer un vitrage endommagé peut transformer un incident limité en risque de coupure. Quelques précautions simples permettent de protéger les personnes et de décrire utilement la situation."
+    tips={vitrerieSafetyTips}
+    note={vitrerieSafetyNote}
+  >
+    <SafetyAlert
+      slot="alert"
+      title={vitrerieSafetyAlertTitle}
+      text={vitrerieSafetyAlertText}
+      additionalText={vitrerieSafetyAlertAdditionalText}
+      contacts={vitrerieSafetyAlertContacts}
+      disclaimer={vitrerieSafetyAlertDisclaimer}
+    />
+  </SafetyTips>
+
+  <ReassuranceCallout
+    id="appel-vitrerie"
+    eyebrow="VOUS N’AVEZ PAS BESOIN DE MANIPULER LE VERRE"
+    title="Décrivez simplement le vitrage et ce qui s’est produit"
+    text="Une vitre cassée, fissurée ou une fermeture vitrée endommagée expose le logement ou le commerce au froid et aux intempéries. Lors de l’appel, notre équipe identifie le type de vitrage, son emplacement, le niveau d’exposition et les risques immédiats, sans vous demander de manipuler le verre."
+    points={vitrerieReassurancePoints}
+    ctaLabel="Appeler Belkhir Dépannage"
+    phone={siteConfig.emergencyPhone}
+  />
+
+  <Process
+    id="prise-en-charge-vitrerie"
+    eyebrow="UNE PRISE EN CHARGE CLAIRE"
+    steps={vitrerieProcessSteps}
+    tone="light"
+  >
+    <Fragment slot="title"
+      >Comment se déroule un <span class="process__accent">dépannage vitrerie</span> ?</Fragment
+    >
+    <Fragment slot="lead"></Fragment>
+    <Fragment slot="banner"></Fragment>
+  </Process>
+
+  <CoverageSummary
+    id="zone-vitrerie"
+    eyebrow="UNE ÉQUIPE MOBILE"
+    title="Dépannage vitrerie dans les Hauts-de-France"
+    titleAccent="Hauts-de-France"
+    intro={vitrerieCoverageIntro}
+    zones={coverageZones}
+    ctaLabel="Vérifier mon secteur"
+    phone={siteConfig.standardPhone}
+  />
+
+  <Reviews
+    id="avis-vitrerie"
+    eyebrow="LA CONFIANCE SE CONSTRUIT SUR LE TERRAIN"
+    title="L’expérience de nos clients"
+    intro="Emplacement réservé à connecter à notre fiche Google — aucun avis n’est inventé ici."
+  />
+
+  <Faq
+    id="faq-vitrerie"
+    eyebrow="QUESTIONS FRÉQUENTES"
+    title="Avant d’appeler pour une vitre cassée ou fissurée"
+    items={vitrerieFaqItems}
+    tone="dark"
+  />
+
+  <Footer slot="footer" />
+  <MobileCallBar slot="mobile-call-bar" />
+</BaseLayout>

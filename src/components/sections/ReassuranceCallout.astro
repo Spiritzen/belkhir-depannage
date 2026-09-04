@@ -1,0 +1,331 @@
+---
+/**
+ * Bloc « réassurance + appel » générique — micro-sprint 2 page plomberie
+ * (04/09/2026). Composant de section réutilisable pour les futures pages
+ * métiers : contenu fourni par des props, CTA téléphonique construit via
+ * `getPhoneCta` (src/lib/phone.ts) — jamais un faux lien `tel:`, jamais un
+ * numéro recopié à la main. Aucune deuxième source de vérité pour le
+ * numéro : le composant reçoit la configuration réelle
+ * (`siteConfig.emergencyPhone` ou `siteConfig.standardPhone`) et applique
+ * le même garde-fou que PhoneCta.astro (bouton désactivé, jamais de faux
+ * `tel:`, si le numéro restait un jour provisoire).
+ */
+import Icon from '../ui/Icon.astro';
+import { getPhoneCta } from '../../lib/phone';
+import type { PhoneNumberConfig } from '../../types/site';
+
+export interface ReassurancePoint {
+  title: string;
+  description: string;
+}
+
+interface Props {
+  id: string;
+  headingId?: string;
+  eyebrow: string;
+  title: string;
+  text: string;
+  points: ReassurancePoint[];
+  ctaLabel: string;
+  phone: PhoneNumberConfig;
+  tone?: 'dark' | 'light';
+}
+
+const {
+  id,
+  headingId = `${id}-title`,
+  eyebrow,
+  title,
+  text,
+  points,
+  ctaLabel,
+  phone,
+  tone = 'dark',
+} = Astro.props;
+
+const cta = getPhoneCta(phone);
+const sectionClass = tone === 'light' ? 'reassurance reassurance--light' : 'reassurance';
+---
+
+<section class={sectionClass} id={id} aria-labelledby={headingId}>
+  <div class="reassurance__texture" aria-hidden="true"></div>
+
+  <div class="container">
+    <div class="reassurance__header" data-reveal="up">
+      <p class="reassurance__eyebrow">
+        <span class="reassurance__eyebrow-bar" aria-hidden="true"></span>
+        {eyebrow}
+      </p>
+      <h2 id={headingId}>{title}</h2>
+      <p class="reassurance__text">{text}</p>
+    </div>
+
+    <div class="reassurance__points" data-reveal-group={`${id}-points`}>
+      {
+        points.map((point) => (
+          <div class="reassurance__point" data-reveal="up">
+            <Icon name="check" class="reassurance__point-icon" />
+            <div>
+              <p class="reassurance__point-title">{point.title}</p>
+              <p class="reassurance__point-desc">{point.description}</p>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="reassurance__cta-wrap" data-reveal="up">
+      {
+        cta.kind === 'link' ? (
+          <a class="reassurance__cta" href={cta.href} data-phone-role={cta.role}>
+            <Icon name="phone" class="reassurance__cta-icon" />
+            <span class="reassurance__cta-text">
+              <span class="reassurance__cta-label">{ctaLabel}</span>
+              <span class="reassurance__cta-number">{cta.display}</span>
+            </span>
+          </a>
+        ) : (
+          <button
+            type="button"
+            class="reassurance__cta"
+            disabled
+            aria-describedby={`${id}-cta-note`}
+            data-phone-role={cta.role}
+          >
+            <Icon name="phone" class="reassurance__cta-icon" />
+            <span class="reassurance__cta-text">
+              <span class="reassurance__cta-label">{ctaLabel}</span>
+              <span class="reassurance__cta-number">{cta.display}</span>
+            </span>
+            <span id={`${id}-cta-note`} class="visually-hidden">
+              Numéro non encore renseigné dans cette maquette.
+            </span>
+          </button>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .reassurance {
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(5rem, 7vw, 7rem);
+    background:
+      radial-gradient(50% 42% at 18% 4%, rgba(255, 105, 0, 0.09), transparent 72%),
+      radial-gradient(44% 40% at 92% 96%, rgba(255, 105, 0, 0.06), transparent 72%),
+      var(--color-anthracite-950);
+  }
+
+  .reassurance--light {
+    background: radial-gradient(circle at 20% 0%, rgba(255, 105, 0, 0.1), transparent 34%), #fff7f0;
+  }
+
+  .reassurance__texture {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 3.5rem 3.5rem;
+    mask-image: radial-gradient(70% 60% at 50% 20%, black, transparent);
+  }
+
+  .reassurance--light .reassurance__texture {
+    display: none;
+  }
+
+  .reassurance__header {
+    position: relative;
+    z-index: 1;
+    max-width: 46rem;
+    margin-bottom: clamp(2.5rem, 4vw, 3.5rem);
+  }
+
+  .reassurance__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--color-brand);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    margin-bottom: clamp(0.75rem, 0.6rem + 0.4vw, 1rem);
+  }
+
+  .reassurance__eyebrow-bar {
+    width: 28px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--color-brand);
+  }
+
+  .reassurance__header h2 {
+    color: var(--color-white);
+    font-size: clamp(1.7rem, 3vw, 2.3rem);
+    line-height: 1.2;
+    margin-bottom: clamp(0.9rem, 0.75rem + 0.4vw, 1.1rem);
+  }
+
+  .reassurance--light .reassurance__header h2 {
+    color: var(--color-anthracite-900);
+  }
+
+  .reassurance__text {
+    font-size: clamp(1rem, 0.92rem + 0.3vw, 1.15rem);
+    line-height: 1.65;
+    color: var(--color-gray-100);
+  }
+
+  .reassurance--light .reassurance__text {
+    color: var(--color-anthracite-700);
+  }
+
+  .reassurance__points {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.25rem, 1.5vw, 1.75rem);
+    margin-bottom: clamp(2.5rem, 4vw, 3.25rem);
+  }
+
+  .reassurance__point {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1.1rem 1.25rem;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 105, 0, 0.16);
+  }
+
+  .reassurance--light .reassurance__point {
+    background: var(--color-white);
+    border-color: rgba(255, 105, 0, 0.14);
+  }
+
+  .reassurance__point-icon {
+    width: 1.2rem;
+    height: 1.2rem;
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+    color: var(--color-brand);
+  }
+
+  .reassurance__point-title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.98rem;
+    color: var(--color-white);
+    margin-bottom: 0.3rem;
+  }
+
+  .reassurance--light .reassurance__point-title {
+    color: var(--color-anthracite-900);
+  }
+
+  .reassurance__point-desc {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--color-gray-100);
+  }
+
+  .reassurance--light .reassurance__point-desc {
+    color: var(--color-anthracite-700);
+  }
+
+  .reassurance__cta-wrap {
+    position: relative;
+    z-index: 1;
+  }
+
+  .reassurance__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 56px;
+    padding: 0.85rem 1.5rem;
+    border: none;
+    border-radius: var(--radius-md);
+    /* Rôle « urgence extrême » : même rouge que le reste du site
+       (PhoneCta.astro, Hero plomberie), jamais une nouvelle teinte. */
+    background: var(--color-red-600);
+    color: var(--color-white);
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: var(--shadow-sm);
+    transition:
+      background-color 200ms ease,
+      transform 200ms ease,
+      box-shadow 200ms ease;
+  }
+
+  .reassurance__cta:hover,
+  .reassurance__cta:focus-visible {
+    background: var(--color-red-700);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .reassurance__cta:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .reassurance__cta-icon {
+    width: 1.15rem;
+    height: 1.15rem;
+    flex-shrink: 0;
+  }
+
+  .reassurance__cta-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+    text-align: left;
+  }
+
+  .reassurance__cta-label {
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .reassurance__cta-number {
+    margin-top: 0.15rem;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.95rem;
+    opacity: 0.92;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reassurance__cta:hover,
+    .reassurance__cta:focus-visible {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 56rem) {
+    .reassurance__points {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Mobile : le CTA de cette section reste présent (il intervient après un
+     contenu de réassurance, pas en doublon du premier écran) mais passe en
+     pleine largeur, cohérent avec les autres CTA pleine largeur du site en
+     dessous de ce seuil. */
+  @media (max-width: 30rem) {
+    .reassurance__cta {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>

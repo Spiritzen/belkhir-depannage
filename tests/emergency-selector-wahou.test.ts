@@ -148,15 +148,43 @@ describe('refonte « wahou » — EmergencySelector', () => {
     expect(sectionHtml).not.toContain('href="#" class="emergency-card"');
   });
 
-  it('16. no destination deliberately produces a 404 (every href is a real in-page anchor whose target exists)', () => {
+  it('16. no destination deliberately produces a 404 (in-page anchors resolve; the plomberie/chauffage/serrurerie links are real pages)', () => {
     const hrefs = Array.from(sectionHtml.matchAll(/href="([^"]+)" class="emergency-card"/g)).map(
       (m) => m[1],
     );
-    for (const href of hrefs) {
-      expect(href.startsWith('#')).toBe(true);
-      const anchorId = href.slice(1);
-      expect(pageHtml).toContain(`id="${anchorId}"`);
-    }
+    expect(hrefs).toHaveLength(5);
+
+    // Micro-sprint « accès à la page /plomberie/ » (03/09/2026, prompt
+    // « ACCÈS À LA PAGE DEPUIS LA LANDING PAGE ») : « Fuite d'eau » pointe
+    // désormais vers la page dédiée réelle plutôt qu'une ancre interne.
+    // Affiné au micro-sprint 2 (04/09/2026) : la section « premiers gestes »
+    // de la page plomberie existe désormais réellement
+    // (id="urgences-plomberie"), directement ciblée plutôt que le haut de
+    // la page. Page chauffage (04/09/2026, PROMPT_CLAUDE_CODE_PAGE_
+    // CHAUFFAGE_PATTERN_COMPLET.txt) : même traitement pour « Chauffage en
+    // panne » vers /chauffage/#urgences-chauffage. Page serrurerie (même
+    // jour, PROMPT_CLAUDE_CODE_PAGE_SERRURERIE_PATTERN_COMPLET.txt) : même
+    // traitement pour « Porte bloquée » vers /serrurerie/#urgences-serrurerie.
+    // Page vitrerie (même jour, PROMPT_CLAUDE_CODE_PAGE_VITRERIE_PATTERN_
+    // COMPLET.txt) : même traitement pour « Vitre cassée » vers
+    // /vitrerie/#urgences-vitrerie. Page rideaux métalliques (même jour,
+    // PROMPT_CLAUDE_CODE_PAGE_RIDEAUX_METALLIQUES_PATTERN_COMPLET.txt) :
+    // même traitement pour « Rideau métallique bloqué » vers
+    // /rideaux-metalliques/#urgences-rideaux-metalliques. Les cinq cartes
+    // métier réelles pointent désormais toutes vers une page dédiée
+    // (« Autre urgence » reste un <div> statique, hors de ce tableau).
+    const realPageHrefs = hrefs.filter(
+      (href) =>
+        href.endsWith('/plomberie/#urgences-plomberie') ||
+        href.endsWith('/chauffage/#urgences-chauffage') ||
+        href.endsWith('/serrurerie/#urgences-serrurerie') ||
+        href.endsWith('/vitrerie/#urgences-vitrerie') ||
+        href.endsWith('/rideaux-metalliques/#urgences-rideaux-metalliques'),
+    );
+    expect(realPageHrefs).toHaveLength(5);
+
+    const anchorHrefs = hrefs.filter((href) => !realPageHrefs.includes(href));
+    expect(anchorHrefs).toHaveLength(0);
   });
 
   it('17. no invented phone number appears in this section', () => {

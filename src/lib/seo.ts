@@ -1,4 +1,4 @@
-import type { BreadcrumbListSchema, JsonLdSchema } from '../types/seo';
+import type { BreadcrumbListSchema, FaqPageSchema, JsonLdSchema } from '../types/seo';
 
 /**
  * Construit un schéma JSON-LD BreadcrumbList à partir d'éléments de fil
@@ -17,6 +17,31 @@ export function buildBreadcrumbList(
       position: index + 1,
       name: item.name,
       item: item.url,
+    })),
+  };
+}
+
+/**
+ * Construit un schéma JSON-LD FAQPage à partir des questions/réponses
+ * RÉELLEMENT affichées sur la page (micro-sprint 2 page plomberie,
+ * 04/09/2026) : `items` doit toujours être exactement la même source de
+ * données que celle rendue visuellement par le composant Faq — jamais des
+ * données structurées différentes du contenu affiché (voir prompt de
+ * mission, section « FAQ plomberie »).
+ */
+export function buildFaqPageSchema(
+  items: Array<{ question: string; answer: string }>,
+): FaqPageSchema {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
     })),
   };
 }
