@@ -1,4 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Icône technique temporaire">
-  <rect width="64" height="64" rx="12" fill="#0b4f6c" />
-  <text x="32" y="42" font-family="system-ui, sans-serif" font-size="30" font-weight="700" fill="#ffffff" text-anchor="middle">B</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Belkhir Dépannage">
+  <!--
+    Favicon de marque (MICRO-CORRECTION — FAVICON BELKHIR DÉPANNAGE,
+    05/09/2026) : remplace l'ancien carré bleu temporaire par un monogramme
+    « BD » dans les couleurs déjà définies de la direction artistique,
+    aucune nouvelle palette. #0d0f14 = jeton anthracite 950,
+    #ff6900 = jeton orange 600 (couleur de marque), voir
+    src/styles/tokens.css : mêmes valeurs que les initiales de marque de la
+    navbar (classe navbar__brand-initial).
+  -->
+  <defs>
+    <radialGradient id="bd-glow" cx="78%" cy="10%" r="85%">
+      <stop offset="0%" stop-color="#ff6900" stop-opacity="0.35" />
+      <stop offset="60%" stop-color="#0d0f14" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0d0f14" />
+  <rect width="64" height="64" rx="14" fill="url(#bd-glow)" />
+  <text
+    x="32"
+    y="43"
+    font-family="system-ui, sans-serif"
+    font-size="26"
+    font-weight="800"
+    letter-spacing="-1"
+    fill="#ff6900"
+    text-anchor="middle"
+  >BD</text>
 </svg>

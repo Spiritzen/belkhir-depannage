@@ -57,7 +57,11 @@ import { whyUsValues, whyUsStats } from '../../data/landing';
     </div>
 
     <div class="why-us__content">
-      <h2 id="why-us-title" data-reveal="right">Pourquoi choisir Belkhir Dépannage ?</h2>
+      <h2 id="why-us-title" data-reveal="right"
+        >Pourquoi choisir <span class="why-us__brand-initial">B</span>elkhir <span
+          class="why-us__brand-initial">D</span
+        >épannage ?</h2
+      >
       <ul class="why-us__list">
         {
           whyUsValues.map((value) => (
@@ -330,6 +334,14 @@ import { whyUsValues, whyUsStats } from '../../data/landing';
   .why-us__content h2 {
     font-size: clamp(1.6rem, 3vw, 2.1rem);
     margin-bottom: var(--space-4);
+  }
+
+  /* MICRO-CORRECTION — INITIALES B ET D EN ORANGE (05/09/2026) : même token
+     que les initiales du logo (voir .navbar__brand-initial), jamais une
+     nouvelle couleur. Seules les deux lettres changent de couleur — aucun
+     changement de police, taille, graisse, interligne ou disposition. */
+  .why-us__brand-initial {
+    color: var(--color-brand);
   }
 
   .why-us__list {
