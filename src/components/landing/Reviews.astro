@@ -24,8 +24,8 @@ const {
   id = 'avis',
   headingId = 'reviews-title',
   eyebrow,
-  title = 'Avis clients',
-  intro = 'Trois avis récents publiés sur notre fiche Google, relevés à la main : consultez la fiche pour la liste complète et à jour.',
+  title,
+  intro = 'Chaque intervention compte. Découvrez pourquoi nos clients nous recommandent.',
 } = Astro.props;
 
 // Cartes : lien vers la fiche Google publique (consultation), jamais vers le
@@ -47,7 +47,15 @@ const ratingDisplay = googleReviewSummary.rating.toFixed(1).replace('.', ',');
           </p>
         )
       }
-      <h2 id={headingId}>{title}</h2>
+      <h2 id={headingId}>
+        {
+          title ?? (
+            <>
+              <span class="reviews__initial">A</span>vis <span class="reviews__initial">C</span>lients
+            </>
+          )
+        }
+      </h2>
       <p>{intro}</p>
       <p class="reviews__summary">
         <span class="reviews__stars" aria-hidden="true">
@@ -172,6 +180,12 @@ const ratingDisplay = googleReviewSummary.rating.toFixed(1).replace('.', ',');
     margin-top: var(--space-2);
     font-weight: 700;
     color: var(--color-text, #1a1a1a);
+  }
+
+  /* Initiales A et C du titre par défaut : même token que les initiales de
+     marque (.why-us__brand-initial). */
+  .reviews__initial {
+    color: var(--color-brand);
   }
 
   .reviews__stars {

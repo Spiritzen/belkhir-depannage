@@ -263,7 +263,7 @@ describe('non-régression — landing (Process, Reviews, Faq rendus paramétrabl
   it('landing Reviews section never shows an eyebrow (absent by default)', () => {
     const section = extractSection(indexHtml, 'avis');
     expect(section).not.toContain('reviews__eyebrow');
-    expect(section).toContain('Avis clients');
+    expect(section).toContain('vis <span class="reviews__initial"');
   });
 
   it('landing Faq section keeps its exact ids and stays light (no dark modifier)', () => {

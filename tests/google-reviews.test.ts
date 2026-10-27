@@ -34,7 +34,7 @@ describe('avis Google — données, liens et rendu', () => {
   it('landing section renders the three real reviews with abbreviated names', () => {
     const s = section(landing, 'avis');
     for (const name of ['Corine Santer', 'Marie-Claude Rotier', 'Christophe Dequirot']) expect(s).toContain(name);
-    expect(s).toContain('Avis clients');
+    expect(s).toContain('vis <span class="reviews__initial"');
     expect(s).toContain('4,7/5 — 225 avis Google');
     expect(s).toContain('Données Google relevées le 27 octobre 2026');
     expect(s).toContain('<ul class="reviews__grid"');

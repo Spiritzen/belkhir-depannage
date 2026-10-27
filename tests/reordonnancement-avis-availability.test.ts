@@ -48,7 +48,7 @@ describe('réordonnancement — suppression AvailabilityBlock, déplacement des 
     const sectionMatch = pageHtml.match(/<section class="reviews" id="avis"[\s\S]*?<\/section>/);
     expect(sectionMatch).not.toBeNull();
     const sectionHtml = sectionMatch?.[0] ?? '';
-    expect(sectionHtml).toContain('Avis clients');
+    expect(sectionHtml).toContain('vis <span class="reviews__initial"');
     expect(sectionHtml).not.toContain('Avis Google à connecter');
     expect(sectionHtml).not.toContain('Emplacement réservé');
     expect(sectionHtml).not.toContain('Date à venir');
