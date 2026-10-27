@@ -86,4 +86,7 @@ export interface SiteConfig {
   googleReviewWriteUrl: string;
   /** Lien public pour CONSULTER tous les avis, si validé. Null sinon. */
   googleReviewsUrl: string | null;
+  /** Agence de conception/développement, signée dans le footer. */
+  agencyName: string;
+  agencyUrl: string;
 }

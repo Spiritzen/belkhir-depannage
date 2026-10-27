@@ -194,4 +194,7 @@ export const siteConfig: SiteConfig = {
   // Lien public de la fiche Google, pour CONSULTER les avis (cartes d'avis).
   // Ne jamais y mettre le lien de dépôt ci-dessus.
   googleReviewsUrl: 'https://g.page/r/CeM9Ou9Il3SDEAE',
+  // Signature d'agence du footer (Footer.astro). Unique emplacement de l'URL.
+  agencyName: 'Cantrelle Studio',
+  agencyUrl: 'https://cantrelle-studio.com/',
 };

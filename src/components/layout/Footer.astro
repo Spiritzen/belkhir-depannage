@@ -86,6 +86,20 @@ const metierHrefByService: Partial<Record<ServiceId, string>> = {
 
   <div class="container footer__bottom">
     <p>© {year} {siteConfig.siteName}. Maquette de prévisualisation — non indexée.</p>
+    <!-- Signature d'agence : lien externe sans `noreferrer` (provenance du
+         trafic conservée pour l'agence). Nom et URL : siteConfig. -->
+    <p class="footer__credit">
+      <a
+        class="footer__credit-link"
+        href={siteConfig.agencyUrl}
+        target="_blank"
+        rel="noopener"
+        aria-label={`Conception & développement — ${siteConfig.agencyName} (ouvre le site dans un nouvel onglet)`}
+        >Conception &amp; développement — <span class="footer__credit-initial">C</span>antrelle <span
+          class="footer__credit-initial">S</span
+        >tudio</a
+      >
+    </p>
     <!-- « Confidentialité » activée (04/09/2026, PROMPT_CLAUDE_CODE_PAGE_
          POLITIQUE_CONFIDENTIALITE.txt), puis « Mentions légales » activée le
          même jour (PROMPT_CLAUDE_CODE_PAGE_MENTIONS_LEGALES.txt) : les deux
@@ -207,6 +221,34 @@ const metierHrefByService: Partial<Record<ServiceId, string>> = {
     color: var(--color-gray-400);
   }
 
+  /* Signature d'agence : secondaire, même couleur et taille que la ligne
+     basse ; initiales C/S via .footer__brand-initial (--color-brand). */
+  .footer__credit {
+    margin: 0;
+  }
+
+  .footer__credit-initial {
+    color: var(--color-brand);
+  }
+
+  .footer__credit-link {
+    display: inline-block;
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .footer__credit-link:hover,
+  .footer__credit-link:focus-visible {
+    color: var(--color-orange-500);
+  }
+
+  .footer__credit-link:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
   .footer__legal {
     list-style: none;
     display: flex;
@@ -272,6 +314,16 @@ const metierHrefByService: Partial<Record<ServiceId, string>> = {
        gère déjà son propre safe-area-inset-bottom, non dupliqué ici). */
     .footer__bottom {
       padding-bottom: calc(var(--mobile-callbar-height) + 24px);
+    }
+
+    /* Signature sur une ligne dédiée, centrée, zone tactile >= 44px. */
+    .footer__credit {
+      flex-basis: 100%;
+      text-align: center;
+    }
+
+    .footer__credit-link {
+      padding-block: 0.8rem;
     }
   }
 </style>
