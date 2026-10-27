@@ -1,21 +1,15 @@
 ---
 /**
- * Avis clients (section 18 du prompt de mission). Grille sobre, aucun faux
- * nom ni faux commentaire présenté comme réel — blocs « Avis Google à
- * connecter » explicitement mock. Pas d'intégration de l'API Google dans ce
- * sprint.
+ * Avis clients — témoignages Google réels, statiques (aucune API, aucun
+ * widget). Données : src/data/google-reviews.ts. Liens : siteConfig
+ * (googleReviewWriteUrl pour déposer un avis ; googleReviewsUrl pour les
+ * consulter, rendu uniquement s'il est configuré).
  *
- * Rendu paramétrable (micro-sprint 2 page plomberie, 04/09/2026) : `id`,
- * `eyebrow`, `title` et `intro` acceptent une valeur différente par page
- * métier, avec pour valeur par défaut EXACTEMENT le contenu actuel de la
- * landing (aucun `eyebrow` sur la landing, jamais rendu par défaut) — un
- * appel sans props (`<Reviews />`, voir src/pages/index.astro, inchangé)
- * produit donc un rendu strictement identique à avant. Toujours la même
- * donnée `reviewsPreview` (placeholders honnêtes, jamais un faux
- * témoignage) : aucune deuxième source créée pour une page métier.
+ * id, eyebrow, title et intro restent paramétrables par page métier.
  */
 import Icon from '../ui/Icon.astro';
-import { reviewsPreview } from '../../data/landing';
+import { googleReviewSummary, googleReviews } from '../../data/google-reviews';
+import { siteConfig } from '../../lib/site-config';
 
 interface Props {
   id?: string;
@@ -31,13 +25,20 @@ const {
   headingId = 'reviews-title',
   eyebrow,
   title = 'Avis clients',
-  intro = 'Emplacement réservé à connecter à notre fiche Google — aucun avis n’est inventé ici.',
+  intro = 'Trois avis récents publiés sur notre fiche Google, relevés à la main : consultez la fiche pour la liste complète et à jour.',
 } = Astro.props;
+
+// Cartes : lien vers la fiche Google publique (consultation), jamais vers le
+// formulaire d'écriture réservé au CTA. Sans URL configurée : simple bloc.
+const cardHref = siteConfig.googleReviewsUrl;
+const Card = cardHref ? 'a' : 'div';
+
+const ratingDisplay = googleReviewSummary.rating.toFixed(1).replace('.', ',');
 ---
 
-<section class="reviews" id={id} aria-labelledby={headingId}>
+<section class="reviews" id={id} aria-labelledby={headingId} data-reviews>
   <div class="container">
-    <div class="section-heading" data-reveal="up">
+    <div class="section-heading reviews__header">
       {
         eyebrow && (
           <p class="reviews__eyebrow">
@@ -48,21 +49,72 @@ const {
       }
       <h2 id={headingId}>{title}</h2>
       <p>{intro}</p>
+      <p class="reviews__summary">
+        <span class="reviews__stars" aria-hidden="true">
+          {Array.from({ length: 5 }).map(() => <Icon name="star" class="reviews__star" />)}
+        </span>
+        <span>{ratingDisplay}/5 — {googleReviewSummary.reviewCount} avis Google</span>
+      </p>
+      <p class="reviews__captured">{googleReviewSummary.capturedLabel}</p>
     </div>
 
-    <div class="reviews__grid" data-reveal-group="reviews">
+    <ul class="reviews__grid">
       {
-        reviewsPreview.map(() => (
-          <article class="reviews__card" data-reveal="up" aria-label="Avis Google à connecter">
-            <span class="reviews__stars" aria-hidden="true">
-              {Array.from({ length: 5 }).map(() => (
-                <Icon name="star" class="reviews__star" />
-              ))}
-            </span>
-            <p class="reviews__placeholder">Avis Google à connecter</p>
-            <p class="reviews__date">Date à venir</p>
-          </article>
+        googleReviews.map((review) => (
+          <li class="reviews__item">
+            <Card
+              class="reviews__card"
+              {...(cardHref && {
+                href: cardHref,
+                target: '_blank',
+                rel: 'noopener noreferrer',
+                'aria-label': `Voir la fiche Google — avis de ${review.author} (nouvel onglet)`,
+              })}
+            >
+              <span class="reviews__stars" aria-hidden="true">
+                {Array.from({ length: review.rating }).map(() => (
+                  <Icon name="star" class="reviews__star" />
+                ))}
+              </span>
+              <span class="visually-hidden">{review.rating} étoiles sur 5</span>
+              <blockquote class="reviews__quote">
+                <p>« {review.text} »</p>
+              </blockquote>
+              <p class="reviews__author">{review.author}</p>
+              <p class="reviews__meta">
+                {review.dateLabel} · {review.sourceLabel}
+              </p>
+              {cardHref && (
+                <span class="reviews__hint" aria-hidden="true">
+                  Voir sur Google <span class="reviews__hint-arrow">↗</span>
+                </span>
+              )}
+            </Card>
+          </li>
         ))
+      }
+    </ul>
+
+    <div class="reviews__actions">
+      <a
+        class="reviews__cta"
+        href={siteConfig.googleReviewWriteUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Laisser un avis sur Google (nouvel onglet)">Laisser un avis Google</a
+      >
+      {
+        siteConfig.googleReviewsUrl && (
+          <a
+            class="reviews__cta reviews__cta--secondary"
+            href={siteConfig.googleReviewsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Voir tous les avis sur Google (nouvel onglet)"
+          >
+            Voir tous les avis sur Google
+          </a>
+        )
       }
     </div>
   </div>
@@ -111,46 +163,374 @@ const {
     background: radial-gradient(circle at 20% 0%, rgba(255, 105, 0, 0.1), transparent 34%), #fff7f0;
   }
 
-  .reviews__grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-3);
-  }
-
-  .reviews__card {
-    background: var(--color-white);
-    border: 1px dashed var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-4);
-    text-align: center;
+  .reviews__summary {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: var(--space-2);
+    font-weight: 700;
+    color: var(--color-text, #1a1a1a);
   }
 
   .reviews__stars {
     display: inline-flex;
     gap: 0.15rem;
-    margin-bottom: var(--space-2);
   }
 
   .reviews__star {
     width: 1.1rem;
     height: 1.1rem;
-    color: var(--color-gray-300);
+    color: var(--color-brand);
+    fill: currentColor;
   }
 
-  .reviews__placeholder {
-    font-weight: 700;
-    color: var(--color-muted);
-  }
-
-  .reviews__date {
+  .reviews__captured {
     font-size: 0.78rem;
     color: var(--color-gray-500);
-    margin-top: 0.3rem;
+    margin-top: 0.4rem;
+  }
+
+  .reviews__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3);
+  }
+
+  .reviews__item {
+    display: block;
+  }
+
+  .reviews__card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    height: 100%;
+    margin: 0;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    color: inherit;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.28s ease,
+      border-color 0.28s ease;
+  }
+
+  /* Ligne lumineuse supérieure : dessinée de gauche à droite au hover/focus,
+     positionnée en absolu (aucun effet sur la hauteur de la carte). */
+  .reviews__card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--color-brand), rgba(255, 105, 0, 0.35));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  a.reviews__card:focus-visible {
+    outline: 3px solid #1a1a1a;
+    outline-offset: 3px;
+    border-color: rgba(255, 105, 0, 0.6);
+    box-shadow:
+      0 14px 30px rgba(0, 0, 0, 0.12),
+      0 0 34px rgba(255, 105, 0, 0.16);
+  }
+
+  a.reviews__card:focus-visible::before {
+    transform: scaleX(1);
+  }
+
+  a.reviews__card:active {
+    transform: scale(0.985);
+    transition-duration: 0.1s;
+  }
+
+  /* Indice « Voir sur Google ↗ » : toujours dans le DOM et visible par
+     défaut (tactile, clavier) ; atténué au repos uniquement avec une souris. */
+  .reviews__hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: auto;
+    padding-top: var(--space-1);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #b34700;
+    transition:
+      opacity 0.28s ease,
+      transform 0.28s ease;
+  }
+
+  /* Éclat unique des étoiles de la carte : bref passage blanc puis retour
+     orange, une seule fois par survol/focus ; dimensions inchangées. */
+  @keyframes reviews-star-spark {
+    0%,
+    100% {
+      transform: scale(1);
+      color: var(--color-brand);
+    }
+    40% {
+      transform: scale(1.25);
+      color: var(--color-brand);
+    }
+    50% {
+      transform: scale(1.25);
+      color: #fff;
+    }
+    62% {
+      transform: scale(1.25);
+      color: var(--color-brand);
+    }
+  }
+
+  a.reviews__card:focus-visible .reviews__star {
+    animation: reviews-star-spark 0.5s ease-out 1;
+  }
+
+  /* Véritable hover (souris) : élévation, lueur, indice discret au repos. */
+  @media (hover: hover) and (pointer: fine) {
+    .reviews__hint {
+      opacity: 0.7;
+      transform: translateX(-4px);
+    }
+
+    a.reviews__card:hover {
+      transform: translateY(-6px) scale(1.01);
+      border-color: rgba(255, 105, 0, 0.6);
+      box-shadow:
+        0 14px 30px rgba(0, 0, 0, 0.12),
+        0 0 34px rgba(255, 105, 0, 0.16);
+    }
+
+    a.reviews__card:active {
+      transform: scale(0.985);
+    }
+
+    a.reviews__card:hover::before {
+      transform: scaleX(1);
+    }
+
+    a.reviews__card:hover .reviews__hint,
+    a.reviews__card:focus-visible .reviews__hint {
+      opacity: 1;
+      transform: none;
+    }
+
+    a.reviews__card:hover .reviews__star {
+      animation: reviews-star-spark 0.5s ease-out 1;
+    }
+  }
+
+  a.reviews__card .reviews__star:nth-child(2) {
+    animation-delay: 60ms;
+  }
+  a.reviews__card .reviews__star:nth-child(3) {
+    animation-delay: 120ms;
+  }
+  a.reviews__card .reviews__star:nth-child(4) {
+    animation-delay: 180ms;
+  }
+  a.reviews__card .reviews__star:nth-child(5) {
+    animation-delay: 240ms;
+  }
+
+  /* Entrée au scroll — amélioration progressive : l'état masqué n'existe que
+     si le script local a posé .reviews--motion-ready (jamais sans JS). */
+  .reviews--motion-ready .reviews__header > * {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(6px);
+    transition:
+      opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      filter 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .reviews--motion-ready .reviews__header > :nth-child(2) {
+    transition-delay: 60ms;
+  }
+  .reviews--motion-ready .reviews__header > :nth-child(3) {
+    transition-delay: 120ms;
+  }
+  .reviews--motion-ready .reviews__header > :nth-child(4) {
+    transition-delay: 180ms;
+  }
+
+  .reviews--motion-ready .reviews__item {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+    filter: blur(10px);
+    transition:
+      opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      filter 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .reviews--motion-ready .reviews__item:nth-child(1) {
+    transition-delay: 0ms;
+  }
+  .reviews--motion-ready .reviews__item:nth-child(2) {
+    transition-delay: 120ms;
+  }
+  .reviews--motion-ready .reviews__item:nth-child(3) {
+    transition-delay: 240ms;
+  }
+
+  .reviews--motion-ready.reviews--in .reviews__header > *,
+  .reviews--motion-ready.reviews--in .reviews__item {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  .reviews__quote {
+    margin: 0;
+    flex: 1;
+    line-height: 1.55;
+  }
+
+  .reviews__author {
+    font-weight: 700;
+  }
+
+  .reviews__meta {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+    margin: 0;
+  }
+
+  .reviews__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+  }
+
+  .reviews__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 999px;
+    font-weight: 700;
+    text-decoration: none;
+    background: var(--color-brand);
+    color: #fff;
+    border: 2px solid var(--color-brand);
+    transition:
+      background-color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .reviews__cta:hover {
+    background: #e55f00;
+    border-color: #e55f00;
+  }
+
+  .reviews__cta:focus-visible {
+    outline: 3px solid #1a1a1a;
+    outline-offset: 3px;
+  }
+
+  .reviews__cta--secondary {
+    background: transparent;
+    color: var(--color-brand);
+  }
+
+  .reviews__cta--secondary:hover {
+    background: rgba(255, 105, 0, 0.1);
+    color: #b34700;
   }
 
   @media (max-width: 56rem) {
     .reviews__grid {
       grid-template-columns: 1fr;
     }
+
+    /* Cascade verticale plus courte, mouvement réduit. */
+    .reviews--motion-ready .reviews__item {
+      transform: translateY(16px) scale(0.98);
+    }
+    .reviews--motion-ready .reviews__item:nth-child(2) {
+      transition-delay: 90ms;
+    }
+    .reviews--motion-ready .reviews__item:nth-child(3) {
+      transition-delay: 180ms;
+    }
+  }
+
+  /* Règle unique de réduction de mouvement (placée en dernier pour primer) :
+     avis visibles immédiatement, sans chorégraphie, éclat ni ligne animée ;
+     seuls les changements statiques de hover/focus subsistent. */
+  @media (prefers-reduced-motion: reduce) {
+    .reviews--motion-ready .reviews__header > *,
+    .reviews--motion-ready .reviews__item {
+      opacity: 1;
+      transform: none;
+      filter: none;
+      transition: none;
+    }
+
+    .reviews__card,
+    .reviews__card::before,
+    .reviews__hint,
+    .reviews__cta {
+      transition: none;
+    }
+
+    a.reviews__card:hover,
+    a.reviews__card:active {
+      transform: none;
+    }
+
+    a.reviews__card:hover .reviews__star,
+    a.reviews__card:focus-visible .reviews__star {
+      animation: none;
+    }
   }
 </style>
+
+<script>
+  /**
+   * Entrée de la section Avis, une seule fois par chargement. Amélioration
+   * progressive : sans JS, sans IntersectionObserver ou avec
+   * prefers-reduced-motion, .reviews--motion-ready n'est jamais posée et les
+   * avis restent visibles. Observateur local : le reveal global
+   * (src/scripts/reveal.ts) ne gère ni le flou ni des délais propres.
+   */
+  const sections = document.querySelectorAll<HTMLElement>('[data-reviews]');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (sections.length > 0 && !reduced && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('reviews--in');
+            observer.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.2, rootMargin: '0px 0px -8% 0px' },
+    );
+    for (const section of sections) {
+      section.classList.add('reviews--motion-ready');
+      observer.observe(section);
+    }
+  }
+</script>

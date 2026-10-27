@@ -135,8 +135,16 @@ describe('landing page — contenu et garde-fous (section 29 du prompt de missio
         href.endsWith('/rideaux-metalliques/');
       const isLegalPage =
         href.endsWith('/politique-de-confidentialite/') || href.endsWith('/mentions-legales/');
+      // Page « zones d'intervention » (radar, commit c12704d) : page réelle non-métier.
+      const isZonesPage = href.endsWith('/zones-intervention/');
       expect(
-        isAnchor || isExternal || isRoot || isEmergencyTel || isMetierPage || isLegalPage,
+        isAnchor ||
+          isExternal ||
+          isRoot ||
+          isEmergencyTel ||
+          isMetierPage ||
+          isLegalPage ||
+          isZonesPage,
         `unexpected internal route link: ${href}`,
       ).toBe(true);
     }
@@ -144,7 +152,7 @@ describe('landing page — contenu et garde-fous (section 29 du prompt de missio
 
   it('15. marks preview/mock data explicitly (isPreview, mock reviews and interventions)', () => {
     expect(html).toContain('Maquette de prévisualisation');
-    expect(html).toContain('Avis Google à connecter');
+    expect(html).not.toContain('Avis Google à connecter');
     expect(html).toContain('exemple');
   });
 

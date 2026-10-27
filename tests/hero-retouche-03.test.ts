@@ -130,7 +130,7 @@ describe('retouche 03 — hero (structure large, contenu et garde-fous)', () => 
     // Historique : cette assertion interdisait initialement toute mention
     // Google dans le Hero (retouche 03, avant l'ajout d'un quelconque bloc
     // de confiance). La retouche 04 (01/09/2026) ajoute délibérément un
-    // badge Google sur mesure sous le paragraphe (Excellent / 4,7/5 / 277
+    // badge Google sur mesure sous le paragraphe (Excellent / 4,7/5 / 225
     // avis Google, voir tests/hero-retouche-04.test.ts pour la couverture
     // complète) — l'interdiction totale est donc devenue incompatible avec
     // une décision produit explicite et documentée. On vérifie ici que

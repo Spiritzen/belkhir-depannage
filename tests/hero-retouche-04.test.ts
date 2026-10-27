@@ -2,6 +2,7 @@ import { describe, expect, it, beforeAll } from 'vitest';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import IndexPage from '../src/pages/index.astro';
 import { googleReviewSummary } from '../src/data/landing';
+import { siteConfig } from '../src/lib/site-config';
 
 // Tests couvrant la section 20 du prompt de la retouche 04 (H1 maîtrisé,
 // bouton de devis unique, badge de confiance Google sur mesure). Le socle
@@ -87,9 +88,9 @@ describe('retouche 04 — hero (H1 maîtrisé, devis et confiance Google)', () =
     expect(heroHtml).toContain('4,7/5');
   });
 
-  it('11. the hero displays "277 avis Google" (or an equivalent structure carrying the three pieces of data)', () => {
-    expect(googleReviewSummary.reviewCount).toBe(277);
-    expect(heroHtml).toContain('277 avis Google');
+  it('11. the hero displays "225 avis Google" (or an equivalent structure carrying the three pieces of data)', () => {
+    expect(googleReviewSummary.reviewCount).toBe(225);
+    expect(heroHtml).toContain('225 avis Google');
   });
 
   it('12. five decorative stars are rendered', () => {
@@ -99,7 +100,7 @@ describe('retouche 04 — hero (H1 maîtrisé, devis et confiance Google)', () =
 
   it('13. the badge carries a complete accessible label', () => {
     expect(heroHtml).toContain(
-      'aria-label="Excellent, note de 4,7 sur 5 basée sur 277 avis Google"',
+      'aria-label="Excellent, note de 4,7 sur 5 basée sur 225 avis Google"',
     );
   });
 
@@ -189,10 +190,10 @@ describe('retouche 04 — hero (H1 maîtrisé, devis et confiance Google)', () =
     expect((match?.[1] ?? '').length).toBeGreaterThan(1);
   });
 
-  it('27. the google badge target points to a real anchor on the page (Avis section) given no validated Google Business URL exists yet', () => {
+  it('27. the google badge is an internal link to the landing #avis section (never the external Google listing)', () => {
     const match = heroHtml.match(/class="hero__google-proof" href="([^"]+)"/);
-    const href = match?.[1] ?? '';
-    expect(href).toBe('#avis');
+    expect(match?.[1]).toMatch(/#avis$/);
+    expect(match?.[1]).not.toBe(siteConfig.googleReviewsUrl);
     expect(pageHtml).toContain('id="avis"');
   });
 });

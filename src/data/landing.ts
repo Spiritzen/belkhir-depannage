@@ -74,6 +74,16 @@ export const navLinks: NavLink[] = [
   { label: 'Avis', href: `${import.meta.env.BASE_URL}#avis` },
 ];
 
+/**
+ * Destination de la preuve Google des Hero (landing et cinq pages métiers) :
+ * lien INTERNE vers la section Avis de la landing, navigation dans le même
+ * onglet. Distinct de `siteConfig.googleReviewsUrl` (fiche Google externe,
+ * réservée aux cartes d'avis) : le badge Hero ne doit jamais expulser le
+ * visiteur du site. Construit avec BASE_URL pour fonctionner en local comme
+ * sous le sous-chemin GitHub Pages, depuis n'importe quelle page.
+ */
+export const googleProofHref = `${import.meta.env.BASE_URL}#avis`;
+
 export interface HeroPill {
   label: string;
 }
@@ -486,18 +496,6 @@ export const interventionsPreview: InterventionPreview[] = [
   },
 ];
 
-export interface ReviewPreview {
-  id: string;
-  isMock: true;
-}
-
-/** Avis clients — emplacement à connecter, aucun avis inventé (section 18 du prompt). */
-export const reviewsPreview: ReviewPreview[] = [
-  { id: 'placeholder-1', isMock: true },
-  { id: 'placeholder-2', isMock: true },
-  { id: 'placeholder-3', isMock: true },
-];
-
 export interface FaqItem {
   question: string;
   answer: string;
@@ -537,30 +535,6 @@ export const faqItems: FaqItem[] = [
   },
 ];
 
-export interface GoogleReviewSummary {
-  /** Plateforme d'origine de l'avis (ex. "Google"). */
-  platform: string;
-  /** Appréciation qualitative associée à la note (ex. "Excellent"). */
-  label: string;
-  /** Note moyenne sur 5. */
-  rating: number;
-  /** Nombre total d'avis. */
-  reviewCount: number;
-}
-
-/**
- * Bloc de confiance Google — données validées par Sébastien pour la
- * retouche 04 (01/09/2026, voir PROMPT_CLAUDE_CODE_RETOUCHE_04_HERO_
- * CONVERSION_CONFIANCE.txt, section 1, décision 20) : Excellent, 4,7/5,
- * 277 avis Google. Source de vérité unique, consommée par le badge de
- * confiance du Hero. La bande intermédiaire `TrustGoogle.astro` qui
- * consommait aussi ces données a été supprimée (micro-retouche du
- * 01/09/2026) ; cette source reste néanmoins réutilisable telle quelle par
- * la future section complète dédiée aux avis.
- */
-export const googleReviewSummary: GoogleReviewSummary = {
-  platform: 'Google',
-  label: 'Excellent',
-  rating: 4.7,
-  reviewCount: 277,
-};
+/** Preuves Google : source unique dans src/data/google-reviews.ts. */
+export { googleReviewSummary, googleReviews } from './google-reviews';
+export type { GoogleReviewSummary, GoogleReview } from './google-reviews';

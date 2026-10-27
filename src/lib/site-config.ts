@@ -189,6 +189,9 @@ export const siteConfig: SiteConfig = {
   defaultOgImage,
   allowIndexing: resolveAllowIndexing(requestedByEnv, standardPhone, emergencyPhone),
   isPreview: true,
-  // À CONFIRMER : URL de la fiche Google avis, une fois validée par le client.
-  googleReviewsUrl: null,
+  // Lien officiel de DÉPÔT d'avis (confirmé). Unique emplacement de l'URL.
+  googleReviewWriteUrl: 'https://g.page/r/CeM9Ou9Il3SDEAE/review',
+  // Lien public de la fiche Google, pour CONSULTER les avis (cartes d'avis).
+  // Ne jamais y mettre le lien de dépôt ci-dessus.
+  googleReviewsUrl: 'https://g.page/r/CeM9Ou9Il3SDEAE',
 };

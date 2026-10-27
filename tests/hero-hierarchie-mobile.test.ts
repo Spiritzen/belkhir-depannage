@@ -123,7 +123,7 @@ describe('mission 3 — preuve Google avant le CTA sur mobile, structure logique
   });
 
   it('12. the Google-proof link keeps its existing href source and full accessible label (untouched destination/name logic)', () => {
-    expect(heroSource).toContain("const googleHref = siteConfig.googleReviewsUrl ?? '#avis';");
+    expect(heroSource).toContain('const googleHref = googleProofHref;');
     expect(heroSource).toContain('href={googleHref}');
     expect(heroSource).toContain('aria-label={googleAccessibleLabel}');
   });
@@ -166,17 +166,17 @@ describe('mission 3 — preuve Google avant le CTA sur mobile, structure logique
       /<span class="hero__google-proof-meta--short"[^>]*>([\s\S]*?)<\/span>/,
     )?.[1];
     expect(shortMetaBlock).toBeDefined();
-    expect(shortMetaBlock!.replace(/\s+/g, ' ').trim()).toBe('— 277 avis Google');
+    expect(shortMetaBlock!.replace(/\s+/g, ' ').trim()).toBe('— 225 avis Google');
   });
 
   it('16. the compact mobile meta variant carries aria-hidden (the parent link’s aria-label already covers the accessible name)', () => {
     expect(heroHtml).toMatch(/<span class="hero__google-proof-meta--short" aria-hidden="true"/);
   });
 
-  it('17. the full (desktop) meta text — "Excellent · 277 avis Google" — is conserved, hidden only on mobile', () => {
+  it('17. the full (desktop) meta text — "Excellent · 225 avis Google" — is conserved, hidden only on mobile', () => {
     expect(heroHtml).toContain('4,7/5');
     const normalized = heroHtml.replace(/\s+/g, ' ');
-    expect(normalized).toContain('277 avis Google');
+    expect(normalized).toContain('225 avis Google');
     const mobileBlock = heroSource.match(
       /@media \(max-width: 47\.9375rem\) {([\s\S]*?)\n {2}}\n\n {2}@media \(prefers-reduced-motion: reduce\) {\s*\.hero__quote-cta:hover/,
     )?.[1];
@@ -272,7 +272,7 @@ describe('non-régression — pas de nouvelle dépendance, un seul nouveau point
       "import heroImg from '../../assets/hero/hero-belkhir-depannage-desktop-bd.png';",
       "import heroMobileImg from '../../assets/hero/hero-mobile-technicien-arrivee-belkhir.png';",
       "import Icon from '../ui/Icon.astro';",
-      "import { services, type ServiceId, googleReviewSummary } from '../../data/landing';",
+      'import {',
       "import { siteConfig } from '../../lib/site-config';",
     ]);
   });

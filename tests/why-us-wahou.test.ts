@@ -34,7 +34,12 @@ describe('micro-sprint « animations/compteurs » — Pourquoi choisir Belkhir D
   it('1. the section still exists exactly once with its original title', () => {
     const sections = pageHtml.match(/<section class="why-us"/g) ?? [];
     expect(sections).toHaveLength(1);
-    expect(sectionHtml).toContain('Pourquoi choisir Belkhir Dépannage ?');
+    // Le titre est découpé en spans pour les initiales de marque (B / D) :
+    // on compare le texte visible, balisage retiré.
+    const h2 = sectionHtml.match(/<h2 id="why-us-title"[^>]*>([\s\S]*?)<\/h2>/)?.[1] ?? '';
+    expect(h2.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()).toBe(
+      'Pourquoi choisir Belkhir Dépannage ?',
+    );
   });
 
   it('2. the section reuses the exact apricot background of "Votre sécurité d’abord"', () => {

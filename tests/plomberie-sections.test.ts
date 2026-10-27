@@ -214,7 +214,8 @@ describe('page /plomberie/ — section 5 : avis-plomberie (Reviews paramétrable
 
   it('never fabricates a testimonial, a name or a date — only the honest mock disclosure', () => {
     const section = extractSection(plomberieHtml, 'avis-plomberie');
-    expect(section).toContain('Avis Google à connecter');
+    expect(section).not.toContain('Avis Google à connecter');
+    expect(section).toContain('4,7/5 — 225 avis Google');
     expect(section).not.toMatch(/il y a \d+ (jour|semaine|mois)/i);
   });
 });

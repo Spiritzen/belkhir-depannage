@@ -17,7 +17,7 @@ import { Image, getImage } from 'astro:assets';
 import heroDesktopImg from '../../assets/rideaux-metalliques/hero-rideaux-metalliques-desktop.png';
 import heroMobileImg from '../../assets/rideaux-metalliques/hero-rideaux-metalliques-mobile.png';
 import Icon from '../ui/Icon.astro';
-import { googleReviewSummary } from '../../data/landing';
+import { googleReviewSummary, googleProofHref } from '../../data/landing';
 import { siteConfig } from '../../lib/site-config';
 import { getPhoneCta } from '../../lib/phone';
 
@@ -28,7 +28,7 @@ const emergencyCta = getPhoneCta(siteConfig.emergencyPhone);
 // `#zones-couvertes` de la landing.
 const coverageHref = `${import.meta.env.BASE_URL}zones-intervention/`;
 
-const googleHref = siteConfig.googleReviewsUrl ?? `${import.meta.env.BASE_URL}#avis`;
+const googleHref = googleProofHref;
 const googleRatingDisplay = googleReviewSummary.rating.toFixed(1).replace('.', ',');
 const googleAccessibleLabel = `${googleReviewSummary.label}, note de ${googleRatingDisplay} sur 5 basée sur ${googleReviewSummary.reviewCount} avis ${googleReviewSummary.platform}`;
 

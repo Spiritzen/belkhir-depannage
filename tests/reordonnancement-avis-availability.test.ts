@@ -49,8 +49,9 @@ describe('réordonnancement — suppression AvailabilityBlock, déplacement des 
     expect(sectionMatch).not.toBeNull();
     const sectionHtml = sectionMatch?.[0] ?? '';
     expect(sectionHtml).toContain('Avis clients');
-    expect(sectionHtml).toContain('Avis Google à connecter');
-    expect(sectionHtml).toContain('Emplacement réservé à connecter à notre fiche Google');
+    expect(sectionHtml).not.toContain('Avis Google à connecter');
+    expect(sectionHtml).not.toContain('Emplacement réservé');
+    expect(sectionHtml).not.toContain('Date à venir');
   });
 
   it('6. the navbar "Avis" link still targets the #avis anchor', () => {

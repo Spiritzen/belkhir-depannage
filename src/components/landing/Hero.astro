@@ -29,7 +29,7 @@
  * pour éviter la troisième ligne déséquilibrée observée à 1920px lors de la
  * revue visuelle. Une ligne de conversion est ajoutée sous le paragraphe :
  * un unique bouton « Demander un devis gratuit » et un badge de confiance
- * Google sur mesure (Excellent / 4,7/5 / 277 avis), tous deux redessinés
+ * Google sur mesure (Excellent / 4,7/5 / 225 avis), tous deux redessinés
  * dans la direction artistique du site — aucun widget Trustindex, aucune
  * iframe.
  *
@@ -53,7 +53,12 @@ import { Image, getImage } from 'astro:assets';
 import heroImg from '../../assets/hero/hero-belkhir-depannage-desktop-bd.png';
 import heroMobileImg from '../../assets/hero/hero-mobile-technicien-arrivee-belkhir.png';
 import Icon from '../ui/Icon.astro';
-import { services, type ServiceId, googleReviewSummary } from '../../data/landing';
+import {
+  services,
+  type ServiceId,
+  googleReviewSummary,
+  googleProofHref,
+} from '../../data/landing';
 import { siteConfig } from '../../lib/site-config';
 
 // Les cinq métiers du Hero réutilisent les données déjà centralisées pour
@@ -92,12 +97,11 @@ const metierHrefByService: Partial<Record<ServiceId, string>> = {
   'rideaux-metalliques': `${import.meta.env.BASE_URL}rideaux-metalliques/`,
 };
 
-// Badge de confiance Google : `siteConfig.googleReviewsUrl` reste `null`
-// tant qu'aucune fiche Google Business n'est validée par le client (voir
-// src/lib/site-config.ts). Sans URL réelle, le badge pointe vers l'ancre
-// réelle des avis de la landing (Reviews.astro, id="avis") plutôt que vers
-// une URL inventée ou un `href="#"`.
-const googleHref = siteConfig.googleReviewsUrl ?? '#avis';
+// Badge de confiance Google : lien interne vers la section Avis de la landing
+// (Reviews.astro, id="avis"), même onglet. `siteConfig.googleReviewsUrl` n'est
+// volontairement PAS utilisé ici : il pointe vers la fiche Google externe,
+// réservée aux cartes d'avis (voir `googleProofHref` dans src/data/landing.ts).
+const googleHref = googleProofHref;
 const googleRatingDisplay = googleReviewSummary.rating.toFixed(1).replace('.', ',');
 const googleAccessibleLabel = `${googleReviewSummary.label}, note de ${googleRatingDisplay} sur 5 basée sur ${googleReviewSummary.reviewCount} avis ${googleReviewSummary.platform}`;
 
@@ -1071,10 +1075,10 @@ const heroMobileOptimized = await getImage({
   /*
    * Mini-sprint 4, mission 3 (02/09/2026) : variante mobile compacte de la
    * preuve Google. Desktop conserve la structure à 2 lignes existante
-   * (étoiles + note, puis « Excellent · 277 avis Google » en dessous,
+   * (étoiles + note, puis « Excellent · 225 avis Google » en dessous,
    * strictement inchangée). Mobile condense sur une seule ligne (repliable
    * en 2 si l'espace manque, via `flex-wrap` sur `.hero__google-proof-top`)
-   * — étoiles, note, puis « — 277 avis Google » sans reprendre
+   * — étoiles, note, puis « — 225 avis Google » sans reprendre
    * « Excellent » ni le point médian, pour rester compact. Aucune nouvelle
    * note ni nouveau nombre d'avis : mêmes données (`googleReviewSummary`)
    * que la variante longue. `.hero__google-proof-meta--short` porte

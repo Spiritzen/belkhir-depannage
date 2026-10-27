@@ -226,7 +226,8 @@ describe('page /serrurerie/ — section 5 : avis-serrurerie (Reviews paramétrab
     const section = extractSection(serrurerieHtml, 'avis-serrurerie');
     expect(section).toContain('LA CONFIANCE SE CONSTRUIT SUR LE TERRAIN');
     expect(section).toContain('L’expérience de nos clients');
-    expect(section).toContain('Avis Google à connecter');
+    expect(section).not.toContain('Avis Google à connecter');
+    expect(section).toContain('4,7/5 — 225 avis Google');
   });
 
   it('never fabricates a testimonial, name, place or date', () => {

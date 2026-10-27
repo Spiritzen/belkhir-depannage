@@ -22,7 +22,7 @@ import { Image, getImage } from 'astro:assets';
 import heroDesktopImg from '../../assets/plomberie/hero-plomberie-desktop.png';
 import heroMobileImg from '../../assets/plomberie/hero-plomberie-mobile.png';
 import Icon from '../ui/Icon.astro';
-import { googleReviewSummary } from '../../data/landing';
+import { googleReviewSummary, googleProofHref } from '../../data/landing';
 import { siteConfig } from '../../lib/site-config';
 import { getPhoneCta } from '../../lib/phone';
 
@@ -44,11 +44,10 @@ const coverageHref = `${import.meta.env.BASE_URL}zones-intervention/`;
 
 // Preuve Google : même source de données que le Hero de la landing
 // (googleReviewSummary, src/data/landing.ts) — aucune nouvelle note
-// inventée. `siteConfig.googleReviewsUrl` reste `null` tant qu'aucune fiche
-// Google Business n'est validée ; en attendant, le badge pointe vers la
-// section avis réelle de la landing (Reviews.astro, id="avis") plutôt que
-// vers une URL inventée ou un `href="#"`.
-const googleHref = siteConfig.googleReviewsUrl ?? `${import.meta.env.BASE_URL}#avis`;
+// inventée. Le badge pointe vers la section avis de la landing (lien interne,
+// même onglet) via `googleProofHref`, et non vers `siteConfig.googleReviewsUrl`
+// (fiche Google externe, réservée aux cartes d'avis).
+const googleHref = googleProofHref;
 const googleRatingDisplay = googleReviewSummary.rating.toFixed(1).replace('.', ',');
 const googleAccessibleLabel = `${googleReviewSummary.label}, note de ${googleRatingDisplay} sur 5 basée sur ${googleReviewSummary.reviewCount} avis ${googleReviewSummary.platform}`;
 

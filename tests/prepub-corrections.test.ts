@@ -148,9 +148,9 @@ describe('PREPUB-006 — single URL source of truth, no temporary placeholder le
     // PROMPT_CLAUDE_CODE_MICRO_SPRINT_1_PAGE_PLOMBERIE_HERO.txt), puis pages
     // chauffage, serrurerie, vitrerie, rideaux métalliques, politique de
     // confidentialité et mentions légales (04/09/2026) : le site compte
-    // désormais huit pages réelles (landing + /plomberie/ + /chauffage/ +
+    // désormais neuf pages réelles (landing + /plomberie/ + /chauffage/ +
     // /serrurerie/ + /vitrerie/ + /rideaux-metalliques/ +
-    // /politique-de-confidentialite/ + /mentions-legales/), toutes
+    // /politique-de-confidentialite/ + /mentions-legales/ + /zones-intervention/), toutes
     // légitimement listées par @astrojs/sitemap. L'intention d'origine de ce
     // test — repérer un doublon accidentel de l'URL racine (avec et sans
     // slash final) — reste vérifiée via `new Set(...)`, sans figer l'ordre
@@ -167,6 +167,7 @@ describe('PREPUB-006 — single URL source of truth, no temporary placeholder le
         '<loc>https://spiritzen.github.io/belkhir-depannage/rideaux-metalliques/</loc>',
         '<loc>https://spiritzen.github.io/belkhir-depannage/politique-de-confidentialite/</loc>',
         '<loc>https://spiritzen.github.io/belkhir-depannage/mentions-legales/</loc>',
+        '<loc>https://spiritzen.github.io/belkhir-depannage/zones-intervention/</loc>',
       ]),
     );
     expect(new Set(locs).size).toBe(locs.length);

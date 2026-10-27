@@ -82,6 +82,8 @@ export interface SiteConfig {
    * prompt de mission.
    */
   isPreview: boolean;
-  /** URL Google avis, si validée. Null tant qu'aucune fiche n'est confirmée. */
+  /** Lien officiel pour DÉPOSER un avis Google. */
+  googleReviewWriteUrl: string;
+  /** Lien public pour CONSULTER tous les avis, si validé. Null sinon. */
   googleReviewsUrl: string | null;
 }
