@@ -150,10 +150,12 @@ describe('landing page — contenu et garde-fous (section 29 du prompt de missio
     }
   });
 
-  it('15. marks preview/mock data explicitly (isPreview, mock reviews and interventions)', () => {
+  it('15. keeps the preview mention, with no placeholder wording in the interventions', () => {
     expect(html).toContain('Maquette de prévisualisation');
     expect(html).not.toContain('Avis Google à connecter');
-    expect(html).toContain('exemple');
+    const latest = html.match(/<section class="latest"[\s\S]*?<\/section>/)?.[0] ?? '';
+    expect(latest).toContain('Nos interventions sur le terrain');
+    expect(latest).not.toMatch(/exemple|Content Collections|à connecter|en attente/i);
   });
 
   it('16. shows the legacy logo in both the navbar and the footer', () => {

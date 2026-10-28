@@ -455,44 +455,56 @@ export const coverageZones: CoverageZone[] = [
   { code: '02', name: 'Aisne' },
 ];
 
-export interface InterventionPreview {
+export interface Intervention {
   id: string;
   serviceLabel: string;
   title: string;
   zoneMention: string;
   description: string;
-  imageId: 'latest-1' | 'latest-2' | 'latest-3';
-  isMock: true;
+  imageId: 'vitrerie' | 'chauffage' | 'plomberie';
+  imageAlt: string;
+  ctaLabel: string;
+  /** Page métier de destination (avec BASE_URL). */
+  href: string;
 }
 
-/** Dernières interventions — démonstration visuelle, données mock (section 17 du prompt). */
-export const interventionsPreview: InterventionPreview[] = [
+/** Section « Nos interventions sur le terrain » : trois cartes vers les pages métiers. */
+export const interventions: Intervention[] = [
   {
-    id: 'demo-chauffage-1',
-    serviceLabel: 'Chauffage',
-    title: 'Intervention chauffage (exemple)',
+    id: 'vitrerie',
+    serviceLabel: 'Vitrerie',
+    title: 'Remplacement complet d’une vitrine commerciale',
     zoneMention: 'Hauts-de-France',
-    description: 'Exemple de fiche d’intervention chauffage, en attente de contenus réels validés.',
-    imageId: 'latest-1',
-    isMock: true,
+    description:
+      'Dépose et remplacement de l’ensemble des vitrages pour redonner à la façade transparence, luminosité et une finition soignée.',
+    imageId: 'vitrerie',
+    imageAlt: 'Chantier de remplacement complet des vitrages d’une vitrine commerciale',
+    ctaLabel: 'Découvrir la vitrerie',
+    href: `${import.meta.env.BASE_URL}vitrerie/`,
   },
   {
-    id: 'demo-chauffage-2',
+    id: 'chauffage',
     serviceLabel: 'Chauffage',
-    title: 'Installation chaudière (exemple)',
+    title: 'Remise en service d’une chaudière',
     zoneMention: 'Hauts-de-France',
-    description: 'Exemple de fiche d’intervention chaudière, en attente de contenus réels validés.',
-    imageId: 'latest-2',
-    isMock: true,
+    description:
+      'Diagnostic ciblé, contrôle de sécurité et remise en fonctionnement pour retrouver rapidement confort et eau chaude.',
+    imageId: 'chauffage',
+    imageAlt: 'Chaudière murale et ses raccordements en cuivre',
+    ctaLabel: 'Découvrir le chauffage',
+    href: `${import.meta.env.BASE_URL}chauffage/`,
   },
   {
-    id: 'demo-plomberie-1',
-    serviceLabel: 'Plomberie / Chauffage',
-    title: 'Intervention tuyauterie (exemple)',
+    id: 'plomberie',
+    serviceLabel: 'Plomberie',
+    title: 'Réparation d’une fuite sur tuyauterie',
     zoneMention: 'Hauts-de-France',
-    description: 'Exemple de fiche d’intervention plomberie, en attente de contenus réels validés.',
-    imageId: 'latest-3',
-    isMock: true,
+    description:
+      'Recherche de l’origine, limitation des dégâts et réparation adaptée pour sécuriser durablement l’installation.',
+    imageId: 'plomberie',
+    imageAlt: 'Tuyauterie en cuivre d’une installation de chauffage',
+    ctaLabel: 'Découvrir la plomberie',
+    href: `${import.meta.env.BASE_URL}plomberie/`,
   },
 ];
 

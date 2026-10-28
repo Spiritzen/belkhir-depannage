@@ -1,44 +1,50 @@
 ---
 /**
- * Dernières interventions (section 17 du prompt de mission). Trois cartes
- * de démonstration maximum, données explicitement mock, photographies
- * réelles issues de l'ancienne landing (dossiers 2025/09 et 2025/10).
+ * Nos interventions sur le terrain : trois cartes (vitrerie, chauffage,
+ * plomberie) qui mènent chacune à la page métier correspondante. Données :
+ * `interventions` dans src/data/landing.ts (liens avec BASE_URL).
  */
 import { Image } from 'astro:assets';
-import img1 from '../../assets/legacy/activite-recente-2.jpg';
-import img2 from '../../assets/legacy/activite-recente-3.jpg';
-import img3 from '../../assets/legacy/activite-recente-5.jpg';
-import { interventionsPreview } from '../../data/landing';
+import imgVitrerie from '../../assets/legacy/vitrerie.jpg';
+import imgChauffage from '../../assets/legacy/activite-recente-3.jpg';
+import imgPlomberie from '../../assets/legacy/activite-recente-5.jpg';
+import { interventions } from '../../data/landing';
 
-const images = { 'latest-1': img1, 'latest-2': img2, 'latest-3': img3 } as const;
+const images = { vitrerie: imgVitrerie, chauffage: imgChauffage, plomberie: imgPlomberie } as const;
 ---
 
 <section class="latest" id="interventions-recentes" aria-labelledby="latest-title">
   <div class="container">
     <div class="section-heading" data-reveal="up">
-      <h2 id="latest-title">Dernières interventions</h2>
-      <p class="latest__mock-note">
-        Exemples de présentation — contenus réels à connecter (Content Collections).
+      <h2 id="latest-title">Nos interventions sur le terrain</h2>
+      <p>
+        Vitrerie, chauffage ou plomberie : notre équipe intervient avec méthode pour apporter une
+        solution fiable et rétablir rapidement la situation.
       </p>
     </div>
 
     <div class="latest__grid" data-reveal-group="latest">
       {
-        interventionsPreview.map((item) => (
+        interventions.map((item) => (
           <article class="latest__card" data-reveal="up">
-            <Image
-              src={images[item.imageId]}
-              alt=""
-              class="latest__img"
-              widths={[320, 480, 640]}
-              sizes="(max-width: 56rem) 100vw, 30vw"
-            />
+            <div class="latest__media">
+              <Image
+                src={images[item.imageId]}
+                alt={item.imageAlt}
+                class={`latest__img latest__img--${item.imageId}`}
+                width={960}
+                widths={[480, 720, 960]}
+                sizes="(max-width: 56rem) 100vw, 30vw"
+              />
+            </div>
             <div class="latest__body">
               <p class="latest__service">{item.serviceLabel}</p>
-              <p class="latest__title">{item.title}</p>
+              <h3 class="latest__title">{item.title}</h3>
               <p class="latest__zone">{item.zoneMention}</p>
               <p class="latest__desc">{item.description}</p>
-              <span class="latest__link">Voir l’intervention</span>
+              <a class="latest__link" href={item.href}>
+                {item.ctaLabel} <span aria-hidden="true">→</span>
+              </a>
             </div>
           </article>
         ))
@@ -58,12 +64,6 @@ const images = { 'latest-1': img1, 'latest-2': img2, 'latest-3': img3 } as const
     background: radial-gradient(circle at 20% 0%, rgba(255, 105, 0, 0.1), transparent 34%), #fff7f0;
   }
 
-  .latest__mock-note {
-    font-size: 0.8rem;
-    color: var(--color-muted);
-    font-style: italic;
-  }
-
   .latest__grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -71,29 +71,72 @@ const images = { 'latest-1': img1, 'latest-2': img2, 'latest-3': img3 } as const
   }
 
   .latest__card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     overflow: hidden;
     background: var(--color-white);
     box-shadow: var(--shadow-sm);
     transition:
-      transform 0.25s ease,
-      box-shadow 0.25s ease;
+      transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.28s ease,
+      border-color 0.28s ease;
   }
 
-  .latest__card:hover,
+  /* Focus clavier : même rendu que le hover (élévation de 4 px, bordure et
+     halo orange discrets, plus sobres que les cartes d'avis). Aucun
+     changement de taille, donc aucun saut de mise en page. */
   .latest__card:focus-within {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--color-brand) 55%, transparent);
+    box-shadow:
+      var(--shadow-sm),
+      0 10px 24px color-mix(in srgb, var(--color-brand) 14%, transparent);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .latest__card:hover {
+      transform: translateY(-4px);
+      border-color: color-mix(in srgb, var(--color-brand) 55%, transparent);
+      box-shadow:
+        var(--shadow-sm),
+        0 10px 24px color-mix(in srgb, var(--color-brand) 14%, transparent);
+    }
+  }
+
+  .latest__card:active {
+    transform: scale(0.99);
+    transition-duration: 0.12s;
+  }
+
+  .latest__media {
+    overflow: hidden;
+    height: 12rem;
   }
 
   .latest__img {
+    display: block;
     width: 100%;
-    height: 12rem;
+    height: 100%;
     object-fit: cover;
   }
 
+  /* Cadrage de la photo vitrerie (4000×3000) : zoom statique sur l'entrée et
+     les barrières de chantier ; le bandeau d'enseigne est coupé en haut et le
+     marquage photographique du bas-gauche sort du cadre. Aucune retouche du
+     fichier source. */
+  .latest__img--vitrerie {
+    object-position: 50% 100%;
+    transform: scale(1.5);
+    transform-origin: 60% 55.7%;
+  }
+
   .latest__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
     padding: var(--space-3);
   }
 
@@ -107,7 +150,9 @@ const images = { 'latest-1': img1, 'latest-2': img2, 'latest-3': img3 } as const
 
   .latest__title {
     font-family: var(--font-heading);
+    font-size: 1rem;
     font-weight: 700;
+    line-height: 1.3;
     margin-block: 0.25rem;
   }
 
@@ -121,17 +166,49 @@ const images = { 'latest-1': img1, 'latest-2': img2, 'latest-3': img3 } as const
     margin-top: 0.4rem;
   }
 
+  /* Lien unique de la carte : son ::after couvre toute la carte (zone
+     cliquable complète, sans lien imbriqué). Visible en permanence : aucune
+     dépendance au hover. */
   .latest__link {
     display: inline-block;
-    margin-top: 0.6rem;
+    margin-top: auto;
+    padding-top: 0.6rem;
     font-size: 0.85rem;
     font-weight: 700;
     color: var(--color-orange-700);
+    text-decoration: none;
+  }
+
+  .latest__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .latest__link:focus-visible {
+    outline: none;
+  }
+
+  .latest__card:has(.latest__link:focus-visible) {
+    outline: 3px solid #1a1a1a;
+    outline-offset: 3px;
   }
 
   @media (max-width: 56rem) {
     .latest__grid {
       grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .latest__card {
+      transition: none;
+    }
+
+    .latest__card:hover,
+    .latest__card:focus-within,
+    .latest__card:active {
+      transform: none;
     }
   }
 </style>

@@ -3,7 +3,7 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import IndexPage from '../src/pages/index.astro';
-import { faqItems, interventionsPreview } from '../src/data/landing';
+import { faqItems, interventions } from '../src/data/landing';
 
 // Tests couvrant la micro-retouche « fonds FAQ/Interventions récentes et
 // signature de marque du footer » (01/09/2026, instruction directe).
@@ -72,13 +72,13 @@ describe('micro-retouche — fond blanc abricot FAQ / Interventions récentes', 
     expect(faqSectionHtml).toContain('class="faq__trigger"');
   });
 
-  it('6. Latest Interventions content is untouched: same cards, same titles', () => {
+  it('6. Latest Interventions renders one card per intervention, with its title', () => {
     const latestSectionHtml =
       pageHtml.match(/<section class="latest"[\s\S]*?<\/section>/)?.[0] ?? '';
-    expect(latestSectionHtml).toContain('Dernières interventions');
+    expect(latestSectionHtml).toContain('Nos interventions sur le terrain');
     const cardMatches = latestSectionHtml.match(/class="latest__card"/g) ?? [];
-    expect(cardMatches).toHaveLength(interventionsPreview.length);
-    for (const item of interventionsPreview) {
+    expect(cardMatches).toHaveLength(interventions.length);
+    for (const item of interventions) {
       expect(latestSectionHtml).toContain(item.title);
     }
   });
