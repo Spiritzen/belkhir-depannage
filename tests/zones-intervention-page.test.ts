@@ -43,7 +43,7 @@ describe('page /zones-intervention/ — SEO (dist/, base-dépendant)', () => {
 
   it('has a canonical URL built from site + base, ending on /zones-intervention/', () => {
     expect(distHtml).toContain(
-      '<link rel="canonical" href="https://spiritzen.github.io/belkhir-depannage/zones-intervention/">',
+      '<link rel="canonical" href="https://belkhir-depannage-hdf.fr/zones-intervention/">',
     );
   });
 
@@ -53,7 +53,7 @@ describe('page /zones-intervention/ — SEO (dist/, base-dépendant)', () => {
 
   it('is listed in the generated sitemap', () => {
     expect(sitemapXml).toContain(
-      'https://spiritzen.github.io/belkhir-depannage/zones-intervention/',
+      'https://belkhir-depannage-hdf.fr/zones-intervention/',
     );
   });
 

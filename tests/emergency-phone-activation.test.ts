@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeAll } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 // Sprint correctif d'architecture (01/09/2026) : la première version de ce
@@ -67,22 +67,24 @@ describe('correctif d’architecture — la configuration officielle ne dépend 
     expect(emergencyBlockMatch?.[0]).toContain('EMERGENCY_PHONE_INTERNATIONAL');
   });
 
-  it('2. .env / .env.example ne définissent plus EMERGENCY_PHONE_* (mais gardent les autres variables intactes)', () => {
-    const envPath = fileURLToPath(new URL('../.env', import.meta.url));
-    const envSource = readFileSync(envPath, 'utf-8');
-    // Aucune ligne d'affectation active ou commentée (le nom peut encore
-    // apparaître dans la prose explicative du fichier, ce qui est légitime).
-    expect(envSource).not.toMatch(/^#?\s*EMERGENCY_PHONE_DISPLAY=/m);
-    expect(envSource).not.toMatch(/^#?\s*EMERGENCY_PHONE_INTERNATIONAL=/m);
-    // Les variables sans rapport restent présentes, inchangées.
-    expect(envSource).toContain('ENABLE_INDEXING=false');
-    expect(envSource).toMatch(/^# STANDARD_PHONE_DISPLAY=/m);
-
+  it('2. .env.example (versionné, valeurs factices) et .env local éventuel ne définissent plus EMERGENCY_PHONE_*', () => {
+    // Le `.env` réel est ignoré par Git et absent d'une copie propre / de la CI :
+    // l'assertion de référence porte sur `.env.example`, toujours présent. Le
+    // `.env` local n'est contrôlé que s'il existe.
     const examplePath = fileURLToPath(new URL('../.env.example', import.meta.url));
     const exampleSource = readFileSync(examplePath, 'utf-8');
-    expect(exampleSource).not.toMatch(/^EMERGENCY_PHONE_DISPLAY=/m);
-    expect(exampleSource).not.toMatch(/^EMERGENCY_PHONE_INTERNATIONAL=/m);
-    expect(exampleSource).not.toMatch(/^# EMERGENCY_PHONE_DISPLAY=/m);
+    expect(exampleSource).not.toMatch(/^#?s*EMERGENCY_PHONE_DISPLAY=/m);
+    expect(exampleSource).not.toMatch(/^#?s*EMERGENCY_PHONE_INTERNATIONAL=/m);
+    // Les variables sans rapport restent présentes, inchangées.
+    expect(exampleSource).toContain('ENABLE_INDEXING=false');
+    expect(exampleSource).toMatch(/^# STANDARD_PHONE_DISPLAY=/m);
+
+    const envPath = fileURLToPath(new URL('../.env', import.meta.url));
+    if (existsSync(envPath)) {
+      const envSource = readFileSync(envPath, 'utf-8');
+      expect(envSource).not.toMatch(/^#?s*EMERGENCY_PHONE_DISPLAY=/m);
+      expect(envSource).not.toMatch(/^#?s*EMERGENCY_PHONE_INTERNATIONAL=/m);
+    }
   });
 
   it('3. le rendu fonctionne à l’identique lorsque les variables d’environnement sont totalement absentes', async () => {

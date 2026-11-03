@@ -41,9 +41,9 @@ describe('page /mentions-legales/ — SEO (dist/, base-dépendant)', () => {
     expect(distHtml).toContain('<title>Mentions légales | Belkhir Dépannage</title>');
   });
 
-  it('has a canonical URL under the real GitHub Pages subpath', () => {
+  it('has a canonical URL on the LWS root domain', () => {
     expect(distHtml).toContain(
-      '<link rel="canonical" href="https://spiritzen.github.io/belkhir-depannage/mentions-legales/">',
+      '<link rel="canonical" href="https://belkhir-depannage-hdf.fr/mentions-legales/">',
     );
   });
 
@@ -73,9 +73,10 @@ describe('page /mentions-legales/ — Hero abstrait, propre à cette page', () =
     expect(heroHtml).toContain(
       'Retrouvez les informations relatives à l’éditeur, au responsable de la publication',
     );
-    expect(heroHtml).toContain('SASU');
-    expect(heroHtml).toContain('RCS Amiens');
-    expect(heroHtml).toContain('SIREN 977 900 216');
+    expect(heroHtml).toContain('Éditeur');
+    expect(heroHtml).toContain('Hébergeur LWS');
+    expect(heroHtml).toContain('Droit français');
+    expect(heroHtml).not.toContain('977 900 216');
   });
 
   it('never uses a raster <img> or a background photograph (abstract SVG only)', () => {
@@ -113,15 +114,54 @@ describe('page /mentions-legales/ — Hero abstrait, propre à cette page', () =
 });
 
 describe('page /mentions-legales/ — éditeur, direction de la publication, hébergeur', () => {
-  it('renders the exact validated publisher identity, never reformulated', () => {
-    expect(pageHtml).toContain('BELKHIR DEPANNAGE');
-    expect(pageHtml).toContain('Société par actions simplifiée unipersonnelle (SASU)');
-    expect(pageHtml).toContain('1 000 €');
-    expect(pageHtml).toContain('13 bis rue du Pont Blanc, 80300 Albert, France');
-    expect(pageHtml).toContain('977 900 216');
-    expect(pageHtml).toContain('977 900 216 00010');
-    expect(pageHtml).toContain('Amiens 977 900 216');
-    expect(pageHtml).toContain('FR68 977900216');
+  it('publishes the official publisher identity (Annuaire des Entreprises) and nothing beyond', () => {
+    const editeur = pageHtml.match(/<section[^>]*id="editeur"[\s\S]*?<\/section>/)?.[0] ?? '';
+    const text = editeur.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    expect(text).toContain('BELKHIR DEPANNAGE');
+    expect(text).toMatch(/Société par actions simplifiée/);
+    expect(text).toContain('977 900 216');
+    expect(text).toContain('977 900 216 00010');
+    expect(text.toLowerCase().replace(/[.,]/g, '')).toContain('13 bis rue du pont blanc');
+    expect(text).toContain('80300 Albert');
+    expect(text).toContain('43.22A');
+    expect(text).toContain('Fouad Belkhir, Président');
+    // Capital et RCS non confirmés par la source consultée : marqueurs, pas de valeur.
+    expect(text.match(/\[À COMPLÉTER AVANT MISE EN LIGNE\]/g)?.length).toBe(3);
+    expect(text).not.toContain('1 000');
+    expect(text).not.toContain('RCS Amiens');
+  });
+
+  it('minimisation: no old sole-trader SIREN, birth data, nationality, VAT number or staff size', () => {
+    const text = pageHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    expect(text).not.toContain('907 702 377');
+    expect(text).not.toContain('907702377');
+    expect(text).not.toMatch(/n[ée]\(?e?\)? le|date de naissance|1984|nationalité/i);
+    expect(text).not.toMatch(/FR\d{2}\s?977/);
+    expect(text).not.toMatch(/effectif/i);
+  });
+
+  it('Fouad Belkhir appears only in the legal context (editor and publication director)', () => {
+    const text = pageHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    expect(text.match(/Fouad Belkhir/g)?.length).toBe(2);
+    expect(pageHtml).not.toContain('FOUAD');
+  });
+
+  it('shows the new domain and the nine required legal topics', () => {
+    expect(pageHtml).toContain('belkhir-depannage-hdf.fr');
+    for (const id of [
+      'editeur',
+      'direction-publication',
+      'hebergement',
+      'propriete-intellectuelle',
+      'responsabilite-utilisation',
+      'situations-danger',
+      'mediation-consommation',
+      'droit-applicable-contact',
+    ]) {
+      expect(pageHtml).toContain(`id="${id}"`);
+    }
+    expect(pageHtml).toContain('Coordonnées de contact');
+    expect(pageHtml).toContain('LIENS EXTERNES ET NUMÉROS DE SECOURS');
   });
 
   it('never publishes the fake standard phone or its placeholder in the editeur section (shared navbar/footer keep their own pre-existing placeholder, out of scope here)', () => {
@@ -140,17 +180,20 @@ describe('page /mentions-legales/ — éditeur, direction de la publication, hé
     expect(mailtoLinks.length).toBeGreaterThanOrEqual(3);
   });
 
-  it('names Fouad BELKHIR as the publication director, never the developer', () => {
-    expect(pageHtml).toContain('Fouad BELKHIR');
-    expect(pageHtml).toContain('jamais le développeur du site');
+  it('names the publication director in his legal capacity, never the developer', () => {
+    const section =
+      pageHtml.match(/<section[^>]*id="direction-publication"[\s\S]*?<\/section>/)?.[0] ?? '';
+    expect(section).toContain('Fouad Belkhir, Président de BELKHIR DEPANNAGE');
+    expect(section).toContain('jamais le prestataire technique');
   });
 
-  it('identifies GitHub, Inc. and GitHub Pages as the real current host', () => {
-    expect(pageHtml).toContain('GitHub, Inc.');
-    expect(pageHtml).toContain('GitHub Pages');
-    expect(pageHtml).toContain('88 Colin P. Kelly Jr. Street, San Francisco, CA 94107');
-    expect(pageHtml).toContain('+1 415 735 4488');
-    expect(pageHtml).toMatch(/href="https:\/\/github\.com\/"[^>]*target="_blank"/);
+  it('identifies LWS as the host (official identification), never GitHub Pages', () => {
+    expect(pageHtml).toContain('LWS — Ligne Web Services SAS');
+    expect(pageHtml).toContain('10 rue Penthièvre, 75008 Paris, France');
+    expect(pageHtml).toContain('851 993 683 00024');
+    expect(pageHtml).toMatch(/href="https:\/\/www\.lws\.fr\/"[^>]*target="_blank"/);
+    expect(pageHtml).toContain('https://www.lws.fr/a_propos_infos.php');
+    expect(pageHtml).not.toContain('GitHub');
   });
 });
 
@@ -171,7 +214,8 @@ describe('page /mentions-legales/ — attribution cartographique et propriété 
 
 describe('page /mentions-legales/ — médiateur de la consommation explicitement à compléter', () => {
   it('shows the exact mandatory placeholder flag', () => {
-    expect(pageHtml).toContain('[RESTE À COMPLÉTER AVANT MISE EN PRODUCTION]');
+    expect(pageHtml).toContain('[À COMPLÉTER AVANT MISE EN LIGNE]');
+    expect(pageHtml).not.toContain('[RESTE À COMPLÉTER AVANT MISE EN PRODUCTION]');
   });
 
   it('never invents a mediator name, address or website', () => {
@@ -179,7 +223,7 @@ describe('page /mentions-legales/ — médiateur de la consommation explicitemen
       /<section[^>]*id="mediation-consommation"[\s\S]*?<\/section>/,
     )?.[0];
     expect(section).toBeDefined();
-    expect(section).toContain('à compléter');
+    expect(section).toContain('[À COMPLÉTER AVANT MISE EN LIGNE]');
     for (const forbidden of [
       'médiateur national de l’énergie',
       'cnil',

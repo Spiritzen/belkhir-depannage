@@ -35,11 +35,11 @@ import Hero from '../../components/confidentialite/Hero.astro';
 
 const title = 'Politique de confidentialité | Belkhir Dépannage';
 const description =
-  'Belkhir Dépannage ne dépose aucun cookie et ne collecte vos coordonnées via aucun formulaire. ' +
-  'Découvrez comment les informations communiquées par téléphone sont utilisées.';
+  'Belkhir Dépannage ne dépose aucun cookie ni traceur. Découvrez comment les informations ' +
+  'communiquées par téléphone sont utilisées et où en est le formulaire de devis, non encore raccordé.';
 
 const contactEmail = 'belkhirdepannage@gmail.com';
-const lastUpdated = '4 septembre 2026';
+const lastUpdated = '3 novembre 2026';
 ---
 
 <BaseLayout
@@ -70,7 +70,10 @@ const lastUpdated = '4 septembre 2026';
       <h2 id="essentiel-title">Ce qu’il faut retenir avant de lire le détail</h2>
 
       <ul class="legal-section__list">
-        <li>Le site ne collecte aucune coordonnée par formulaire — il n’en existe aucun.</li>
+        <li>
+          Le formulaire de demande de devis ne transmet des informations que si vous le remplissez
+          et l’envoyez volontairement ; elles servent uniquement à traiter votre demande.
+        </li>
         <li>Aucun cookie ni traceur n’est déposé par le site.</li>
         <li>Aucun profil publicitaire ni suivi de navigation n’est créé.</li>
         <li>
@@ -97,10 +100,10 @@ const lastUpdated = '4 septembre 2026';
         <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
         RESPONSABLE DU TRAITEMENT
       </p>
-      <h2 id="responsable-traitement-title">La société BELKHIR DEPANNAGE</h2>
+      <h2 id="responsable-traitement-title">L’éditeur du site</h2>
       <p class="legal-section__text">
         Le responsable du traitement des données décrites dans cette page est la société BELKHIR
-        DEPANNAGE — jamais GitHub, ni le développeur du site.
+        DEPANNAGE, éditrice du site — jamais l’hébergeur, ni le développeur du site.
       </p>
 
       <dl class="legal-section__identity">
@@ -110,11 +113,7 @@ const lastUpdated = '4 septembre 2026';
         </div>
         <div>
           <dt>Forme juridique</dt>
-          <dd>Société par actions simplifiée unipersonnelle (SASU)</dd>
-        </div>
-        <div>
-          <dt>Président</dt>
-          <dd>Fouad BELKHIR</dd>
+          <dd>Société par actions simplifiée (SAS)</dd>
         </div>
         <div>
           <dt>SIREN</dt>
@@ -123,14 +122,6 @@ const lastUpdated = '4 septembre 2026';
         <div>
           <dt>SIRET du siège</dt>
           <dd>977 900 216 00010</dd>
-        </div>
-        <div>
-          <dt>RCS</dt>
-          <dd>Amiens 977 900 216</dd>
-        </div>
-        <div>
-          <dt>Capital social</dt>
-          <dd>1 000 €</dd>
         </div>
         <div>
           <dt>Siège social</dt>
@@ -162,8 +153,7 @@ const lastUpdated = '4 septembre 2026';
       <div class="legal-section__subsection">
         <h3>1. Navigation sur le site</h3>
         <ul class="legal-section__list">
-          <li>aucune donnée nominative n’est directement demandée ;</li>
-          <li>aucun formulaire ;</li>
+          <li>aucune donnée nominative n’est collectée par la simple navigation ;</li>
           <li>aucun compte client ;</li>
           <li>aucun cookie, <code>localStorage</code> ou <code>sessionStorage</code> ;</li>
           <li>aucune analyse d’audience ni publicité.</li>
@@ -190,22 +180,52 @@ const lastUpdated = '4 septembre 2026';
       <div class="legal-section__subsection">
         <h3>3. Données techniques d’hébergement</h3>
         <p class="legal-section__text">
-          Le site est hébergé sur GitHub Pages. GitHub peut traiter les informations techniques
-          habituelles nécessaires à la diffusion et à la sécurité du service, telles que l’adresse
-          IP, le navigateur, l’URL demandée et l’horodatage. Ces journaux relèvent de
-          l’infrastructure d’hébergement et ne sont pas utilisés par Belkhir Dépannage pour établir
-          un profil commercial. Pour le détail de ce traitement, propre à GitHub, se reporter à sa
-          politique de confidentialité :
-          <a
-            href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            politique de confidentialité de GitHub<span class="visually-hidden">
-              (nouvelle fenêtre)</span
-            >
-          </a>.
+          Le site est hébergé par LWS (Ligne Web Services SAS). Comme tout hébergeur, LWS peut
+          traiter des journaux techniques standards nécessaires à la diffusion et à la sécurité du
+          service : adresse IP, navigateur (user-agent), URL demandée, date et heure, ainsi que des
+          données de sécurité. Ces journaux relèvent de l’infrastructure d’hébergement et ne sont
+          pas utilisés par Belkhir Dépannage pour établir un profil commercial.
         </p>
+      </div>
+
+      <div class="legal-section__subsection">
+        <h3>4. Liens externes vers Google</h3>
+        <p class="legal-section__text">
+          Le site contient des liens vers Google pour consulter ou déposer un avis. Ces liens ne
+          chargent aucun widget : aucune donnée n’est transmise à Google tant que vous ne cliquez
+          pas. Après un clic, vous quittez le site et les conditions de Google s’appliquent.
+        </p>
+      </div>
+
+      <div class="legal-section__subsection">
+        <h3>5. Formulaire de demande de devis</h3>
+        <ul class="legal-section__list">
+          <li>
+            les informations sont saisies volontairement par vous dans la fenêtre « Demander un
+            devis gratuit » : nom et prénom, téléphone, commune ou code postal, type d’intervention,
+            délai souhaité et description de la situation ;
+          </li>
+          <li>
+            elles sont transmises par connexion sécurisée à BELKHIR DEPANNAGE, qui les reçoit à
+            l’adresse formulaire@belkhir-depannage-hdf.fr ;
+          </li>
+          <li>
+            finalité : traiter votre demande de devis et vous recontacter à votre initiative ;
+          </li>
+          <li>
+            base légale : mesures précontractuelles prises à votre demande (article 6.1.b du RGPD) ;
+          </li>
+          <li>
+            accès limité aux personnes habilitées de BELKHIR DEPANNAGE ; aucune prospection
+            commerciale, newsletter ni réutilisation publicitaire n’en découle ;
+          </li>
+          <li>
+            conservation : jusqu’à un an lorsque la demande n’aboutit pas à une relation
+            contractuelle. Si une relation contractuelle naît, les données nécessaires sont ensuite
+            conservées selon les obligations légales applicables ;
+          </li>
+          <li>le site ne dépose aucun cookie ni traceur lors de l’envoi.</li>
+        </ul>
       </div>
     </div>
   </section>
@@ -278,7 +298,7 @@ const lastUpdated = '4 septembre 2026';
 
       <p class="legal-section__text">Les destinataires possibles restent limités à :</p>
       <ul class="legal-section__list">
-        <li>les personnes autorisées au sein de BELKHIR DEPANNAGE ;</li>
+        <li>les personnes autorisées au sein de l’éditeur du site ;</li>
         <li>
           un intervenant participant réellement à la prise en charge, uniquement pour les
           informations strictement nécessaires ;
@@ -290,8 +310,8 @@ const lastUpdated = '4 septembre 2026';
         <li>les autorités ou services légalement habilités lorsqu’une obligation l’impose.</li>
       </ul>
       <p class="legal-section__text">
-        GitHub n’est cité que pour les données techniques liées à l’hébergement du site (voir
-        section « Données concernées et origine »).
+        L’hébergeur LWS n’est cité que pour les données techniques liées à l’hébergement du site
+        (voir section « Données concernées et origine »).
       </p>
     </div>
   </section>
@@ -322,7 +342,12 @@ const lastUpdated = '4 septembre 2026';
           durées imposées par les obligations légales, comptables ou nécessaires à la défense de
           droits ;
         </li>
-        <li>les journaux techniques éventuels sont conservés selon les règles de l’hébergeur.</li>
+        <li>les journaux techniques éventuels sont conservés selon les règles de l’hébergeur ;</li>
+        <li>
+          demandes de devis : jusqu’à un an lorsque la demande n’aboutit pas à une relation
+          contractuelle ; si une relation contractuelle naît, les données nécessaires sont ensuite
+          conservées selon les obligations légales applicables.
+        </li>
       </ul>
     </div>
   </section>
@@ -434,7 +459,7 @@ const lastUpdated = '4 septembre 2026';
       <p class="legal-section__updated">Dernière mise à jour : {lastUpdated}.</p>
 
       <p class="legal-section__closing">
-        Une question sur l’utilisation de vos informations ? Vous pouvez contacter BELKHIR DEPANNAGE
+        Une question sur l’utilisation de vos informations ? Vous pouvez contacter Belkhir Dépannage
         à tout moment à <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.
       </p>
     </div>

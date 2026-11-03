@@ -37,3 +37,9 @@ Thumbs.db
 
 # Fichiers de configuration temporaires générés par Vite au démarrage.
 *.timestamp-*.mjs
+
+# PHP (endpoint formulaire) : dépendances reconstruites par Composer, jamais versionnées.
+/vendor/
+# Configuration réelle du formulaire (secrets) : ne doit jamais entrer dans le dépôt.
+/formulaire.config.php
+*.secret.php

@@ -41,9 +41,9 @@ describe('page /politique-de-confidentialite/ — SEO (dist/, base-dépendant)',
     expect(distHtml).toContain('<title>Politique de confidentialité | Belkhir Dépannage</title>');
   });
 
-  it('has a canonical URL under the real GitHub Pages subpath', () => {
+  it('has a canonical URL on the LWS root domain', () => {
     expect(distHtml).toContain(
-      '<link rel="canonical" href="https://spiritzen.github.io/belkhir-depannage/politique-de-confidentialite/">',
+      '<link rel="canonical" href="https://belkhir-depannage-hdf.fr/politique-de-confidentialite/">',
     );
   });
 
@@ -71,12 +71,13 @@ describe('page /politique-de-confidentialite/ — Hero abstrait, sans photo', ()
   it('renders the exact eyebrow and intro paragraph', () => {
     expect(heroHtml).toContain('CONFIDENTIALITÉ · TRANSPARENCE · RESPECT');
     expect(heroHtml).toContain(
-      'Aucun formulaire, aucun outil publicitaire et aucun dispositif de suivi ne collecte vos',
+      'outil publicitaire et aucun dispositif de suivi ne collecte vos coordonnées pendant votre',
     );
+    expect(heroHtml).toContain('seul le formulaire de devis, rempli à votre initiative');
   });
 
   it('renders the three short proofs', () => {
-    expect(heroHtml).toContain('Aucun formulaire');
+    expect(heroHtml).toContain('Formulaire à votre initiative');
     expect(heroHtml).toContain('Aucun cookie');
     expect(heroHtml).toContain('Aucune revente de données');
   });
@@ -112,19 +113,39 @@ describe('page /politique-de-confidentialite/ — Hero abstrait, sans photo', ()
 });
 
 describe('page /politique-de-confidentialite/ — informations administratives exactes', () => {
-  it('renders the exact validated legal identity, never reformulated', () => {
-    expect(pageHtml).toContain('BELKHIR DEPANNAGE');
-    expect(pageHtml).toContain('Société par actions simplifiée unipersonnelle (SASU)');
-    expect(pageHtml).toContain('Fouad BELKHIR');
-    expect(pageHtml).toContain('977 900 216');
-    expect(pageHtml).toContain('977 900 216 00010');
-    expect(pageHtml).toContain('Amiens 977 900 216');
-    expect(pageHtml).toContain('1 000 €');
-    expect(pageHtml).toContain('13 bis rue du Pont Blanc, 80300 Albert, France');
+  it('shows the official controller identity, with the registered office as postal address', () => {
+    const section =
+      pageHtml.match(/<section[^>]*id="responsable-traitement"[\s\S]*?<\/section>/)?.[0] ?? '';
+    const text = section.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    expect(text).toContain('BELKHIR DEPANNAGE');
+    expect(text).toContain('Société par actions simplifiée (SAS)');
+    expect(text).toContain('977 900 216');
+    expect(text).toContain('977 900 216 00010');
+    expect(text.toLowerCase().replace(/[.,]/g, '')).toContain('13 bis rue du pont blanc');
+    expect(text).toContain('80300 Albert');
+    expect(text).toContain('belkhirdepannage@gmail.com');
+    expect(text).not.toContain('[À COMPLÉTER');
+    const page = pageHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    expect(page).toContain('BELKHIR DEPANNAGE, 13 bis rue du Pont Blanc, 80300 Albert, France');
+    expect(page).not.toContain('[À COMPLÉTER AVANT MISE EN LIGNE]');
+  });
+
+  it('minimisation: no capital, RCS, birth data, nationality, headcount, old SIREN or director name', () => {
+    const page = pageHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    expect(page).not.toContain('907 702 377');
+    expect(page).not.toMatch(/capital|RCS|1984|nationalité|date de naissance|effectif/i);
+    expect(page).not.toContain('Fouad');
+  });
+
+  it('no longer carries any placeholder marker: the form is described as really connected', () => {
+    expect(pageHtml).not.toContain('[À COMPLÉTER');
+    expect(pageHtml).not.toContain('non raccordé');
+    expect(pageHtml).not.toContain('pas encore raccordée');
+    expect(pageHtml).not.toContain('aucune information saisie n’est transmise');
   });
 
   it('the data controller is explicitly BELKHIR DEPANNAGE, never GitHub nor the developer', () => {
-    expect(pageHtml).toContain('jamais GitHub, ni le développeur du site');
+    expect(pageHtml).toContain('jamais l’hébergeur, ni le développeur du site');
   });
 
   it('the real mailto: link is used for the contact/rights-exercise address', () => {
@@ -138,10 +159,28 @@ describe('page /politique-de-confidentialite/ — informations administratives e
     );
   });
 
-  it('links to the real GitHub privacy policy as an identified external link', () => {
-    expect(pageHtml).toMatch(
-      /href="https:\/\/docs\.github\.com\/site-policy\/privacy-policies\/github-general-privacy-statement"[^>]*target="_blank"/,
-    );
+  it('names LWS as the host for technical logs and no longer mentions GitHub', () => {
+    expect(pageHtml).toContain('hébergé par LWS (Ligne Web Services SAS)');
+    expect(pageHtml).toContain('user-agent');
+    expect(pageHtml).not.toContain('GitHub');
+  });
+
+  it('documents the connected quote form: recipient, purpose, legal basis, access, one-year retention', () => {
+    const page = pageHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    expect(page).toContain('Formulaire de demande de devis');
+    expect(page).toContain('formulaire@belkhir-depannage-hdf.fr');
+    expect(page).toContain('traiter votre demande de devis et vous recontacter');
+    expect(page).toContain('mesures précontractuelles');
+    expect(page).toContain('personnes habilitées de BELKHIR DEPANNAGE');
+    expect(page).toContain('jusqu’à un an');
+    expect(page).toContain('obligations légales applicables');
+    expect(page).not.toMatch(/j’accepte|consentement obligatoire/i);
+    expect(page.toLowerCase()).not.toContain('accepter les cookies');
+  });
+
+  it('distinguishes Google external links and adds no cookie banner', () => {
+    expect(pageHtml).toContain('Liens externes vers Google');
+    expect(pageHtml.toLowerCase()).not.toContain('accepter les cookies');
   });
 });
 
@@ -176,7 +215,7 @@ describe('page /politique-de-confidentialite/ — aucun cookie, formulaire ou tr
   it('never invents a false DPO or an absolute security/compliance promise', () => {
     const lower = pageHtml.toLowerCase();
     expect(lower).not.toContain('délégué à la protection des données');
-    expect(lower).not.toContain('dpo');
+    expect(lower).not.toMatch(/\bdpo\b/);
     expect(lower).not.toContain('conformité totale');
     expect(pageHtml).toContain('aucune promesse de sécurité absolue');
   });

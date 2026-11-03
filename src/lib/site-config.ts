@@ -33,9 +33,9 @@ const EMERGENCY_PHONE_DISPLAY = '06 49 62 16 19';
 const EMERGENCY_PHONE_INTERNATIONAL = '+33649621619';
 
 /**
- * Combine une origine (ex. "https://spiritzen.github.io") et un sous-chemin
- * de base Astro (ex. "/belkhir-depannage/") en une URL publique absolue sans
- * slash final, ex. "https://spiritzen.github.io/belkhir-depannage".
+ * Combine une origine (ex. "https://belkhir-depannage-hdf.fr") et une base
+ * Astro (ex. "/") en une URL publique absolue sans slash final, ex.
+ * "https://belkhir-depannage-hdf.fr". Une base avec sous-chemin reste gérée.
  */
 export function combineSiteAndBase(site: string, base: string): string {
   const origin = site.replace(/\/+$/, '');
@@ -45,8 +45,7 @@ export function combineSiteAndBase(site: string, base: string): string {
 }
 
 /**
- * Résout l'URL publique complète du site — correctif PREPUB-001/PREPUB-006,
- * 01/09/2026 (docs/RAPPORT_AUDIT_PREPUBLICATION_GITHUB_PAGES.txt).
+ * Résout l'URL publique complète du site (origine LWS, base racine).
  *
  * SOURCE PREMIÈRE : `import.meta.env.SITE`/`import.meta.env.BASE_URL`,
  * dérivés une seule fois de `site`/`base` dans astro.config.mjs (exposés par
@@ -54,19 +53,13 @@ export function combineSiteAndBase(site: string, base: string): string {
  * vitest.config.ts) — jamais une seconde constante codée en dur ici. Changer
  * la cible de déploiement ne demande donc de modifier qu'astro.config.mjs.
  *
- * `SITE_URL` reste une SURCHARGE OPTIONNELLE, pour le jour où un nom de
- * domaine officiel personnalisé serait mis en place devant ce même
- * déploiement (métadonnées de contenu uniquement : canonical, Open Graph,
- * mention du sitemap dans robots.txt). Elle est normalisée (slash final
- * retiré, protocole absolu obligatoire) via `normalizeBaseUrl`. Un vrai
- * domaine personnalisé GitHub Pages sert généralement depuis la racine, sans
- * le sous-chemin `/belkhir-depannage` : le jour venu, mettre aussi à jour
- * `base` dans astro.config.mjs — cette fonction ne devine pas cette
- * intention à la place de l'équipe, elle se contente de normaliser la
- * valeur fournie.
+ * `SITE_URL` reste une SURCHARGE OPTIONNELLE, pour un changement de domaine
+ * (métadonnées de contenu uniquement : canonical, Open Graph, mention du
+ * sitemap dans robots.txt). Elle est normalisée (slash final retiré,
+ * protocole absolu obligatoire) via `normalizeBaseUrl`.
  *
- * Sans `.env` ni `SITE_URL`, le build produit directement et correctement
- * la cible GitHub Pages officielle.
+ * Sans `.env` ni `SITE_URL`, le build produit directement l'URL du domaine
+ * LWS déclaré dans astro.config.mjs.
  */
 export function resolveSiteUrl(
   env: Record<string, string | undefined> = process.env,
@@ -159,8 +152,8 @@ const siteUrl = resolveSiteUrl(env);
  * Image Open Graph/Twitter par défaut — URL ABSOLUE complète, jamais un
  * chemin relatif à la racine du domaine (correctif PREPUB-002/PREPUB-009,
  * 01/09/2026) : les moteurs de partage social exigent une URL absolue, et un
- * chemin racine `/og-default.svg` casserait sous le sous-chemin GitHub Pages
- * (il viserait à tort `spiritzen.github.io/og-default.svg`). Construite via
+ * chemin racine `/og-default.svg` ne serait pas résolu par ces moteurs.
+ * Construite via
  * `URL`, jamais par concaténation manuelle de chaînes, pour ne jamais
  * produire de double slash. `og-default.svg` reste servi tel quel depuis
  * `public/` (fichier inchangé dans ce sprint).

@@ -1,0 +1,97 @@
+# =============================================================================
+# Belkhir Dépannage — .htaccess de production (Apache mutualisé LWS)
+# Source maintenable : public/.htaccess (copié tel quel à la racine de dist/ par
+# `astro build`, déployé dans /htdocs/). Ne contient AUCUN secret.
+#
+# Toutes les directives dépendantes d'un module sont encapsulées dans <IfModule>
+# pour ne jamais provoquer d'erreur 500 si un module manque.
+# Règles marquées « À VALIDER » : à contrôler lors du premier déploiement réel
+# (voir DEPLOIEMENT_LWS.md).
+# =============================================================================
+
+# --- Base --------------------------------------------------------------------
+DirectoryIndex index.html
+Options -Indexes
+AddDefaultCharset UTF-8
+ErrorDocument 404 /404.html
+
+# --- Types MIME utiles aux actifs Astro --------------------------------------
+<IfModule mod_mime.c>
+  AddType font/woff2 .woff2
+  AddType image/webp .webp
+  AddType image/svg+xml .svg
+</IfModule>
+
+# --- Protection des fichiers sensibles et cachés ------------------------------
+# Le dossier /.well-known/ (validation ACME du certificat) reste accessible.
+<IfModule mod_alias.c>
+  # Tout chemin caché (.git, .env, .htpasswd…) SAUF /.well-known/
+  RedirectMatch 403 "(^|/)\.(?!well-known(/|$))"
+  # Code interne de l'API (seconde barrière : api/_lib/.htaccess)
+  RedirectMatch 403 "^/api/_lib(/|$)"
+  # Fichiers Composer, configuration, exemples, sauvegardes, journaux, secrets
+  RedirectMatch 403 "(?i)(^|/)(composer\.(json|lock)|formulaire\.config[^/]*|[^/]*secret[^/]*)$"
+  RedirectMatch 403 "(?i)\.(env|ini|log|sql|bak|backup|old|orig|swp|example|sample|dist)$"
+</IfModule>
+
+# --- Canonicalisation : www -> domaine nu, en HTTPS (301) ----------------------
+# Règle indépendante du schéma vu par Apache : aucun risque de boucle, la cible
+# n'est jamais « www ». /.well-known/acme-challenge/ est exclu.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  RewriteRule ^\.well-known/acme-challenge/ - [L]
+
+  RewriteCond %{HTTP_HOST} ^www\.belkhir-depannage-hdf\.fr$ [NC]
+  RewriteRule ^ https://belkhir-depannage-hdf.fr%{REQUEST_URI} [R=301,L]
+
+  # --- HTTP -> HTTPS : À VALIDER sur le premier déploiement ---------------------
+  # Désactivée tant qu'on n'a pas constaté comment le proxy LWS transmet le
+  # schéma (%{HTTPS} ou X-Forwarded-Proto). Une règle incorrecte provoquerait une
+  # boucle de redirections. Après constat (curl -I https://… et http://…),
+  # décommenter le bloc suivant puis redéployer :
+  #
+  # RewriteCond %{HTTPS} !=on
+  # RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  # RewriteCond %{HTTP_HOST} ^belkhir-depannage-hdf\.fr$ [NC]
+  # RewriteRule ^ https://belkhir-depannage-hdf.fr%{REQUEST_URI} [R=301,L]
+  #
+  # Aucun HSTS dans ce lot : à n'envisager qu'après validation réelle de HTTPS
+  # sur le domaine nu et sur www.
+
+  # Marque les actifs Astro fingerprintés (/_astro/) pour le cache long ci-dessous.
+  RewriteRule ^_astro/ - [E=BELKHIR_ASSET:1]
+</IfModule>
+
+# --- En-têtes de sécurité sobres ------------------------------------------------
+# « setifempty » : ne remplace pas les en-têtes déjà posés par l'endpoint PHP.
+# Pas de Content-Security-Policy (audit complet des ressources requis) ni de HSTS.
+<IfModule mod_headers.c>
+  Header always setifempty X-Content-Type-Options "nosniff"
+  Header always setifempty Referrer-Policy "strict-origin-when-cross-origin"
+  Header always setifempty Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+</IfModule>
+
+# --- Cache -------------------------------------------------------------------------
+<IfModule mod_headers.c>
+  # Actifs fingerprintés (nom contenant un condensat) : cache long immuable.
+  # À VALIDER : l'en-tête doit apparaître sur /_astro/* après déploiement.
+  Header set Cache-Control "public, max-age=31536000, immutable" env=BELKHIR_ASSET
+
+  # HTML, sitemap, robots : toujours revalidés.
+  <FilesMatch "\.(html|xml|txt)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+  # L'endpoint PHP envoie déjà no-store ; jamais de cache agressif ici.
+  <FilesMatch "\.php$">
+    Header setifempty Cache-Control "no-store, max-age=0"
+  </FilesMatch>
+</IfModule>
+
+# --- Compression -------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/xml application/javascript text/javascript application/json image/svg+xml
+</IfModule>
+
+# Aucune réécriture globale vers index.html : le site est statique multi-pages,
+# pas une application monopage.

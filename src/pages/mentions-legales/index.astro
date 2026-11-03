@@ -27,10 +27,14 @@ import { mediateurConsommation } from '../../data/mediateur-consommation';
 const title = 'Mentions légales | Belkhir Dépannage';
 const description =
   "Éditeur, directeur de la publication et hébergeur du site Belkhir Dépannage : l'ensemble des " +
-  'informations légales confirmées.';
+  'informations légales, avec les données à confirmer signalées.';
 
 const contactEmail = 'belkhirdepannage@gmail.com';
-const lastUpdated = '4 septembre 2026';
+const lastUpdated = '3 novembre 2026';
+const siteUrl = 'https://belkhir-depannage-hdf.fr/';
+// Marqueur visible de préproduction : toute donnée juridique indispensable mais non
+// confirmée par le client. Interdit la mise en production publique finale.
+const toComplete = '[À COMPLÉTER AVANT MISE EN LIGNE]';
 const privacyHref = `${import.meta.env.BASE_URL}politique-de-confidentialite/`;
 ---
 
@@ -50,7 +54,7 @@ const privacyHref = `${import.meta.env.BASE_URL}politique-de-confidentialite/`;
         <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
         ÉDITEUR DU SITE
       </p>
-      <h2 id="editeur-title">La société BELKHIR DEPANNAGE</h2>
+      <h2 id="editeur-title">Identification de l’éditeur</h2>
 
       <dl class="legal-section__identity">
         <div>
@@ -59,11 +63,11 @@ const privacyHref = `${import.meta.env.BASE_URL}politique-de-confidentialite/`;
         </div>
         <div>
           <dt>Forme juridique</dt>
-          <dd>Société par actions simplifiée unipersonnelle (SASU)</dd>
+          <dd>Société par actions simplifiée (SAS)</dd>
         </div>
         <div>
           <dt>Capital social</dt>
-          <dd>1 000 €</dd>
+          <dd><span class="legal-marker">{toComplete}</span></dd>
         </div>
         <div>
           <dt>Siège social</dt>
@@ -78,20 +82,40 @@ const privacyHref = `${import.meta.env.BASE_URL}politique-de-confidentialite/`;
           <dd>977 900 216 00010</dd>
         </div>
         <div>
-          <dt>RCS</dt>
-          <dd>Amiens 977 900 216</dd>
+          <dt>Immatriculation (RCS)</dt>
+          <dd><span class="legal-marker">{toComplete}</span></dd>
         </div>
         <div>
-          <dt>TVA intracommunautaire</dt>
-          <dd>FR68 977900216</dd>
+          <dt>Activité principale</dt>
+          <dd>Travaux d’installation d’eau et de gaz en tous locaux (APE/NAF 43.22A)</dd>
         </div>
+        <div>
+          <dt>Représentant légal</dt>
+          <dd>Fouad Belkhir, Président</dd>
+        </div>
+        <div>
+          <dt>Nom commercial</dt>
+          <dd>Belkhir Dépannage</dd>
+        </div>
+        <div>
+          <dt>Site</dt>
+          <dd><a href={siteUrl}>belkhir-depannage-hdf.fr</a></dd>
+        </div>
+      </dl>
+
+      <h3 class="legal-section__subtitle">Coordonnées de contact</h3>
+      <dl class="legal-section__identity">
         <div>
           <dt>E-mail</dt>
           <dd><a href={`mailto:${contactEmail}`}>{contactEmail}</a></dd>
         </div>
         <div>
-          <dt>Téléphone</dt>
+          <dt>Téléphone d’urgence</dt>
           <dd><a href="tel:+33649621619">06 49 62 16 19</a></dd>
+        </div>
+        <div>
+          <dt>Téléphone standard</dt>
+          <dd><span class="legal-marker">{toComplete}</span></dd>
         </div>
       </dl>
     </div>
@@ -110,11 +134,16 @@ const privacyHref = `${import.meta.env.BASE_URL}politique-de-confidentialite/`;
       </p>
       <h2 id="direction-publication-title">Responsable de la publication</h2>
 
+      <dl class="legal-section__identity">
+        <div>
+          <dt>Directeur de la publication</dt>
+          <dd>Fouad Belkhir, Président de BELKHIR DEPANNAGE</dd>
+        </div>
+      </dl>
       <p class="legal-section__text">
-        Le directeur de la publication est <strong>Fouad BELKHIR</strong>, président de BELKHIR
-        DEPANNAGE. Il assume la responsabilité éditoriale des contenus publiés sur ce site au nom de
-        la société — jamais le développeur du site, qui n’intervient qu’en tant que prestataire
-        technique.
+        Le directeur de la publication assume la responsabilité éditoriale des contenus publiés sur
+        ce site au nom de la société BELKHIR DEPANNAGE — jamais le prestataire technique qui a
+        réalisé le site.
       </p>
       <p class="legal-section__text">
         Contact : <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.
@@ -133,47 +162,37 @@ const privacyHref = `${import.meta.env.BASE_URL}politique-de-confidentialite/`;
         <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
         HÉBERGEMENT
       </p>
-      <h2 id="hebergement-title">Le site est hébergé par GitHub, Inc.</h2>
+      <h2 id="hebergement-title">Le site est hébergé par LWS</h2>
 
       <dl class="legal-section__identity legal-section__identity--host">
         <div>
           <dt>Hébergeur</dt>
-          <dd>GitHub, Inc.</dd>
-        </div>
-        <div>
-          <dt>Service</dt>
-          <dd>GitHub Pages</dd>
+          <dd>LWS — Ligne Web Services SAS</dd>
         </div>
         <div>
           <dt>Adresse</dt>
-          <dd>88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis</dd>
+          <dd>10 rue Penthièvre, 75008 Paris, France</dd>
         </div>
         <div>
-          <dt>Téléphone</dt>
-          <dd>+1 415 735 4488</dd>
+          <dt>SIRET</dt>
+          <dd>851 993 683 00024</dd>
         </div>
         <div>
           <dt>Site</dt>
           <dd>
-            <a href="https://github.com/" target="_blank" rel="noopener noreferrer">
-              github.com<span class="visually-hidden"> (nouvelle fenêtre)</span>
+            <a href="https://www.lws.fr/" target="_blank" rel="noopener noreferrer">
+              www.lws.fr<span class="visually-hidden"> (nouvelle fenêtre)</span>
             </a>
           </dd>
         </div>
       </dl>
 
       <p class="legal-section__text">
-        Pour le détail du traitement des données techniques par cet hébergeur, se reporter à sa
-        politique de confidentialité :
-        <a
-          href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          politique de confidentialité de GitHub<span class="visually-hidden">
-            (nouvelle fenêtre)</span
-          >
-        </a>. La disponibilité du site dépend également de l’infrastructure de cet hébergeur.
+        Informations d’identification de l’hébergeur issues de sa page officielle
+        <a href="https://www.lws.fr/a_propos_infos.php" target="_blank" rel="noopener noreferrer">
+          lws.fr/a_propos_infos.php<span class="visually-hidden"> (nouvelle fenêtre)</span>
+        </a>, consultée le 3 novembre 2026. La disponibilité du site dépend également de
+        l’infrastructure de cet hébergeur.
       </p>
     </div>
   </section>
@@ -252,7 +271,7 @@ const privacyHref = `${import.meta.env.BASE_URL}politique-de-confidentialite/`;
           réellement constatée.
         </li>
         <li>
-          BELKHIR DEPANNAGE met en œuvre des moyens raisonnables pour maintenir des informations
+          Belkhir Dépannage met en œuvre des moyens raisonnables pour maintenir des informations
           accessibles et exactes, sans garantir une disponibilité technique permanente.
         </li>
         <li>
@@ -272,7 +291,7 @@ const privacyHref = `${import.meta.env.BASE_URL}politique-de-confidentialite/`;
     <div class="container legal-section__inner">
       <p class="legal-section__eyebrow">
         <span class="legal-section__eyebrow-bar" aria-hidden="true"></span>
-        SITUATIONS DE DANGER ET NUMÉROS PUBLICS
+        LIENS EXTERNES ET NUMÉROS DE SECOURS
       </p>
       <h2 id="situations-danger-title">
         Les numéros publics ne sont pas ceux de Belkhir Dépannage
@@ -283,7 +302,7 @@ const privacyHref = `${import.meta.env.BASE_URL}politique-de-confidentialite/`;
           Les liens vers le 17, le 18 ou le 112 présents sur certaines pages du site redirigent vers
           les services publics compétents.
         </li>
-        <li>BELKHIR DEPANNAGE ne se substitue ni aux secours, ni aux forces de l’ordre.</li>
+        <li>Belkhir Dépannage ne se substitue ni aux secours, ni aux forces de l’ordre.</li>
         <li>
           En cas de danger immédiat pour les personnes, les consignes des services officiels
           priment.
@@ -291,6 +310,10 @@ const privacyHref = `${import.meta.env.BASE_URL}politique-de-confidentialite/`;
         <li>
           Ces numéros publics et liens externes sont proposés uniquement pour faciliter
           l’orientation du visiteur.
+        </li>
+        <li>
+          Les liens vers Google (consultation et dépôt d’avis) mènent vers un service tiers dont
+          l’éditeur ne contrôle ni le contenu ni les conditions d’utilisation.
         </li>
       </ul>
     </div>
@@ -310,8 +333,9 @@ const privacyHref = `${import.meta.env.BASE_URL}politique-de-confidentialite/`;
       <h2 id="donnees-cookies-title">En résumé</h2>
 
       <p class="legal-section__text">
-        Aucun formulaire, cookie publicitaire ou outil de suivi n’est actuellement intégré à ce
-        site. Les modalités détaillées figurent dans la
+        Aucun cookie publicitaire ni outil de suivi n’est actuellement intégré à ce site. Le
+        formulaire de demande de devis ne transmet que les informations que vous saisissez et
+        envoyez volontairement. Les modalités détaillées figurent dans la
         <a href={privacyHref}>politique de confidentialité</a>.
       </p>
     </div>
@@ -331,24 +355,24 @@ const privacyHref = `${import.meta.env.BASE_URL}politique-de-confidentialite/`;
       <h2 id="mediation-consommation-title">Médiateur de la consommation</h2>
 
       <div class="legal-section__pending" role="note">
-        <p class="legal-section__pending-flag">[RESTE À COMPLÉTER AVANT MISE EN PRODUCTION]</p>
+        <p class="legal-section__pending-flag">{toComplete}</p>
         <dl class="legal-section__identity legal-section__identity--pending">
           <div>
             <dt>Médiateur de la consommation</dt>
-            <dd>{mediateurConsommation?.nom ?? 'à compléter'}</dd>
+            <dd>{mediateurConsommation?.nom ?? toComplete}</dd>
           </div>
           <div>
             <dt>Adresse</dt>
-            <dd>{mediateurConsommation?.adresse ?? 'à compléter'}</dd>
+            <dd>{mediateurConsommation?.adresse ?? toComplete}</dd>
           </div>
           <div>
             <dt>Site internet</dt>
-            <dd>{mediateurConsommation?.siteInternet ?? 'à compléter'}</dd>
+            <dd>{mediateurConsommation?.siteInternet ?? toComplete}</dd>
           </div>
         </dl>
         <p class="legal-section__text">
-          Ces informations seront complétées après confirmation par Fouad BELKHIR de l’organisme de
-          médiation de la consommation auquel BELKHIR DEPANNAGE aura adhéré.
+          Ces informations seront complétées après confirmation de l’organisme de médiation de la
+          consommation auquel l’éditeur aura adhéré.
         </p>
       </div>
     </div>
@@ -403,6 +427,17 @@ const privacyHref = `${import.meta.env.BASE_URL}politique-de-confidentialite/`;
       radial-gradient(42% 40% at 12% 88%, rgba(255, 105, 0, 0.06), transparent 72%),
       var(--color-anthracite-950);
     color: var(--color-white);
+  }
+
+  .legal-marker {
+    font-weight: 700;
+    text-decoration: underline dotted;
+    text-underline-offset: 0.2em;
+  }
+
+  .legal-section__subtitle {
+    margin-top: var(--space-4);
+    font-size: 1.1rem;
   }
 
   .legal-section__inner {

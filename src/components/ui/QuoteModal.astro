@@ -32,13 +32,18 @@
  *    tout le reste (navbar, tiroir mobile, barre d'appel sticky) sans
  *    aucune valeur de z-index à coordonner.
  *
- * AUCUN ENVOI RÉSEAU RÉEL : tant que l'hébergement LWS et son endpoint PHP
- * ne sont pas disponibles, la soumission est interceptée, validée
- * localement, puis explicitement bloquée — voir le commentaire
- * « FUTUR ENDPOINT PHP » dans le <script> ci-dessous, point d'ancrage unique
- * pour le branchement futur.
+ * ENVOI RÉEL : la soumission valide les champs localement puis envoie un POST
+ * JSON same-origin vers `api/demande-devis.php` (endpoint PHP/PHPMailer livré
+ * dans dist/api/, voir php/README.md). Jamais de faux succès :
+ * le message de réussite n'apparaît qu'après une réponse HTTP 200 `ok: true`.
  */
 import Icon from './Icon.astro';
+import { siteConfig } from '../../lib/site-config';
+
+// Route interne réelle de la politique, préfixée par la base centralisée Astro.
+const privacyHref = `${import.meta.env.BASE_URL}politique-de-confidentialite/`;
+const endpointHref = `${import.meta.env.BASE_URL}api/demande-devis.php`;
+const emergency = siteConfig.emergencyPhone;
 ---
 
 <dialog
@@ -61,7 +66,14 @@ import Icon from './Icon.astro';
     sujet de votre demande.
   </p>
 
-  <form id="quote-modal-form" class="quote-modal__form" novalidate>
+  <form
+    id="quote-modal-form"
+    class="quote-modal__form"
+    novalidate
+    data-endpoint={endpointHref}
+    data-emergency-display={emergency.display}
+    data-emergency-tel={emergency.international}
+  >
     <div class="quote-modal__field">
       <label for="quote-name">Nom et prénom</label>
       <input
@@ -137,20 +149,25 @@ import Icon from './Icon.astro';
       <p class="quote-modal__error" id="quote-description-error" role="alert" hidden></p>
     </div>
 
-    <div class="quote-modal__field quote-modal__field--checkbox">
-      <input
-        type="checkbox"
-        id="quote-consent"
-        name="consent"
-        required
-        aria-describedby="quote-consent-error"
-      />
-      <label for="quote-consent">
-        J’accepte que mes informations soient utilisées uniquement pour traiter ma demande et me
-        recontacter.
-      </label>
-      <p class="quote-modal__error" id="quote-consent-error" role="alert" hidden></p>
+    <div class="quote-modal__hp" aria-hidden="true">
+      <label for="quote-website">Ne pas remplir ce champ</label>
+      <input type="text" id="quote-website" name="website" tabindex="-1" autocomplete="off" />
     </div>
+
+    <p class="quote-modal__privacy" id="quote-modal-privacy">
+      BELKHIR DEPANNAGE utilise les informations saisies pour traiter votre demande de devis et vous
+      recontacter, sur la base de mesures précontractuelles. Elles sont accessibles uniquement aux
+      personnes habilitées et conservées jusqu’à un an si votre demande n’aboutit pas. Vous disposez
+      de droits sur vos données.
+      <a
+        class="quote-modal__privacy-link"
+        href={privacyHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Consulter la politique de confidentialité (nouvel onglet)"
+        >Consulter la politique de confidentialité.</a
+      >
+    </p>
 
     <p class="quote-modal__status" id="quote-modal-status" role="status" aria-live="polite"></p>
 
@@ -174,6 +191,10 @@ import Icon from './Icon.astro';
     // Dernier élément focus avant ouverture, pour restitution exacte à la
     // fermeture — même principe que MobileDrawer.astro.
     let lastFocused: HTMLElement | null = null;
+    // Horodatage d'ouverture (ms) : envoyé au serveur pour la temporisation anti-robot.
+    let openedAt = Date.now();
+    // Envoi en cours : la modale ne peut être fermée ni soumise une 2e fois.
+    let sending = false;
 
     // Préremplissage optionnel (page /zones-intervention/, PROMPT_CLAUDE_
     // CODE_PAGE_ZONES_INTERVENTION_RADAR.txt, section 9, 04/09/2026) :
@@ -187,6 +208,7 @@ import Icon from './Icon.astro';
     // jamais une manipulation `innerHTML`.
     function openModal(trigger: HTMLElement): void {
       lastFocused = trigger;
+      openedAt = Date.now();
       document.documentElement.classList.add('quote-modal-open');
       dialog!.showModal();
 
@@ -205,8 +227,14 @@ import Icon from './Icon.astro';
     }
 
     function closeModal(): void {
+      if (sending) return;
       dialog!.close();
     }
+
+    // Échap natif : bloqué uniquement pendant l'envoi.
+    dialog.addEventListener('cancel', (event) => {
+      if (sending) event.preventDefault();
+    });
 
     // Un seul point de nettoyage pour LES QUATRE mécanismes de fermeture
     // (croix, Annuler, Échap natif, clic extérieur ci-dessous) : l'événement
@@ -270,7 +298,6 @@ import Icon from './Icon.astro';
       const locationEl = document.getElementById('quote-location') as HTMLInputElement;
       const serviceEl = document.getElementById('quote-service') as HTMLSelectElement;
       const descriptionEl = document.getElementById('quote-description') as HTMLTextAreaElement;
-      const consentEl = document.getElementById('quote-consent') as HTMLInputElement;
 
       return [
         {
@@ -295,13 +322,8 @@ import Icon from './Icon.astro';
         },
         {
           id: 'quote-description',
-          isValid: () => descriptionEl.value.trim().length > 0,
+          isValid: () => descriptionEl.value.trim().length >= 5,
           message: 'Merci de décrire votre situation.',
-        },
-        {
-          id: 'quote-consent',
-          isValid: () => consentEl.checked,
-          message: 'Merci d’accepter l’utilisation de vos informations pour vous recontacter.',
         },
       ];
     }
@@ -318,13 +340,48 @@ import Icon from './Icon.astro';
       }
     }
 
-    form.addEventListener('submit', (event) => {
-      // Toujours empêché : aucune requête réseau tant que l'endpoint LWS
-      // n'existe pas (voir le commentaire « FUTUR ENDPOINT PHP » ci-dessous).
+    const submitBtn = form.querySelector<HTMLButtonElement>('.quote-modal__submit');
+    const submitLabel = submitBtn?.textContent ?? 'Envoyer ma demande';
+
+    const fieldIds: Record<string, string> = {
+      name: 'quote-name',
+      phone: 'quote-phone',
+      location: 'quote-location',
+      service: 'quote-service',
+      description: 'quote-description',
+    };
+
+    function setSending(value: boolean): void {
+      sending = value;
+      if (submitBtn) {
+        submitBtn.disabled = value;
+        submitBtn.textContent = value ? 'Envoi en cours…' : submitLabel;
+      }
+      form!.setAttribute('aria-busy', value ? 'true' : 'false');
+    }
+
+    // Message d'erreur : conserve les données saisies et propose le numéro
+    // d'urgence centralisé (lien tel: construit par DOM, jamais par innerHTML).
+    function showFailure(message: string): void {
+      statusEl!.textContent = message + ' En cas d’urgence, appelez le ';
+      const display = form!.dataset.emergencyDisplay;
+      const tel = form!.dataset.emergencyTel;
+      if (display && tel) {
+        const link = document.createElement('a');
+        link.href = `tel:${tel}`;
+        link.textContent = display;
+        statusEl!.appendChild(link);
+        statusEl!.appendChild(document.createTextNode('.'));
+      }
+    }
+
+    form.addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (sending) return;
 
       const checks = getFieldChecks();
       clearErrors(checks);
+      statusEl!.textContent = '';
 
       let firstInvalid: HTMLElement | null = null;
       for (const check of checks) {
@@ -341,29 +398,72 @@ import Icon from './Icon.astro';
 
       if (firstInvalid) {
         firstInvalid.focus();
-        statusEl!.textContent = '';
         return;
       }
 
-      // -----------------------------------------------------------------
-      // FUTUR ENDPOINT PHP (hébergement LWS) — point de branchement unique.
-      // Une fois l'URL réelle connue, remplacer ce bloc par l'appel réseau
-      // véritable, par exemple :
-      //
-      //   const response = await fetch(QUOTE_ENDPOINT_URL, {
-      //     method: 'POST',
-      //     body: new FormData(form),
-      //   });
-      //   if (response.ok) { ...afficher un vrai succès, vider le
-      //   formulaire, fermer ou non la modale... } else { ...afficher une
-      //   vraie erreur... }
-      //
-      // Tant que cet endpoint n'existe pas : ZÉRO requête, ZÉRO stockage
-      // local ou distant, et surtout JAMAIS de simulation de succès —
-      // uniquement ce message, honnête sur l'état réel du formulaire.
-      // -----------------------------------------------------------------
-      statusEl!.textContent =
-        'L’envoi en ligne n’est pas encore disponible. Merci de nous appeler directement en attendant.';
+      const value = (id: string): string =>
+        (document.getElementById(id) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement)
+          .value;
+
+      setSending(true);
+      statusEl!.textContent = 'Envoi en cours…';
+
+      try {
+        const response = await fetch(form!.dataset.endpoint ?? '', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            name: value('quote-name'),
+            phone: value('quote-phone'),
+            location: value('quote-location'),
+            service: value('quote-service'),
+            delay: value('quote-delay'),
+            description: value('quote-description'),
+            website: value('quote-website'),
+            opened_at: openedAt,
+          }),
+        });
+
+        let payload: {
+          ok?: boolean;
+          reference?: string;
+          message?: string;
+          fields?: Record<string, string>;
+        } | null = null;
+        try {
+          payload = await response.json();
+        } catch {
+          payload = null;
+        }
+
+        if (response.ok && payload?.ok === true && typeof payload.reference === 'string') {
+          form!.reset();
+          statusEl!.textContent = `Votre demande a bien été envoyée. Référence : ${payload.reference}. Nous vous recontactons rapidement.`;
+        } else if (response.status === 422 && payload?.fields) {
+          for (const [key, message] of Object.entries(payload.fields)) {
+            const id = fieldIds[key];
+            const field = id ? document.getElementById(id) : null;
+            const error = id ? document.getElementById(`${id}-error`) : null;
+            if (field && error) {
+              field.setAttribute('aria-invalid', 'true');
+              error.hidden = false;
+              error.textContent = message;
+            }
+          }
+          statusEl!.textContent = 'Merci de corriger les champs indiqués.';
+        } else {
+          showFailure('L’envoi n’a pas pu aboutir. Vos informations sont conservées.');
+        }
+      } catch {
+        showFailure(
+          'L’envoi n’a pas pu aboutir (connexion indisponible). Vos informations sont conservées.',
+        );
+      } finally {
+        setSending(false);
+        // Le résultat se trouve en bas de la boîte défilante : on l’amène à l’écran.
+        statusEl!.scrollIntoView({ block: 'nearest' });
+      }
     });
 
     // Tout élément marqué `data-quote-trigger` ouvre cette même modale
@@ -543,7 +643,7 @@ import Icon from './Icon.astro';
     color: var(--color-gray-100);
   }
 
-  .quote-modal__field input:not([type='checkbox']),
+  .quote-modal__field input,
   .quote-modal__field select,
   .quote-modal__field textarea {
     width: 100%;
@@ -618,24 +718,47 @@ import Icon from './Icon.astro';
     color: #ffb4ab;
   }
 
-  .quote-modal__field--checkbox {
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 0.6rem;
+  /* Information RGPD permanente (remplace l'ancienne case de consentement) :
+     texte secondaire discret mais lisible sur le verre anthracite ; seul le
+     lien porte l'accent orange. */
+  /* Piège anti-robot : hors écran, retiré de l'ordre de tabulation et de
+     l'arbre d'accessibilité (aria-hidden + tabindex -1) — aucun piège pour
+     un utilisateur de clavier ou de lecteur d'écran. */
+  .quote-modal__hp {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
   }
 
-  .quote-modal__field--checkbox input[type='checkbox'] {
-    margin-top: 0.2rem;
-    width: 1.15rem;
-    height: 1.15rem;
-    accent-color: var(--color-orange-600);
-    flex-shrink: 0;
+  .quote-modal__privacy {
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--color-gray-300);
   }
 
-  .quote-modal__field--checkbox label {
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: var(--color-gray-100);
+  .quote-modal__privacy-link {
+    color: var(--color-orange-500);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  .quote-modal__privacy-link:hover {
+    color: var(--color-white);
+  }
+
+  .quote-modal__privacy-link:focus-visible {
+    outline: 3px solid var(--color-white);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  .quote-modal__status a {
+    color: var(--color-orange-500);
+    font-weight: 700;
   }
 
   .quote-modal__status {
@@ -651,7 +774,7 @@ import Icon from './Icon.astro';
      définitivement les actions »), il suffit de faire défiler la boîte.
      Un essai initial en `position: sticky` a été abandonné : à l'ouverture
      (scroll en haut), la barre restait collée en bas de la boîte et
-     recouvrait la description et la case de consentement, non encore
+     recouvrait la description et l’information RGPD, non encore
      défilées jusque-là — un défaut plus grave que celui qu'elle visait à
      corriger. Une bordure fine remplace le fond opaque qui compensait
      l'effet de recouvrement. */

@@ -64,7 +64,7 @@ describe('modale devis — accessibilité de la boîte', () => {
 });
 
 describe('modale devis — formulaire complet', () => {
-  it('has all seven required-or-optional fields with real <label for> associations', () => {
+  it('has all six required-or-optional fields with real <label for> associations', () => {
     const fieldIds = [
       'quote-name',
       'quote-phone',
@@ -72,7 +72,6 @@ describe('modale devis — formulaire complet', () => {
       'quote-service',
       'quote-delay',
       'quote-description',
-      'quote-consent',
     ];
     for (const id of fieldIds) {
       expect(indexHtml).toContain(`id="${id}"`);
@@ -80,9 +79,9 @@ describe('modale devis — formulaire complet', () => {
     }
   });
 
-  it('marks exactly the six mandatory fields as required — "Délai souhaité" stays optional', () => {
+  it('marks exactly the five mandatory fields as required — "Délai souhaité" stays optional', () => {
     const requiredCount = (componentSource.match(/\brequired\b/g) ?? []).length;
-    expect(requiredCount).toBe(6);
+    expect(requiredCount).toBe(5);
     const delayField = componentSource.match(/<select id="quote-delay"[^>]*>/)?.[0] ?? '';
     expect(delayField).not.toContain('required');
   });
@@ -123,10 +122,12 @@ describe('modale devis — formulaire complet', () => {
     ]);
   });
 
-  it('the consent checkbox uses the exact validated wording', () => {
-    expect(indexHtml).toContain(
-      'J’accepte que mes informations soient utilisées uniquement pour traiter ma demande et me',
-    );
+  it('the former consent checkbox is gone: no input, no wording, no required attribute, no JS validation', () => {
+    expect(componentSource).not.toContain('quote-consent');
+    expect(componentSource).not.toContain('type="checkbox"');
+    expect(indexHtml).not.toContain('quote-consent');
+    expect(indexHtml).not.toContain('J’accepte que mes informations');
+    expect(activeCodeLines).not.toMatch(/consentEl|quote-consent|\.checked/);
   });
 
   it('every required field has an associated, initially-hidden error paragraph wired via aria-describedby', () => {
@@ -136,7 +137,6 @@ describe('modale devis — formulaire complet', () => {
       'quote-location',
       'quote-service',
       'quote-description',
-      'quote-consent',
     ];
     for (const id of requiredFieldIds) {
       expect(componentSource).toContain(`aria-describedby="${id}-error"`);
@@ -154,47 +154,52 @@ describe('modale devis — formulaire complet', () => {
 // commentaire « FUTUR ENDPOINT PHP » documente volontairement, en exemple
 // commenté, la forme du futur appel `fetch(...)` et du futur message de
 // succès ; il ne doit pas faire échouer ces tests.
-const activeCodeLines = componentSource
-  .split('\n')
-  .filter((line) => !line.trim().startsWith('//') && !line.trim().startsWith('*'))
-  .join('\n');
+// (calculé après le chargement du composant : `componentSource` est lu dans beforeAll)
+let activeCodeLines = '';
+beforeAll(() => {
+  activeCodeLines = componentSource
+    .split('\n')
+    .filter((line) => !line.trim().startsWith('//') && !line.trim().startsWith('*'))
+    .join('\n');
+});
 
 describe('modale devis — aucun envoi réseau réel', () => {
-  it('never calls fetch, XMLHttpRequest or navigator.sendBeacon in active (non-commented) code', () => {
-    expect(activeCodeLines).not.toMatch(/\bfetch\s*\(/);
+  it('uses fetch only, never XMLHttpRequest or sendBeacon', () => {
+    expect(activeCodeLines).toMatch(/\bfetch\(/);
     expect(activeCodeLines).not.toContain('XMLHttpRequest');
     expect(activeCodeLines).not.toContain('sendBeacon');
   });
 
   it('always calls preventDefault on submit — a real HTML form POST is impossible', () => {
     expect(componentSource).toMatch(
-      /submit['"],?\s*\(event\)\s*=>\s*{\s*[\s\S]*?event\.preventDefault\(\)/,
+      /submit['"],?\s*async\s*\(event\)\s*=>\s*{\s*[\s\S]*?event\.preventDefault\(\)/,
     );
   });
 
-  // MICRO-CORRECTION UI (04/09/2026) : la mention statique « Envoi bientôt
-  // disponible », affichée en permanence sous le bouton, a été supprimée —
-  // l'information honnête sur l'indisponibilité réelle de l'envoi reste
-  // communiquée, mais seulement au moment où l'utilisateur tente réellement
-  // d'envoyer (message dans #quote-modal-status), jamais de façon statique.
-  it('never shows the removed static "Envoi bientôt disponible" note — the honest not-yet-available message only appears in the live status region, on an actual submit attempt', () => {
+  it('never shows the removed "not yet available" message nor the old static note', () => {
     expect(componentSource).not.toContain('Envoi bientôt disponible');
     expect(componentSource).not.toContain('quote-modal-submit-note');
-    expect(componentSource).toContain(
-      'L’envoi en ligne n’est pas encore disponible. Merci de nous appeler directement en attendant.',
-    );
+    expect(componentSource).not.toContain('pas encore disponible');
+    expect(componentSource).not.toContain('FUTUR ENDPOINT PHP');
     expect(componentSource).toContain('id="quote-modal-status"');
   });
 
-  it('never simulates a success state or message in active (non-commented) code', () => {
-    const lower = activeCodeLines.toLowerCase();
-    expect(lower).not.toContain('demande envoyée');
-    expect(lower).not.toContain('succès');
-    expect(lower).not.toContain('merci pour votre demande');
+  it('the success message only exists behind a real ok response with a reference', () => {
+    expect(activeCodeLines).toMatch(
+      /response\.ok && payload\?\.ok === true && typeof payload\.reference === 'string'/,
+    );
+    const successIdx = activeCodeLines.indexOf('Votre demande a bien été envoyée');
+    const okIdx = activeCodeLines.indexOf('payload?.ok === true');
+    expect(okIdx).toBeGreaterThan(-1);
+    expect(successIdx).toBeGreaterThan(okIdx);
   });
 
-  it('documents a single, clearly marked future PHP endpoint anchor point', () => {
-    expect(componentSource).toContain('FUTUR ENDPOINT PHP');
+  it('posts JSON to the BASE_URL-aware endpoint /api/demande-devis.php', () => {
+    expect(componentSource).toContain('${import.meta.env.BASE_URL}api/demande-devis.php');
+    expect(indexHtml).toContain('data-endpoint="/api/demande-devis.php"');
+    expect(activeCodeLines).toContain("method: 'POST'");
+    expect(activeCodeLines).toContain("'Content-Type': 'application/json'");
+    expect(activeCodeLines).toContain("credentials: 'same-origin'");
   });
 
   it('never writes to localStorage/sessionStorage (no local persistence of the submitted data)', () => {
@@ -304,5 +309,57 @@ describe('non-régression — pages métier sans bouton devis existant (constat,
     // script) prouverait qu'un déclencheur a été ajouté ici.
     const htmlWithoutScripts = plomberieHtml.replace(/<script[\s\S]*?<\/script>/g, '');
     expect(htmlWithoutScripts).not.toMatch(/<[a-z][^>]*\sdata-quote-trigger/i);
+  });
+});
+
+describe('modale devis — information RGPD permanente (remplace la case de consentement)', () => {
+  const privacyBlock = () =>
+    indexHtml.match(/<p class="quote-modal__privacy"[\s\S]*?<\/p>/)?.[0] ?? '';
+  const privacyText = () =>
+    privacyBlock()
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ');
+
+  it('renders the validated information text, before the actions area', () => {
+    const text = privacyText();
+    expect(text).toContain(
+      'BELKHIR DEPANNAGE utilise les informations saisies pour traiter votre demande de devis et vous recontacter, sur la base de mesures précontractuelles.',
+    );
+    expect(text).toContain('mesures précontractuelles');
+    expect(text).toContain('personnes habilitées');
+    expect(text).toContain('conservées jusqu’à un an si votre demande n’aboutit pas');
+    expect(text).toContain('Vous disposez de droits sur vos données.');
+    expect(text).toContain('Consulter la politique de confidentialité.');
+    expect(indexHtml.indexOf('quote-modal__privacy"')).toBeLessThan(
+      indexHtml.indexOf('class="quote-modal__actions"'),
+    );
+  });
+
+  it('never uses consent wording for the processing needed by the quote request', () => {
+    expect(privacyText()).not.toMatch(/j’accepte|consentement|autorise/i);
+  });
+
+  it('links to the real privacy route with the centralized base, in a new tab, accessibly', () => {
+    const link = privacyBlock().match(/<a [^>]*quote-modal__privacy-link[^>]*>/)?.[0] ?? '';
+    expect(link).toMatch(/href="\/politique-de-confidentialite\/"/);
+    expect(link).not.toContain('/belkhir-depannage/');
+    expect(link).not.toContain('github.io');
+    expect(link).toContain('target="_blank"');
+    expect(link).toContain('rel="noopener noreferrer"');
+    expect(link).toContain(
+      'aria-label="Consulter la politique de confidentialité (nouvel onglet)"',
+    );
+    expect(componentSource).toContain('import.meta.env.BASE_URL');
+  });
+
+  it('a click on the link cannot close the modal: it is a descendant, ignored by the pointerdown handler', () => {
+    expect(componentSource).toMatch(/target !== dialog && dialog!?\.contains\(target\)/);
+    expect(activeCodeLines).not.toMatch(/privacy-link[\s\S]{0,80}close\(/);
+  });
+
+  it('shows a visible keyboard focus style on the link and the only network call is the same-origin JSON POST', () => {
+    expect(componentSource).toContain('.quote-modal__privacy-link:focus-visible');
+    expect(activeCodeLines.match(/\bfetch\(/g)).toHaveLength(1);
+    expect(activeCodeLines).not.toMatch(/XMLHttpRequest|sendBeacon/);
   });
 });

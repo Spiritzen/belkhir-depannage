@@ -69,11 +69,14 @@ beforeAll(() => {
   );
 }, 60000);
 
-describe('PREPUB-001 — configuration GitHub Pages (site/base)', () => {
-  it('1. astro.config.mjs declares the GitHub Pages origin and repo subpath', () => {
-    expect(astroConfigSource).toContain("'https://spiritzen.github.io'");
-    expect(astroConfigSource).toMatch(/base:\s*GITHUB_PAGES_BASE/);
-    expect(astroConfigSource).toContain("'/belkhir-depannage/'");
+describe('PREPUB-001 — configuration LWS racine (site/base)', () => {
+  it('1. astro.config.mjs declares the LWS origin and the root base, no GitHub Pages leftover', () => {
+    expect(astroConfigSource).toContain("const SITE_ORIGIN = 'https://belkhir-depannage-hdf.fr';");
+    expect(astroConfigSource).toContain("const SITE_BASE = '/';");
+    expect(astroConfigSource).toMatch(/site:\s*SITE_ORIGIN/);
+    expect(astroConfigSource).toMatch(/base:\s*SITE_BASE/);
+    expect(astroConfigSource).not.toContain('github.io');
+    expect(astroConfigSource).not.toContain('/belkhir-depannage/');
   });
 
   it('2. output stays static, no server adapter added', () => {
@@ -131,19 +134,17 @@ describe('PREPUB-006 — single URL source of truth, no temporary placeholder le
     expect(distSitemap0).not.toContain('exemple-temporaire');
   });
 
-  it('9. canonical and og:url are absolute and include the /belkhir-depannage/ subpath', () => {
+  it('9. canonical and og:url are absolute on the LWS root domain, no subpath', () => {
     expect(distIndexHtml).toContain(
-      '<link rel="canonical" href="https://spiritzen.github.io/belkhir-depannage/">',
+      '<link rel="canonical" href="https://belkhir-depannage-hdf.fr/">',
     );
     expect(distIndexHtml).toContain(
-      '<meta property="og:url" content="https://spiritzen.github.io/belkhir-depannage/">',
+      '<meta property="og:url" content="https://belkhir-depannage-hdf.fr/">',
     );
   });
 
-  it('10. the sitemap lists the real GitHub Pages URL exactly once, no duplicate root entry', () => {
-    expect(distSitemapIndex).toContain(
-      '<loc>https://spiritzen.github.io/belkhir-depannage/sitemap-0.xml</loc>',
-    );
+  it('10. the sitemap lists the LWS root URL exactly once, no duplicate root entry', () => {
+    expect(distSitemapIndex).toContain('<loc>https://belkhir-depannage-hdf.fr/sitemap-0.xml</loc>');
     // Mise à jour micro-sprint 1 « page plomberie » (03/09/2026,
     // PROMPT_CLAUDE_CODE_MICRO_SPRINT_1_PAGE_PLOMBERIE_HERO.txt), puis pages
     // chauffage, serrurerie, vitrerie, rideaux métalliques, politique de
@@ -159,15 +160,15 @@ describe('PREPUB-006 — single URL source of truth, no temporary placeholder le
     const locs = distSitemap0.match(/<loc>[^<]+<\/loc>/g) ?? [];
     expect(new Set(locs)).toEqual(
       new Set([
-        '<loc>https://spiritzen.github.io/belkhir-depannage/</loc>',
-        '<loc>https://spiritzen.github.io/belkhir-depannage/plomberie/</loc>',
-        '<loc>https://spiritzen.github.io/belkhir-depannage/chauffage/</loc>',
-        '<loc>https://spiritzen.github.io/belkhir-depannage/serrurerie/</loc>',
-        '<loc>https://spiritzen.github.io/belkhir-depannage/vitrerie/</loc>',
-        '<loc>https://spiritzen.github.io/belkhir-depannage/rideaux-metalliques/</loc>',
-        '<loc>https://spiritzen.github.io/belkhir-depannage/politique-de-confidentialite/</loc>',
-        '<loc>https://spiritzen.github.io/belkhir-depannage/mentions-legales/</loc>',
-        '<loc>https://spiritzen.github.io/belkhir-depannage/zones-intervention/</loc>',
+        '<loc>https://belkhir-depannage-hdf.fr/</loc>',
+        '<loc>https://belkhir-depannage-hdf.fr/plomberie/</loc>',
+        '<loc>https://belkhir-depannage-hdf.fr/chauffage/</loc>',
+        '<loc>https://belkhir-depannage-hdf.fr/serrurerie/</loc>',
+        '<loc>https://belkhir-depannage-hdf.fr/vitrerie/</loc>',
+        '<loc>https://belkhir-depannage-hdf.fr/rideaux-metalliques/</loc>',
+        '<loc>https://belkhir-depannage-hdf.fr/politique-de-confidentialite/</loc>',
+        '<loc>https://belkhir-depannage-hdf.fr/mentions-legales/</loc>',
+        '<loc>https://belkhir-depannage-hdf.fr/zones-intervention/</loc>',
       ]),
     );
     expect(new Set(locs).size).toBe(locs.length);
@@ -179,20 +180,19 @@ describe('PREPUB-006 — single URL source of truth, no temporary placeholder le
 });
 
 describe('PREPUB-002 — assets base-aware (favicons, polices, image OG)', () => {
-  it('12. favicon links in the compiled HTML are prefixed with /belkhir-depannage/', () => {
-    expect(distIndexHtml).toContain('href="/belkhir-depannage/favicon-legacy.png"');
-    expect(distIndexHtml).toContain('href="/belkhir-depannage/favicon.svg"');
+  it('12. favicon links in the compiled HTML are served from the site root', () => {
+    expect(distIndexHtml).toContain('href="/favicon-legacy.png"');
+    expect(distIndexHtml).toContain('href="/favicon.svg"');
   });
 
-  it('13. no favicon/font/og/_astro reference points at the GitHub account root (missing base)', () => {
-    expect(distIndexHtml).not.toMatch(/href="\/favicon[^"]*"/);
-    expect(distIndexHtml).not.toMatch(/(src|href)="\/_astro\/[^"]*"/);
+  it('13. no reference depends on the former GitHub Pages subpath, nor on an un-hashed font path', () => {
+    expect(distIndexHtml).not.toContain('/belkhir-depannage/');
+    expect(distCssContent).not.toContain('/belkhir-depannage/');
     expect(distCssContent).not.toMatch(/url\(\/fonts\//);
   });
 
-  it('14. all four font files are served through the base-aware Vite asset pipeline, hashed under _astro/', () => {
-    const fontUrls =
-      distCssContent.match(/url\(\/belkhir-depannage\/_astro\/[^)]*\.woff2\)/g) ?? [];
+  it('14. all four font files are served through the Vite asset pipeline, hashed under /_astro/', () => {
+    const fontUrls = distCssContent.match(/url\(\/_astro\/[^)]*\.woff2\)/g) ?? [];
     expect(fontUrls.length).toBe(4);
     const families = ['sora-latin.', 'sora-latin-ext.', 'manrope-latin.', 'manrope-latin-ext.'];
     for (const family of families) {
@@ -208,12 +208,12 @@ describe('PREPUB-002 — assets base-aware (favicons, polices, image OG)', () =>
 });
 
 describe('PREPUB-009 — Open Graph / Twitter images absolute', () => {
-  it('16. og:image and twitter:image are full absolute URLs including the subpath, not a root-relative path', () => {
+  it('16. og:image and twitter:image are full absolute URLs on the LWS domain, not a root-relative path', () => {
     expect(distIndexHtml).toContain(
-      '<meta property="og:image" content="https://spiritzen.github.io/belkhir-depannage/og-default.svg">',
+      '<meta property="og:image" content="https://belkhir-depannage-hdf.fr/og-default.svg">',
     );
     expect(distIndexHtml).toContain(
-      '<meta name="twitter:image" content="https://spiritzen.github.io/belkhir-depannage/og-default.svg">',
+      '<meta name="twitter:image" content="https://belkhir-depannage-hdf.fr/og-default.svg">',
     );
     expect(distIndexHtml).not.toMatch(/content="\/og-default\.svg"/);
   });

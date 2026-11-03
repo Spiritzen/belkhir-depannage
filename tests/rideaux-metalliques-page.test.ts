@@ -38,9 +38,9 @@ describe('page /rideaux-metalliques/ — SEO (dist/, base-dépendant)', () => {
     );
   });
 
-  it('has a canonical URL under the real GitHub Pages subpath', () => {
+  it('has a canonical URL on the LWS root domain', () => {
     expect(distHtml).toContain(
-      '<link rel="canonical" href="https://spiritzen.github.io/belkhir-depannage/rideaux-metalliques/">',
+      '<link rel="canonical" href="https://belkhir-depannage-hdf.fr/rideaux-metalliques/">',
     );
   });
 
@@ -51,10 +51,10 @@ describe('page /rideaux-metalliques/ — SEO (dist/, base-dépendant)', () => {
   // CORRECTION (PAGE ZONES D'INTERVENTION, 04/09/2026) : le CTA « Vérifier
   // mon secteur » du Hero pointe désormais vers la page dédiée réelle
   // plutôt que l'ancre `#zones-couvertes` de la landing.
-  it('the secondary CTA points to the real /zones-intervention/ page under the GitHub Pages subpath', () => {
+  it('the secondary CTA points to the real /zones-intervention/ page from the site root', () => {
     const match = distHtml.match(/class="hero__coverage-cta"[^>]*href="([^"]+)"/);
     expect(match).not.toBeNull();
-    expect(match?.[1]).toBe('/belkhir-depannage/zones-intervention/');
+    expect(match?.[1]).toBe('/zones-intervention/');
   });
 });
 
