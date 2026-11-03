@@ -35,9 +35,18 @@ PHP (`dist/`) → FTP explicite sur TLS → `/htdocs/`.
 - **workflow_dispatch** : choix explicite `mode` (défaut `dry-run`) — `dry-run` : connexion FTPS puis miroir `--dry-run` (aucun transfert ni suppression), depuis n'importe quelle branche ; `deploy` : miroir réel, refusé hors `main`.
 - Ordre : `composer validate --strict` → `composer install --no-dev …` → `composer audit` → `php -l` → tests PHP → `npm ci` → `npm run check` → `npm run build` → suite JS → `scripts/check-dist.mjs` → artefact (fichiers cachés inclus).
 - Le build précède la suite JS car plusieurs tests lisent `dist/`.
-- Déploiement : `lftp`, TLS obligatoire (`ssl-force`), certificat et nom d'hôte vérifiés, mode passif, données protégées, 3 tentatives, miroir `--delete` limité à `/htdocs/`, `.well-known/` exclu (préservé).
+- Déploiement : `lftp`, TLS obligatoire (`ssl-force`), certificat vérifié (chaîne de confiance ; voir « Certificat FTPS de LWS » ci-dessous), mode passif, données protégées, 3 tentatives, miroir `--delete` limité à `/htdocs/`, `.well-known/` exclu (préservé).
 - Pourquoi `lftp` : seul client simple offrant TLS explicite forcé, vérification de certificat, miroir avec suppression, exclusions et simulation (`--dry-run`), sur le runner officiel, sans action tierce recevant les secrets.
 - Concurrence : une exécution à la fois par branche ; les contrôles de PR sont annulés par une exécution plus récente, mais un déploiement sur `main` n'est jamais interrompu en cours de miroir.
+
+## Certificat FTPS de LWS (premier dry-run)
+
+- **Constat** : le premier `dry-run` manuel sur `main` a exécuté les contrôles et le build (verts), affiché « MODE SIMULATION », puis échoué à la connexion FTPS : `certificate common name doesn't match requested host name`. Rien n'a été transféré ni supprimé.
+- **Cause** : le serveur FTPS mutualisé de LWS présente un certificat valide dont le nom ne correspond pas à l'hôte demandé (alias FTP du domaine).
+- **Correction** : `set ssl:check-hostname no`, **uniquement** pour cette connexion. Seule la comparaison nom d'hôte ↔ certificat est désactivée.
+- **Inchangé** : `ssl:verify-certificate yes` — le certificat doit toujours être signé par une autorité reconnue — ainsi que FTP explicite sur TLS (`ssl-force`), port 21, données protégées, mode passif, aucun repli en clair.
+- **Interdit** : désactiver la vérification du certificat (`ssl:verify-certificate no`), `--insecure`, FTP en clair ou SFTP dans ce workflow. Les tests échouent si l'une de ces options apparaît.
+- **Prochain contrôle manuel** : après commit/push de cette correction, relancer _Run workflow_ sur `main` en `mode = dry-run`. Il doit seulement **lister** les opérations prévues ; il ne doit rien transférer ni supprimer.
 
 ## Premier déploiement : vérifications
 

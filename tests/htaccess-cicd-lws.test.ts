@@ -291,18 +291,39 @@ describe('CI/CD — workflow GitHub Actions', () => {
   });
 
   it('12. FTP explicite sur TLS, port 21, passif, données protégées, certificat vérifié, aucun repli clair', () => {
-    expect(mirrorScript).toContain('set ftp:ssl-force yes');
-    expect(mirrorScript).toContain('set ftp:ssl-auth TLS');
-    expect(mirrorScript).toContain('set ftp:ssl-protect-data yes');
-    expect(mirrorScript).toContain('set ftp:passive-mode yes');
-    expect(mirrorScript).toContain('set ssl:verify-certificate yes');
-    expect(mirrorScript).toContain('set ssl:check-hostname yes');
-    expect(mirrorScript).toContain('-p 21');
-    expect(mirrorScript).not.toMatch(
-      /verify-certificate\s+no|check-hostname\s+no|ssl-force\s+no|ssl-allow\s+no/,
+    // Réglages lftp réellement utilisés (une seule configuration partagée par dry-run, deploy manuel et automatique).
+    const settings = new Map(
+      [...mirrorScript.matchAll(/^set (\S+) (\S+)$/gm)].map((m) => [m[1], m[2]] as const),
     );
+    expect(mirrorScript.match(/lftp -f/g)).toHaveLength(1);
+    expect(settings.get('ftp:ssl-force')).toBe('yes');
+    expect(settings.get('ftp:ssl-auth')).toBe('TLS');
+    expect(settings.get('ftp:ssl-protect-data')).toBe('yes');
+    expect(settings.get('ftp:ssl-protect-list')).toBe('yes');
+    expect(settings.get('ftp:passive-mode')).toBe('yes');
+    expect(settings.get('ssl:verify-certificate')).toBe('yes');
+    expect(settings.get('cmd:fail-exit')).toBe('yes');
+    expect(mirrorScript).toContain('-p 21');
+    // Aucune option de repli ou de désactivation de TLS.
+    expect(settings.get('ftp:ssl-force')).not.toBe('no');
+    expect(settings.get('ftp:ssl-allow')).not.toBe('no');
+    expect(mirrorScript).not.toMatch(/verify-certificate\s+(no|false)/);
+    expect(mirrorScript).not.toMatch(/ssl-force\s+(no|false)|ssl-allow\s+no|ssl-protect-data\s+no/);
     expect(mirrorScript).not.toMatch(/ftp:\/\//);
-    expect(mirrorScript).not.toMatch(/set -x|--insecure|ssl:verify-certificate false/);
+    expect(mirrorScript).not.toMatch(/set -x|--insecure|\s-k\s|sftp/);
+  });
+
+  it('12 bis. exception documentée : seule la comparaison du nom d’hôte du certificat est désactivée (serveur FTPS mutualisé LWS)', () => {
+    expect(mirrorScript).toMatch(/^set ssl:check-hostname no$/m);
+    expect(mirrorScript).not.toMatch(/check-hostname\s+yes/);
+    // Le commentaire YAML qui justifie l'exception précède l'étape.
+    const idx = workflowText.indexOf('- name: Miroir FTPS explicite');
+    const before = workflowText.slice(Math.max(0, idx - 600), idx);
+    expect(before).toContain('serveur FTPS mutualisé LWS');
+    expect(before).toContain('ssl:check-hostname no');
+    expect(before).toContain('ssl:verify-certificate yes');
+    // L'exception n'existe qu'à cet endroit (une seule occurrence active).
+    expect(workflowText.match(/^\s+set ssl:check-hostname no$/gm)).toHaveLength(1);
   });
 
   it('13-15. cible /htdocs/, source dist/, miroir borné, /.well-known/ préservé, jamais home/ ni tmp/', () => {

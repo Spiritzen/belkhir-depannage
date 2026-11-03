@@ -170,6 +170,10 @@ jobs:
       - name: Installer lftp
         run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
 
+      # Exception limitée au serveur FTPS mutualisé LWS : son certificat est valide (chaîne
+      # vérifiée par ssl:verify-certificate yes) mais son nom ne correspond pas à l'alias FTP
+      # du domaine. Seule la comparaison nom d'hôte / certificat est désactivée
+      # (ssl:check-hostname no) ; TLS et la vérification cryptographique restent obligatoires.
       - name: Miroir FTPS explicite vers /htdocs/ (TLS obligatoire, certificat vérifié)
         run: |
           set -euo pipefail
@@ -192,7 +196,7 @@ jobs:
           set ftp:ssl-protect-data yes
           set ftp:ssl-protect-list yes
           set ssl:verify-certificate yes
-          set ssl:check-hostname yes
+          set ssl:check-hostname no
           open -u "$(esc "$LWS_FTP_USERNAME")","$(esc "$LWS_FTP_PASSWORD")" -p 21 "$LWS_FTP_HOST"
           cd /htdocs
           mirror $mirror_opts --exclude-glob .well-known --exclude-glob '.well-known/*' ./dist .
