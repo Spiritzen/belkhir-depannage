@@ -1,3 +1,4 @@
+import { ROBOTS_CONTENT } from './helpers/indexing';
 import { describe, expect, it, beforeAll } from 'vitest';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import IndexPage from '../src/pages/index.astro';
@@ -61,20 +62,20 @@ describe('landing page — contenu et garde-fous (section 29 du prompt de missio
     expect(html).not.toContain('Fouad');
   });
 
-  it('9. never generates a tel: link for the standard number, still incomplete/provisional (placeholder state)', () => {
+  it('9. the provisional standard number is a real tel: link (same official mobile as the emergency line), no placeholder', () => {
     // Le numéro standard n'est toujours pas renseigné : aucun lien tel: ne
     // doit être produit pour lui, uniquement un libellé explicite. Le
     // numéro d'urgence, lui, est désormais officiel et versionné
     // directement dans site-config.ts (correctif d'architecture,
     // 01/09/2026) : il produit bien un vrai lien tel:, couvert par
     // tests/emergency-phone-activation.test.ts.
-    expect(html).not.toMatch(/data-phone-role="standard"[^>]*href="tel:/);
-    expect(html).toContain('NUMÉRO STANDARD À RENSEIGNER');
+    expect(html).toMatch(/href="tel:\+33649621619"[^>]*data-phone-role="standard"/);
+    expect(html).not.toContain('NUMÉRO STANDARD À RENSEIGNER');
     expect(html).not.toContain('PORTABLE URGENCE À RENSEIGNER');
   });
 
-  it('11. keeps the page non-indexable by default (noindex, nofollow)', () => {
-    expect(html).toContain('content="noindex, nofollow"');
+  it('11. robots meta follows the build indexing mode (closed by default)', () => {
+    expect(html).toContain(`content="${ROBOTS_CONTENT}"`);
   });
 
   it('12. renders an accessible mobile navigation (drawer with dialog semantics, hamburger control)', () => {
@@ -150,8 +151,8 @@ describe('landing page — contenu et garde-fous (section 29 du prompt de missio
     }
   });
 
-  it('15. keeps the preview mention, with no placeholder wording in the interventions', () => {
-    expect(html).toContain('Maquette de prévisualisation');
+  it('15. no preview mention anymore, and no placeholder wording in the interventions', () => {
+    expect(html).not.toMatch(/maquette de prévisualisation|non indexée/i);
     expect(html).not.toContain('Avis Google à connecter');
     const latest = html.match(/<section class="latest"[\s\S]*?<\/section>/)?.[0] ?? '';
     expect(latest).toContain('Nos interventions sur le terrain');

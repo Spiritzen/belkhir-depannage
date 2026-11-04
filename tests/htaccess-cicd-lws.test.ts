@@ -14,6 +14,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
+import { INDEXING_ENABLED } from './helpers/indexing';
 
 // .htaccess de production + CI/CD FTPS LWS : tests statiques (aucun Apache, aucune
 // connexion distante). Lisent dist/ : `npm run build` requis au préalable.
@@ -274,7 +275,7 @@ describe('CI/CD — workflow GitHub Actions', () => {
   it('pull_request ne se connecte jamais au FTPS : aucun secret ni lftp dans le job de contrôle', () => {
     const verifyText = JSON.stringify(verifySteps);
     expect(verifyText).not.toMatch(/LWS_FTP|lftp|secrets\./);
-    expect(workflow.jobs.verify.env).toBeUndefined();
+    expect(Object.keys(workflow.jobs.verify.env)).toEqual(['ENABLE_INDEXING', 'EXPECT_INDEXING']);
     expect(workflow.jobs.deploy.if).toContain("github.event_name != 'pull_request'");
   });
 
@@ -392,25 +393,128 @@ describe('CI/CD — workflow GitHub Actions', () => {
     expect(step.run).not.toMatch(/echo[^\n]*\$\{?LWS_FTP_(PASSWORD|USERNAME)\}?/);
   });
 
-  it('19. robots/noindex fermés : contrôlés avant tout déploiement', () => {
+  it('19. contrôle d’artefact en mode production dans verify ET dans deploy (même artefact, deux vérifications)', () => {
     const checks = [...verifySteps, ...deploySteps].filter((s) =>
       String(s.run).includes('check-dist.mjs'),
     );
     expect(checks.length).toBeGreaterThanOrEqual(2);
+    // verify : ENABLE_INDEXING/EXPECT_INDEXING au niveau du job (build, tests, check-dist).
+    expect(workflow.jobs.verify.env).toEqual({ ENABLE_INDEXING: 'true', EXPECT_INDEXING: 'true' });
+    // deploy : l'artefact téléchargé est revérifié en mode production indexable.
+    const recheck = deploySteps.find((s) => String(s.run).includes('check-dist.mjs'));
+    expect(recheck.env).toEqual({ EXPECT_INDEXING: 'true' });
+    // Un seul build (verify) ; le job deploy ne reconstruit rien.
+    expect(JSON.stringify(deploySteps)).not.toMatch(/npm run build|astro build/);
+    expect(verifySteps.filter((s) => s.run === 'npm run build')).toHaveLength(1);
+    // Aucune valeur d'indexation ne vient d'un secret ou d'un .env.
+    expect(workflowText).not.toMatch(/ENABLE_INDEXING:\s*\$\{\{/);
+    expect(workflowText).not.toMatch(/secrets\.[A-Z_]*INDEX/);
   });
 });
 
-describe('scripts/check-dist.mjs — contrôle de l’artefact', () => {
-  const run = (dir: string) =>
-    spawnSync('node', [join(root, 'scripts', 'check-dist.mjs'), dir], { encoding: 'utf-8' });
+const ORIGIN = 'https://belkhir-depannage-hdf.fr';
+const OPEN_META = '<meta name="robots" content="index, follow">';
+const CLOSED_META = '<meta name="robots" content="noindex, nofollow">';
+const META_RX = /<meta name="robots" content="[^"]*">/;
 
-  it('20. dist/ réel : complet pour le formulaire PHP, sans secret, noindex', () => {
+const htmlPagesOf = (dir: string) =>
+  readdirSync(dir, { recursive: true, encoding: 'utf-8' })
+    .map((p) => p.replace(/\\/g, '/'))
+    .filter((p) => p.endsWith('.html'));
+
+/** Réécrit robots.txt et les meta robots d'une copie de dist/ dans l'état voulu. */
+function setIndexingState(dir: string, open: boolean) {
+  for (const p of htmlPagesOf(dir)) {
+    const meta = open && p !== '404.html' ? OPEN_META : CLOSED_META;
+    writeFileSync(join(dir, p), readFileSync(join(dir, p), 'utf-8').replace(META_RX, meta));
+  }
+  writeFileSync(
+    join(dir, 'robots.txt'),
+    open
+      ? `User-agent: *\nAllow: /\n\nSitemap: ${ORIGIN}/sitemap-index.xml\n`
+      : 'User-agent: *\nDisallow: /\n',
+  );
+}
+
+describe('scripts/check-dist.mjs — contrôle de l’artefact', () => {
+  // Mode attendu = mode du build courant (CI de production : ENABLE_INDEXING=true).
+  const run = (dir: string, expectIndexing = INDEXING_ENABLED) =>
+    spawnSync('node', [join(root, 'scripts', 'check-dist.mjs'), dir], {
+      encoding: 'utf-8',
+      env: { ...process.env, EXPECT_INDEXING: expectIndexing ? 'true' : 'false' },
+    });
+
+  it('20. dist/ réel : complet pour le formulaire PHP, sans secret, dans le mode d’indexation du build', () => {
     const r = run(dist);
     expect(r.status, r.stdout + r.stderr).toBe(0);
     expect(r.stdout).toContain('artefact complet et sans secret');
+    expect(r.stdout).toContain(INDEXING_ENABLED ? 'production indexable' : 'préproduction fermée');
   });
 
-  it('échoue si le noindex, un secret, un .env, un ancien chemin ou le .htaccess disparaissent', () => {
+  it('refuse un artefact qui ne correspond pas au mode attendu (fermé vs indexable)', () => {
+    const r = run(dist, !INDEXING_ENABLED);
+    expect(r.status).toBe(1);
+    expect(r.stderr).toMatch(INDEXING_ENABLED ? /fermé|noindex/ : /indexable|index, follow/);
+  });
+
+  it('accepte les deux états correctement construits et refuse le croisement', () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'belkhir-modes-'));
+    try {
+      cpSync(dist, tmp, { recursive: true });
+      setIndexingState(tmp, true);
+      expect(run(tmp, true).status).toBe(0);
+      expect(run(tmp, false).status).toBe(1);
+      setIndexingState(tmp, false);
+      expect(run(tmp, false).status).toBe(0);
+      expect(run(tmp, true).status).toBe(1);
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
+  }, 120000);
+
+  it('production : échoue sur robots.txt sans sitemap, page non indexée, 404 indexée, mention de maquette ou 404 / hors domaine dans le sitemap', () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'belkhir-prod-'));
+    try {
+      cpSync(dist, tmp, { recursive: true });
+      setIndexingState(tmp, true);
+      const robotsOk = `User-agent: *\nAllow: /\n\nSitemap: ${ORIGIN}/sitemap-index.xml\n`;
+      expect(run(tmp, true).status).toBe(0);
+
+      writeFileSync(join(tmp, 'robots.txt'), 'User-agent: *\nAllow: /\n');
+      expect(run(tmp, true).status).toBe(1);
+      writeFileSync(join(tmp, 'robots.txt'), robotsOk);
+
+      const idx = readFileSync(join(tmp, 'index.html'), 'utf-8');
+      writeFileSync(join(tmp, 'index.html'), idx.replace(OPEN_META, CLOSED_META));
+      expect(run(tmp, true).status).toBe(1);
+      writeFileSync(
+        join(tmp, 'index.html'),
+        idx + '<p>Maquette de prévisualisation — non indexée.</p>',
+      );
+      expect(run(tmp, true).status).toBe(1);
+      writeFileSync(join(tmp, 'index.html'), idx);
+
+      const nf = readFileSync(join(tmp, '404.html'), 'utf-8');
+      writeFileSync(join(tmp, '404.html'), nf.replace(CLOSED_META, OPEN_META));
+      expect(run(tmp, true).status).toBe(1);
+      writeFileSync(join(tmp, '404.html'), nf);
+
+      const sm = readFileSync(join(tmp, 'sitemap-0.xml'), 'utf-8');
+      writeFileSync(
+        join(tmp, 'sitemap-0.xml'),
+        sm.replace('</urlset>', `<url><loc>${ORIGIN}/404</loc></url></urlset>`),
+      );
+      expect(run(tmp, true).status).toBe(1);
+      writeFileSync(join(tmp, 'sitemap-0.xml'), sm.replace(ORIGIN, 'https://example.com'));
+      expect(run(tmp, true).status).toBe(1);
+      writeFileSync(join(tmp, 'sitemap-0.xml'), sm);
+      expect(run(tmp, true).status).toBe(0);
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
+  }, 120000);
+
+  it('échoue si un secret, un .env, un ancien chemin ou le .htaccess apparaissent ou disparaissent (garde-fous conservés)', () => {
     const tmp = mkdtempSync(join(tmpdir(), 'belkhir-dist-'));
     try {
       cpSync(dist, tmp, { recursive: true });
@@ -427,13 +531,7 @@ describe('scripts/check-dist.mjs — contrôle de l’artefact', () => {
       const idx = readFileSync(join(tmp, 'index.html'), 'utf-8');
       writeFileSync(join(tmp, 'index.html'), idx + '<a href="/belkhir-depannage/">x</a>');
       expect(run(tmp).status).toBe(1);
-      writeFileSync(join(tmp, 'index.html'), idx.replace('noindex, nofollow', 'index, follow'));
-      expect(run(tmp).status).toBe(1);
       writeFileSync(join(tmp, 'index.html'), idx);
-
-      writeFileSync(join(tmp, 'robots.txt'), 'User-agent: *\nAllow: /\n');
-      expect(run(tmp).status).toBe(1);
-      writeFileSync(join(tmp, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
 
       rmSync(join(tmp, '.htaccess'));
       expect(run(tmp).status).toBe(1);

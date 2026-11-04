@@ -1,3 +1,4 @@
+import { ROBOTS_META } from './helpers/indexing';
 import { describe, expect, it, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -48,7 +49,7 @@ describe('page /mentions-legales/ — SEO (dist/, base-dépendant)', () => {
   });
 
   it('preserves the global indexing policy (noindex) — not touched by this mission', () => {
-    expect(distHtml).toContain('<meta name="robots" content="noindex, nofollow">');
+    expect(distHtml).toContain(ROBOTS_META);
   });
 
   it('never emits a WebPage/Organization/BreadcrumbList JSON-LD schema (pattern not yet used by any real page)', () => {

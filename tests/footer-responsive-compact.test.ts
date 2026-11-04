@@ -126,11 +126,12 @@ describe('footer responsive — deux colonnes mobile (Métiers / Navigation)', (
     expect(callsRule).toContain('gap: var(--space-3)');
   });
 
-  it('12. the real emergency number stays callable, the standard number stays a non-callable placeholder', () => {
+  it('12. emergency and provisional standard are both callable (same official mobile number)', () => {
     const footerHtml = pageHtml.match(/<footer[\s\S]*?<\/footer>/)?.[0] ?? '';
     expect(footerHtml).toMatch(/<a[^>]*href="tel:\+33649621619"[^>]*>/);
-    expect(footerHtml).toMatch(/<button[^>]*disabled[^>]*>/);
-    expect(footerHtml).not.toMatch(/<a[^>]*href="tel:\+33[^"]*"[^>]*>[\s\S]*?03 XX XX XX XX/);
+    expect(footerHtml).toMatch(/<a[^>]*href="tel:\+33649621619"[^>]*data-phone-role="standard"/);
+    expect(footerHtml).toMatch(/<a[^>]*href="tel:\+33649621619"[^>]*data-phone-role="emergency"/);
+    expect(footerHtml).not.toMatch(/<button[^>]*disabled[^>]*>|03 XX XX XX XX/);
   });
 
   it('13. the B/D brand-initial orange signature is untouched', () => {

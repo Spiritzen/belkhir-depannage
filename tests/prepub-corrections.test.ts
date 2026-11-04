@@ -1,3 +1,4 @@
+import { ROBOTS_META, ROBOTS_TXT } from './helpers/indexing';
 import { describe, expect, it, beforeAll } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -174,8 +175,8 @@ describe('PREPUB-006 — single URL source of truth, no temporary placeholder le
     expect(new Set(locs).size).toBe(locs.length);
   });
 
-  it('11. robots.txt still fully disallows indexing (maquette non indexée, garde-fou préservé)', () => {
-    expect(distRobotsTxt.trim()).toBe('User-agent: *\nDisallow: /');
+  it('11. robots.txt suit le mode d’indexation du build (Disallow fermé par défaut, Allow + sitemap en production)', () => {
+    expect(distRobotsTxt.trim()).toBe(ROBOTS_TXT);
   });
 });
 
@@ -294,10 +295,10 @@ describe('PREPUB-007 — emergency CTA contrast (computed WCAG ratio, not a hard
 
   it('23. the emergency phone link is unchanged and still present at all 4 locations in the build', () => {
     const telLinks = distIndexHtml.match(/href="tel:\+33649621619"/g) ?? [];
-    expect(telLinks).toHaveLength(4);
+    expect(telLinks).toHaveLength(8); // 4 urgence + 4 standard provisoire
   });
 
-  it('24. the standard number stays a non-callable placeholder (no regression)', () => {
+  it('24. no legacy fixed-line standard number is ever linked', () => {
     expect(distIndexHtml).not.toMatch(/href="tel:\+3322[0-9]+"/);
   });
 });
@@ -371,7 +372,7 @@ describe('non-régression — indexation et build', () => {
     );
   });
 
-  it('30. dist/index.html reflects noindex,nofollow (indexation toujours désactivée par défaut)', () => {
-    expect(distIndexHtml).toContain('<meta name="robots" content="noindex, nofollow">');
+  it('30. dist/index.html reflète le mode d’indexation du build (fermé par défaut)', () => {
+    expect(distIndexHtml).toContain(ROBOTS_META);
   });
 });

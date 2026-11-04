@@ -6,6 +6,7 @@ import {
   siteConfig,
 } from '../src/lib/site-config';
 import type { PhoneNumberConfig } from '../src/types/site';
+import { INDEXING_ENABLED } from './helpers/indexing';
 
 const completePhone: PhoneNumberConfig = {
   role: 'standard',
@@ -112,12 +113,23 @@ describe('resolveSiteUrl', () => {
 });
 
 describe('siteConfig', () => {
-  it('disables indexing by default (no explicit env request, placeholder phones)', () => {
-    expect(siteConfig.allowIndexing).toBe(false);
+  it('allows indexing only with ENABLE_INDEXING=true (both phone lines are complete)', () => {
+    expect(siteConfig.allowIndexing).toBe(INDEXING_ENABLED);
   });
 
-  it('stays marked as a preview build', () => {
-    expect(siteConfig.isPreview).toBe(true);
+  it('is no longer marked as a preview build, and the SEO description has no preview wording', () => {
+    expect(siteConfig.isPreview).toBe(false);
+    expect(siteConfig.defaultSeoDescription).not.toMatch(/maquette|prévisualisation|non indexée/i);
+  });
+
+  it('standard and emergency are two distinct roles sharing the provisional official mobile number', () => {
+    expect(siteConfig.standardPhone.role).toBe('standard');
+    expect(siteConfig.emergencyPhone.role).toBe('emergency');
+    expect(siteConfig.standardPhone.display).toBe('06 49 62 16 19');
+    expect(siteConfig.standardPhone.international).toBe('+33649621619');
+    expect(siteConfig.emergencyPhone.display).toBe('06 49 62 16 19');
+    expect(siteConfig.emergencyPhone.international).toBe('+33649621619');
+    expect(siteConfig.standardPhone.subLabel).toBe('Demandes, devis et suivi');
   });
 
   it('exposes a French default SEO title and description', () => {

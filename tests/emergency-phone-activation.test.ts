@@ -19,8 +19,8 @@ import { fileURLToPath } from 'node:url';
 // `astro dev` auparavant.
 delete process.env.EMERGENCY_PHONE_DISPLAY;
 delete process.env.EMERGENCY_PHONE_INTERNATIONAL;
-// Le standard reste provisoire : on garantit qu'aucune variable ambiante ne
-// vienne accidentellement le renseigner pendant ce test.
+// Le standard est un numéro provisoire versionné : on garantit qu'aucune variable
+// ambiante ne puisse le modifier pendant ce test.
 delete process.env.STANDARD_PHONE_DISPLAY;
 delete process.env.STANDARD_PHONE_INTERNATIONAL;
 
@@ -77,7 +77,8 @@ describe('correctif d’architecture — la configuration officielle ne dépend 
     expect(exampleSource).not.toMatch(/^#?s*EMERGENCY_PHONE_INTERNATIONAL=/m);
     // Les variables sans rapport restent présentes, inchangées.
     expect(exampleSource).toContain('ENABLE_INDEXING=false');
-    expect(exampleSource).toMatch(/^# STANDARD_PHONE_DISPLAY=/m);
+    expect(exampleSource).not.toMatch(/^#?\s*STANDARD_PHONE_DISPLAY=/m);
+    expect(exampleSource).toContain('PROVISOIRE');
 
     const envPath = fileURLToPath(new URL('../.env', import.meta.url));
     if (existsSync(envPath)) {
@@ -109,10 +110,12 @@ describe('correctif d’architecture — la configuration officielle ne dépend 
     }
   });
 
-  it('5. siteConfig.standardPhone reste explicitement non configuré (aucune régression)', async () => {
+  it('5. siteConfig.standardPhone est le numéro provisoire versionné (identique à l’urgence), sans dépendre de .env', async () => {
+    expect(process.env.STANDARD_PHONE_DISPLAY).toBeUndefined();
     const { siteConfig } = await import('../src/lib/site-config');
-    expect(siteConfig.standardPhone.display).toBeNull();
-    expect(siteConfig.standardPhone.international).toBeNull();
+    expect(siteConfig.standardPhone.role).toBe('standard');
+    expect(siteConfig.standardPhone.display).toBe(REAL_DISPLAY);
+    expect(siteConfig.standardPhone.international).toBe('+33649621619');
   });
 
   it('6. aucun composant ne code le numéro en dur : tous le lisent via siteConfig.emergencyPhone', () => {
@@ -154,8 +157,15 @@ describe('correctif d’architecture — les quatre emplacements obligatoires (e
     expect(footerHtml).toMatch(
       new RegExp(`<a[^>]*class="[^"]*footer__phone[^"]*"[^>]*href="${REAL_TEL_HREF_RE}"`),
     );
-    // Le standard, lui, reste un bouton désactivé sans tel:.
-    expect(footerHtml).toMatch(/<button[^>]*class="[^"]*footer__phone[^"]*"[^>]*disabled/);
+    // Le standard (provisoire, même numéro) est un lien actif distinct, jamais un bouton désactivé.
+    expect(footerHtml).toMatch(
+      new RegExp(
+        '<a[^>]*class="[^"]*footer__phone[^"]*"[^>]*href="' +
+          REAL_TEL_HREF_RE +
+          '"[^>]*data-phone-role="standard"',
+      ),
+    );
+    expect(footerHtml).not.toMatch(/<button[^>]*class="[^"]*footer__phone/);
   });
 
   it('9. barre sticky mobile : moitié droite entièrement cliquable, tel: exact, sans troncature', () => {
@@ -173,9 +183,15 @@ describe('correctif d’architecture — les quatre emplacements obligatoires (e
     );
   });
 
-  it('11. exactly four tel:+33649621619 links exist on the whole page (no extra, no missing CTA)', () => {
+  it('11. exactly eight tel:+33649621619 links exist on the whole page (4 emergency + 4 provisional standard, no extra)', () => {
     const matches = pageHtml.match(new RegExp(REAL_TEL_HREF_RE, 'g')) ?? [];
-    expect(matches).toHaveLength(4);
+    expect(matches).toHaveLength(8);
+    expect(
+      pageHtml.match(/href="tel:\+33649621619"[^>]*data-phone-role="emergency"/g),
+    ).toHaveLength(4);
+    expect(pageHtml.match(/href="tel:\+33649621619"[^>]*data-phone-role="standard"/g)).toHaveLength(
+      4,
+    );
   });
 
   it('12. all four emergency CTAs are real <a> elements, never a disabled <button>', () => {
@@ -198,8 +214,9 @@ describe('correctif d’architecture — absence des anciens placeholders', () =
     expect(pageHtml).not.toContain('06 XX XX XX XX');
   });
 
-  it('14. le standard, toujours provisoire, garde son placeholder légitime et son garde-fou (jamais de faux tel:)', () => {
-    expect(pageHtml).toContain('NUMÉRO STANDARD À RENSEIGNER');
+  it('14. le standard provisoire est un vrai lien (même numéro que l’urgence), sans placeholder ni faux tel:', () => {
+    expect(pageHtml).not.toContain('NUMÉRO STANDARD À RENSEIGNER');
+    expect(pageHtml).not.toContain('03 XX XX XX XX');
     expect(pageHtml).not.toMatch(/href="tel:\+3322/);
   });
 
@@ -212,7 +229,10 @@ describe('correctif d’architecture — absence des anciens placeholders', () =
 describe('correctif d’architecture — accessibilité (inchangée par le correctif)', () => {
   it('16. chaque lien d’urgence expose un nom accessible clair (rôle + numéro), sans aria-disabled ni target=_blank', () => {
     for (const html of [navbarHtml, footerHtml, callBarHtml, drawerHtml]) {
-      const linkMatch = html.match(new RegExp(`<a[^>]*href="${REAL_TEL_HREF_RE}"[\\s\\S]*?<\\/a>`));
+      // Premier lien tel: portant le rôle « emergency » (le standard provisoire partage le numéro).
+      const linkMatch = [
+        ...html.matchAll(new RegExp(`<a[^>]*href="${REAL_TEL_HREF_RE}"[\\s\\S]*?<\\/a>`, 'g')),
+      ].find((m) => m[0].includes('data-phone-role="emergency"'));
       expect(linkMatch).not.toBeNull();
       const linkHtml = linkMatch?.[0] ?? '';
       expect(linkHtml).not.toContain('aria-disabled');

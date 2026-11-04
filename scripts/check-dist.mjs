@@ -1,16 +1,25 @@
 /**
  * Contrôle de l'artefact dist/ avant déploiement (CI et local, portable).
  *
- *   node scripts/check-dist.mjs [dossier]      (défaut : dist)
+ *   node scripts/check-dist.mjs [dossier]                       (défaut : dist)
+ *   EXPECT_INDEXING=true node scripts/check-dist.mjs [dossier]  (production)
  *
  * Échoue (code 1) si un fichier requis manque ou si dist/ contient un secret,
- * une configuration réelle, l'ancien chemin GitHub Pages, ou si l'indexation
- * n'est plus fermée. N'affiche jamais le contenu d'un secret.
+ * une configuration réelle ou l'ancien chemin GitHub Pages. Deux états
+ * d'indexation, explicitement choisis :
+ *  - sans EXPECT_INDEXING=true : préproduction FERMÉE (robots.txt Disallow,
+ *    index.html et 404.html en noindex, nofollow) ;
+ *  - avec EXPECT_INDEXING=true : production OUVERTE (robots.txt Allow + sitemap,
+ *    pages de contenu index, follow, 404 toujours noindex, nofollow, aucune
+ *    mention de maquette).
+ * Un artefact qui ne correspond pas au mode attendu est refusé.
+ * N'affiche jamais le contenu d'un secret.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 
 const dist = resolve(process.argv[2] ?? 'dist');
+const expectIndexing = process.env.EXPECT_INDEXING === 'true';
 const errors = [];
 const fail = (msg) => errors.push(msg);
 
@@ -91,13 +100,38 @@ for (const { rel } of files) {
   if (/belkhir\.depannage@gmail\.com/.test(text)) fail(`adresse de compte LWS/Gmail dans ${rel}`);
 }
 
-// 4. Indexation fermée (préproduction)
-if (rels.has('robots.txt') && read('robots.txt').trim() !== 'User-agent: *\nDisallow: /') {
-  fail('robots.txt n’est pas fermé (Disallow: /) ');
-}
-for (const page of ['index.html', '404.html']) {
-  if (rels.has(page) && !read(page).includes('<meta name="robots" content="noindex, nofollow">')) {
-    fail(`${page} n’est plus en noindex, nofollow`);
+// 4. Indexation : état fermé (préproduction) ou ouvert (production), selon EXPECT_INDEXING
+const NOINDEX = '<meta name="robots" content="noindex, nofollow">';
+const INDEX = '<meta name="robots" content="index, follow">';
+const htmlPages = files.filter((f) => f.rel.endsWith('.html')).map((f) => f.rel);
+if (expectIndexing) {
+  const sitemapLine = 'Sitemap: https://belkhir-depannage-hdf.fr/sitemap-index.xml';
+  if (
+    rels.has('robots.txt') &&
+    read('robots.txt').trim() !== `User-agent: *\nAllow: /\n\n${sitemapLine}`
+  ) {
+    fail('robots.txt n’est pas indexable (Allow: / + ligne Sitemap attendues)');
+  }
+  for (const page of htmlPages) {
+    const html = read(page);
+    if (page === '404.html') {
+      if (!html.includes(NOINDEX)) fail('404.html doit rester noindex, nofollow');
+    } else if (!html.includes(INDEX) || html.includes(NOINDEX)) {
+      fail(`${page} n’est pas en index, follow`);
+    }
+    if (/maquette de prévisualisation|non indexée/i.test(html)) {
+      fail(`mention de maquette/non indexée dans ${page}`);
+    }
+  }
+  if (!rels.has('index.html')) fail('index.html absent (contrôle index, follow impossible)');
+} else {
+  if (rels.has('robots.txt') && read('robots.txt').trim() !== 'User-agent: *\nDisallow: /') {
+    fail('robots.txt n’est pas fermé (Disallow: /) ');
+  }
+  for (const page of ['index.html', '404.html']) {
+    if (rels.has(page) && !read(page).includes(NOINDEX)) {
+      fail(`${page} n’est plus en noindex, nofollow`);
+    }
   }
 }
 
@@ -108,6 +142,10 @@ for (const sm of ['sitemap-index.xml', 'sitemap-0.xml']) {
     if (!loc.startsWith('<loc>https://belkhir-depannage-hdf.fr/'))
       fail(`${sm} : URL hors domaine ${loc}`);
   }
+}
+
+if (rels.has('sitemap-0.xml') && /<loc>[^<]*\/404\/?<\/loc>/.test(read('sitemap-0.xml'))) {
+  fail('sitemap-0.xml référence la page 404');
 }
 
 // 6. .htaccess : garde-fous
@@ -126,4 +164,6 @@ if (errors.length > 0) {
   for (const e of errors) console.error(`  - ${e}`);
   process.exit(1);
 }
-console.log(`[check-dist] OK : ${files.length} fichiers, artefact complet et sans secret.`);
+console.log(
+  `[check-dist] OK (${expectIndexing ? 'production indexable' : 'préproduction fermée'}) : ${files.length} fichiers, artefact complet et sans secret.`,
+);

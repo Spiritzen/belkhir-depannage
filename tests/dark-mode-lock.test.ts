@@ -105,12 +105,12 @@ describe('verrouillage color-scheme — <head> HTML', () => {
 });
 
 describe('verrouillage color-scheme — non-régression', () => {
-  it('12. the emergency phone link is still present and unchanged (tel:+33649621619, 4 occurrences)', () => {
+  it('12. the phone links are present (tel:+33649621619, 4 emergency + 4 provisional standard occurrences)', () => {
     const telLinks = pageHtml.match(/href="tel:\+33649621619"/g) ?? [];
-    expect(telLinks).toHaveLength(4);
+    expect(telLinks).toHaveLength(8);
   });
 
-  it('13. the standard phone stays a non-callable placeholder (no regression from this sprint)', () => {
+  it('13. no legacy fixed-line standard number is ever linked', () => {
     expect(pageHtml).not.toMatch(/href="tel:\+3322[0-9]+"/);
   });
 

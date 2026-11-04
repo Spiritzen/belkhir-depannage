@@ -15,7 +15,7 @@ import sitemap from '@astrojs/sitemap';
  * `import.meta.env.BASE_URL` ; `src/lib/site-config.ts` (`resolveSiteUrl`)
  * les combine pour canonical, Open Graph, sitemap et robots.txt.
  *
- * L'indexation reste fermée (voir site-config.ts : `allowIndexing`).
+ * L'indexation est pilotée par ENABLE_INDEXING (voir site-config.ts : `allowIndexing`).
  */
 const SITE_ORIGIN = 'https://belkhir-depannage-hdf.fr';
 // Base racine : `/` (pas de sous-chemin). `withBase()` (src/lib/url.ts) et

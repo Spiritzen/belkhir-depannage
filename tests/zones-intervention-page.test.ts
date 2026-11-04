@@ -1,3 +1,4 @@
+import { ROBOTS_META } from './helpers/indexing';
 import { describe, expect, it, beforeAll } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -48,13 +49,11 @@ describe('page /zones-intervention/ — SEO (dist/, base-dépendant)', () => {
   });
 
   it('preserves the global indexing policy (noindex while numbers/flag are not confirmed)', () => {
-    expect(distHtml).toContain('<meta name="robots" content="noindex, nofollow">');
+    expect(distHtml).toContain(ROBOTS_META);
   });
 
   it('is listed in the generated sitemap', () => {
-    expect(sitemapXml).toContain(
-      'https://belkhir-depannage-hdf.fr/zones-intervention/',
-    );
+    expect(sitemapXml).toContain('https://belkhir-depannage-hdf.fr/zones-intervention/');
   });
 
   it('carries FAQPage, BreadcrumbList and Service JSON-LD, matching the visible content', () => {

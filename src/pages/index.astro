@@ -16,10 +16,8 @@ import LatestInterventions from '../components/landing/LatestInterventions.astro
 import Faq from '../components/landing/Faq.astro';
 import { siteConfig } from '../lib/site-config';
 
-// Maquette de prévisualisation (section 28 du prompt de mission) : tant que
-// siteConfig.isPreview reste vrai, ce commentaire rappelle que les données
-// mock présentes dans src/data/landing.ts ne doivent jamais être décrites
-// comme validées dans la documentation ou le contenu commercial.
+// Site en production (siteConfig.isPreview === false). Les données de
+// src/data/landing.ts restent à valider côté contenu commercial.
 ---
 
 <BaseLayout

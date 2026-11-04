@@ -1,3 +1,4 @@
+import { ROBOTS_META } from './helpers/indexing';
 import { describe, expect, it, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -43,7 +44,7 @@ describe('page /vitrerie/ — SEO (dist/, base-dépendant)', () => {
   });
 
   it('preserves the global indexing policy (noindex while numbers/flag are not confirmed)', () => {
-    expect(distHtml).toContain('<meta name="robots" content="noindex, nofollow">');
+    expect(distHtml).toContain(ROBOTS_META);
   });
 
   // CORRECTION (PAGE ZONES D'INTERVENTION, 04/09/2026) : le CTA « Vérifier

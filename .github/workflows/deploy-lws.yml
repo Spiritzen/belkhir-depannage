@@ -47,6 +47,11 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
+    # Production LWS : l'artefact est construit INDEXABLE (aucun .env en CI). Ces deux
+    # variables publiques ne sont pas des secrets ; un SEUL build sert au contrôle et au déploiement.
+    env:
+      ENABLE_INDEXING: 'true'
+      EXPECT_INDEXING: 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -95,7 +100,7 @@ jobs:
       - name: Tests JS (suite complète)
         run: npm run test:run
 
-      - name: Contrôle de l'artefact dist/ (secrets, fichiers requis, noindex)
+      - name: Contrôle de l'artefact dist/ (secrets, fichiers requis, production indexable)
         run: node scripts/check-dist.mjs dist
 
       - name: Déploiement LWS désactivé (variable LWS_DEPLOY_ENABLED absente ou ≠ true)
@@ -150,7 +155,9 @@ jobs:
           name: lws-dist
           path: dist
 
-      - name: Revérifier l'artefact (dotfiles préservés)
+      - name: Revérifier l'artefact (dotfiles préservés, production indexable)
+        env:
+          EXPECT_INDEXING: 'true'
         run: |
           test -f dist/.htaccess
           test -f dist/api/_lib/.htaccess

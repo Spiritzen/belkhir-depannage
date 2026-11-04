@@ -5,7 +5,7 @@ import { normalizeBaseUrl } from './url';
  * Configuration centrale du site.
  *
  * IMPORTANT : plusieurs valeurs ci-dessous sont volontairement temporaires
- * (numéro standard, e-mail, avis Google) tant que les informations réelles
+ * (numéro standard identique à l'urgence, e-mail, avis Google) tant que les informations réelles
  * n'ont pas été validées avec le client. Elles sont signalées par des
  * commentaires « À CONFIRMER ». Ne pas les présenter comme définitives.
  */
@@ -25,12 +25,20 @@ import { normalizeBaseUrl } from './url';
  * environnements (dev, build, preview, après déploiement), sans dépendre
  * d'aucune variable d'environnement pour CE numéro précis.
  *
- * Le numéro standard, lui, reste provisoire et continue de dépendre de
- * `STANDARD_PHONE_DISPLAY`/`STANDARD_PHONE_INTERNATIONAL` dans `.env` (voir
- * plus bas) : il n'a pas encore été confirmé par le client.
  */
 const EMERGENCY_PHONE_DISPLAY = '06 49 62 16 19';
 const EMERGENCY_PHONE_INTERNATIONAL = '+33649621619';
+
+/**
+ * Ligne STANDARD — numéro PROVISOIRE, identique à l'urgence à la demande du
+ * propriétaire tant qu'il n'a pas de numéro standard distinct. Donnée
+ * publique (affichée sur chaque page), pas un secret : versionnée ici, sans
+ * dépendre d'un `.env` (le build CI n'en a pas). Constantes volontairement
+ * séparées de celles de l'urgence : à REMPLACER dès réception du vrai numéro
+ * standard, sans toucher à l'urgence.
+ */
+const STANDARD_PHONE_DISPLAY = '06 49 62 16 19';
+const STANDARD_PHONE_INTERNATIONAL = '+33649621619';
 
 /**
  * Combine une origine (ex. "https://belkhir-depannage-hdf.fr") et une base
@@ -126,14 +134,15 @@ export function resolveAllowIndexing(
 const env = process.env;
 const requestedByEnv = env.ENABLE_INDEXING === 'true';
 
-const standardPhone = resolvePhoneNumber(
-  'standard',
-  'Standard',
-  'Demandes, devis et suivi',
-  env,
-  'STANDARD_PHONE_DISPLAY',
-  'STANDARD_PHONE_INTERNATIONAL',
-);
+// Construit directement, comme l'urgence : donnée publique versionnée (voir
+// `STANDARD_PHONE_DISPLAY` ci-dessus). `resolvePhoneNumber` reste exporté.
+const standardPhone: PhoneNumberConfig = {
+  role: 'standard',
+  label: 'Standard',
+  subLabel: 'Demandes, devis et suivi',
+  display: STANDARD_PHONE_DISPLAY,
+  international: STANDARD_PHONE_INTERNATIONAL,
+};
 
 // Construit directement (pas via `resolvePhoneNumber`) : ce numéro est une
 // donnée publique versionnée, jamais dépendante de `process.env` (voir le
@@ -178,10 +187,10 @@ export const siteConfig: SiteConfig = {
   defaultSeoTitle: 'Dépannage d’urgence 24h/24 et 7j/7 en Hauts-de-France — Belkhir Dépannage',
   defaultSeoDescription:
     'Belkhir Dépannage intervient 24h/24 et 7j/7 dans les Hauts-de-France : plomberie, chauffage, ' +
-    'serrurerie, vitrerie et rideaux métalliques. Maquette de prévisualisation, non indexée.',
+    'serrurerie, vitrerie et rideaux métalliques.',
   defaultOgImage,
   allowIndexing: resolveAllowIndexing(requestedByEnv, standardPhone, emergencyPhone),
-  isPreview: true,
+  isPreview: false,
   // Lien officiel de DÉPÔT d'avis (confirmé). Unique emplacement de l'URL.
   googleReviewWriteUrl: 'https://g.page/r/CeM9Ou9Il3SDEAE/review',
   // Lien public de la fiche Google, pour CONSULTER les avis (cartes d'avis).

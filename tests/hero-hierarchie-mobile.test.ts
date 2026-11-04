@@ -280,7 +280,7 @@ describe('non-régression — pas de nouvelle dépendance, un seul nouveau point
   it('26. the emergency phone link is still untouched by this mission (absent from the Hero, present 4× elsewhere)', () => {
     expect(heroHtml).not.toContain('tel:+33649621619');
     const telLinks = pageHtml.match(/href="tel:\+33649621619"/g) ?? [];
-    expect(telLinks).toHaveLength(4);
+    expect(telLinks).toHaveLength(8); // 4 urgence + 4 standard provisoire
   });
 
   it('27. the trades ribbon (mini-sprint 3/fluidity-correction territory) is untouched by this mission', () => {

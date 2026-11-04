@@ -3,8 +3,8 @@ import { siteConfig } from '../lib/site-config';
 
 /**
  * Génère robots.txt à partir de la configuration centrale.
- * Tant que siteConfig.allowIndexing est faux (comportement par défaut),
- * l'ensemble du site est explicitement bloqué aux robots.
+ * Indexable (Allow + Sitemap) uniquement si siteConfig.allowIndexing est vrai
+ * (ENABLE_INDEXING=true et deux lignes complètes) ; sinon tout est bloqué.
  */
 export const GET: APIRoute = () => {
   const lines = siteConfig.allowIndexing

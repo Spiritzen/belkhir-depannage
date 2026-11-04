@@ -1,3 +1,4 @@
+import { ROBOTS_CONTENT } from './helpers/indexing';
 import { describe, expect, it, beforeAll } from 'vitest';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import IndexPage from '../src/pages/index.astro';
@@ -50,16 +51,16 @@ describe('retouche 01 — navbar (contenu et garde-fous)', () => {
   // jamais dépendant de process.env — il n'affiche donc plus le placeholder
   // compact "06 XX XX XX XX" mais le vrai numéro. Le standard, lui, reste
   // provisoire et continue d'afficher son placeholder compact.
-  it('4. shows "03 XX XX XX XX" for the still-provisional standard number, and the real emergency number', () => {
-    expect(navbarHtml).toContain('03 XX XX XX XX');
+  it('4. shows the provisional standard number (same official mobile as the emergency line), no placeholder', () => {
+    expect(navbarHtml).not.toContain('03 XX XX XX XX');
     expect(navbarHtml).toContain('06 49 62 16 19');
     expect(navbarHtml).not.toContain('06 XX XX XX XX');
   });
 
-  it('5. never generates a tel: link for the standard placeholder; the emergency button is a real tel: link', () => {
-    expect(navbarHtml).not.toMatch(/data-phone-role="standard"[^>]*href="tel:/);
-    // Standard : rendu en <button disabled>, jamais un lien cliquable.
-    expect(navbarHtml).toMatch(/<button[^>]*disabled[^>]*data-phone-role="standard"/);
+  it('5. both navbar buttons are real tel: links, never a disabled button', () => {
+    // Standard provisoire : lien actif vers le même numéro officiel, jamais un <button disabled>.
+    expect(navbarHtml).toMatch(/<a[^>]*href="tel:\+33649621619"[^>]*data-phone-role="standard"/);
+    expect(navbarHtml).not.toMatch(/<button[^>]*disabled[^>]*data-phone-role="standard"/);
     // Urgence : vrai lien <a>, jamais un bouton désactivé.
     expect(navbarHtml).toMatch(/<a[^>]*href="tel:\+33649621619"[^>]*data-phone-role="emergency"/);
     expect(navbarHtml).not.toMatch(/<button[^>]*data-phone-role="emergency"/);
@@ -105,8 +106,8 @@ describe('retouche 01 — navbar (contenu et garde-fous)', () => {
     expect(html).not.toContain('03 XX XX XX XX');
   });
 
-  it('7. keeps noindex while the real phone numbers are absent', () => {
-    expect(pageHtml).toContain('content="noindex, nofollow"');
+  it('7. robots meta follows the build indexing mode', () => {
+    expect(pageHtml).toContain(`content="${ROBOTS_CONTENT}"`);
   });
 
   it('8. keeps the mobile drawer accessible (unchanged by this retouche)', () => {
@@ -238,17 +239,17 @@ describe('retouche 02 — navbar (blur renforcé et signature orange)', () => {
     expect(navLinkRuleMatch?.[0]).toContain('white-space: nowrap');
   });
 
-  it('13. keeps the still-provisional standard number non-callable; the official emergency number is callable', async () => {
+  it('13. standard (provisional, same number) and emergency are both callable', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Navbar, { partial: true });
-    expect(html).not.toMatch(/data-phone-role="standard"[^>]*href="tel:/);
-    expect(html).toContain('03 XX XX XX XX');
+    expect(html).toMatch(/href="tel:\+33649621619"[^>]*data-phone-role="standard"/);
+    expect(html).not.toContain('03 XX XX XX XX');
     expect(html).toContain('06 49 62 16 19');
     expect(html).toMatch(/href="tel:\+33649621619"[^>]*data-phone-role="emergency"/);
   });
 
-  it('14. keeps noindex while real phone numbers are absent', () => {
-    expect(pageHtml).toContain('content="noindex, nofollow"');
+  it('14. robots meta follows the build indexing mode', () => {
+    expect(pageHtml).toContain(`content="${ROBOTS_CONTENT}"`);
   });
 
   it('15. leaves the hero H1 wording intact (updated by retouche 03, unaffected by the navbar retouches)', () => {

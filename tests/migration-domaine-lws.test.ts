@@ -1,3 +1,4 @@
+import { ROBOTS_META, ROBOTS_TXT } from './helpers/indexing';
 import { describe, expect, it, beforeAll } from 'vitest';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -116,12 +117,12 @@ describe('migration LWS — sitemap, canonical, Open Graph', () => {
   });
 });
 
-describe('migration LWS — indexation toujours fermée', () => {
-  it('6. robots.txt bloque tout, meta robots noindex sur chaque page', () => {
-    expect(robots.trim()).toBe('User-agent: *\nDisallow: /');
+describe('migration LWS — indexation selon ENABLE_INDEXING', () => {
+  it('6. robots.txt et meta robots suivent le mode du build ; la 404 reste noindex, nofollow', () => {
+    expect(robots.trim()).toBe(ROBOTS_TXT);
     for (const route of ROUTES) {
       const html = read(route ? `${route}/index.html` : 'index.html');
-      expect(html).toContain('<meta name="robots" content="noindex, nofollow">');
+      expect(html).toContain(ROBOTS_META);
     }
     expect(read('404.html')).toContain('<meta name="robots" content="noindex, nofollow">');
   });

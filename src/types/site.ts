@@ -76,10 +76,8 @@ export interface SiteConfig {
    */
   allowIndexing: boolean;
   /**
-   * Vrai tant que cette landing reste une maquette de prévisualisation
-   * (données mock, numéros potentiellement incomplets). Sert de garde-fou
-   * explicite avant tout passage en production réelle — voir section 28 du
-   * prompt de mission.
+   * Vrai pour une maquette de prévisualisation ; faux depuis la mise en
+   * production sur LWS.
    */
   isPreview: boolean;
   /** Lien officiel pour DÉPOSER un avis Google. */

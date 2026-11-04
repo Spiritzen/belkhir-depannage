@@ -264,7 +264,7 @@ describe('non-régression — numéro d’urgence et reste du Hero', () => {
   it('23. the emergency phone link is untouched by this mini-sprint (still absent from the Hero, present in the navbar)', () => {
     expect(heroHtml).not.toContain('tel:+33649621619');
     const telLinks = pageHtml.match(/href="tel:\+33649621619"/g) ?? [];
-    expect(telLinks).toHaveLength(4);
+    expect(telLinks).toHaveLength(8); // 4 urgence + 4 standard provisoire
   });
 
   it('24. the H1 wording is untouched', () => {
