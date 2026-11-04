@@ -2,7 +2,7 @@
 
 Aucun secret dans ce fichier. Domaine : `https://belkhir-depannage-hdf.fr` (sans `www`).
 Chaîne : GitHub `main` → GitHub Actions (`.github/workflows/deploy-lws.yml`) → build Astro + endpoint
-PHP (`dist/`) → FTP explicite sur TLS → `/htdocs/`.
+PHP (`dist/`) → FTP explicite sur TLS → racine FTP du compte LWS (= dossier web `htdocs`).
 
 ## Deux mots de passe, deux endroits — ne jamais les mélanger
 
@@ -15,7 +15,7 @@ PHP (`dist/`) → FTP explicite sur TLS → `/htdocs/`.
 
 - Hôte FTP suggéré par LWS : `ftp.belkhir-depannage-hdf.fr` (à saisir dans le secret `LWS_FTP_HOST`, nom d'hôte seul)
 - Port : `21` — chiffrement : **FTP explicite sur TLS** (jamais de FTP clair, jamais de repli)
-- Dossier distant : `/htdocs/` (seul dossier publié ; `home/` et `tmp/` ne sont jamais touchés)
+- Dossier distant : `/` = racine **virtuelle** du compte FTP LWS, qui correspond au dossier web physique `htdocs` visible dans le gestionnaire de fichiers (seul dossier publié ; `home/` et `tmp/` sont hors du compte FTP et jamais touchés). Il ne faut **ni créer ni cibler un sous-dossier `/htdocs`** dans cette session FTP.
 
 ## Avant le premier push (dans cet ordre)
 
@@ -35,7 +35,7 @@ PHP (`dist/`) → FTP explicite sur TLS → `/htdocs/`.
 - **workflow_dispatch** : choix explicite `mode` (défaut `dry-run`) — `dry-run` : connexion FTPS puis miroir `--dry-run` (aucun transfert ni suppression), depuis n'importe quelle branche ; `deploy` : miroir réel, refusé hors `main`.
 - Ordre : `composer validate --strict` → `composer install --no-dev …` → `composer audit` → `php -l` → tests PHP → `npm ci` → `npm run check` → `npm run build` → suite JS → `scripts/check-dist.mjs` → artefact (fichiers cachés inclus).
 - Le build précède la suite JS car plusieurs tests lisent `dist/`.
-- Déploiement : `lftp`, TLS obligatoire (`ssl-force`), certificat vérifié (chaîne de confiance ; voir « Certificat FTPS de LWS » ci-dessous), mode passif, données protégées, 3 tentatives, miroir `--delete` limité à `/htdocs/`, `.well-known/` exclu (préservé).
+- Déploiement : `lftp`, TLS obligatoire (`ssl-force`), certificat vérifié (chaîne de confiance ; voir « Certificat FTPS de LWS » ci-dessous), mode passif, données protégées, 3 tentatives, miroir `--delete` limité à la racine virtuelle du compte FTP (`cd /`, jamais de `cd ..`), `.well-known/` exclu (préservé).
 - Pourquoi `lftp` : seul client simple offrant TLS explicite forcé, vérification de certificat, miroir avec suppression, exclusions et simulation (`--dry-run`), sur le runner officiel, sans action tierce recevant les secrets.
 - Concurrence : une exécution à la fois par branche ; les contrôles de PR sont annulés par une exécution plus récente, mais un déploiement sur `main` n'est jamais interrompu en cours de miroir.
 
@@ -47,6 +47,14 @@ PHP (`dist/`) → FTP explicite sur TLS → `/htdocs/`.
 - **Inchangé** : `ssl:verify-certificate yes` — le certificat doit toujours être signé par une autorité reconnue — ainsi que FTP explicite sur TLS (`ssl-force`), port 21, données protégées, mode passif, aucun repli en clair.
 - **Interdit** : désactiver la vérification du certificat (`ssl:verify-certificate no`), `--insecure`, FTP en clair ou SFTP dans ce workflow. Les tests échouent si l'une de ces options apparaît.
 - **Prochain contrôle manuel** : après commit/push de cette correction, relancer _Run workflow_ sur `main` en `mode = dry-run`. Il doit seulement **lister** les opérations prévues ; il ne doit rien transférer ni supprimer.
+
+## Racine FTP du compte LWS (deuxième dry-run)
+
+- **Constat** : après correction du certificat, le deuxième `dry-run` a passé TLS et l'étape des secrets, affiché « MODE SIMULATION » et « Source locale : dist/ (240 fichiers) », puis échoué : `cd: Access failed: 550 Can't change directory to /htdocs: No such file or directory`. Rien n'a été transféré ni supprimé.
+- **Interprétation** : pour ce compte, LWS indique « laissez vide ou `/` » comme dossier distant. La racine virtuelle `/` de la session FTP **est déjà** le dossier web physique `htdocs` : aucun sous-dossier `/htdocs` n'existe de ce point de vue.
+- **Correction** : le script `lftp` fait `cd /` (échec immédiat si impossible), puis un seul `mirror` vers le dossier courant.
+- **Bornage** : `--delete` n'agit que dans la racine virtuelle du compte authentifié ; aucun `cd ..`, aucun chemin système, aucun `/home`, aucune création de dossier. L'exclusion de `.well-known` est conservée.
+- **Prochain contrôle manuel** : après commit/push de cette correction, relancer _Run workflow_ sur `main` en `mode = dry-run` ; il doit seulement lister les opérations prévues (`default_index.html` supprimé, `.well-known/` absent) sans rien transférer.
 
 ## Premier déploiement : vérifications
 

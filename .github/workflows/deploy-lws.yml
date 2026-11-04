@@ -2,7 +2,7 @@ name: Deploy to LWS (FTPS)
 
 # Remplace l'ancien déploiement GitHub Pages (workflow supprimé).
 #  - pull_request vers main : contrôles + build, AUCUNE connexion FTPS ;
-#  - push sur main          : contrôles + build toujours ; déploiement FTPS vers /htdocs/
+#  - push sur main          : contrôles + build toujours ; déploiement FTPS vers la racine FTP LWS (htdocs)
 #    UNIQUEMENT si la variable GitHub LWS_DEPLOY_ENABLED vaut « true » (sinon ignoré
 #    proprement après des contrôles verts) ;
 #  - workflow_dispatch      : choix explicite `mode` : « dry-run » (connexion FTPS, miroir
@@ -119,7 +119,7 @@ jobs:
           retention-days: 7
 
   deploy:
-    name: Déploiement FTPS vers /htdocs/
+    name: Déploiement FTPS vers la racine FTP LWS (htdocs)
     needs: verify
     if: >-
       github.event_name != 'pull_request' &&
@@ -174,7 +174,10 @@ jobs:
       # vérifiée par ssl:verify-certificate yes) mais son nom ne correspond pas à l'alias FTP
       # du domaine. Seule la comparaison nom d'hôte / certificat est désactivée
       # (ssl:check-hostname no) ; TLS et la vérification cryptographique restent obligatoires.
-      - name: Miroir FTPS explicite vers /htdocs/ (TLS obligatoire, certificat vérifié)
+      # Cible distante : « / » est la racine VIRTUELLE du compte FTP LWS et correspond déjà au
+      # dossier web physique htdocs (aucun sous-dossier /htdocs n'existe dans cette session :
+      # `cd /htdocs` échoue en 550). Le miroir (--delete compris) reste borné à cette racine.
+      - name: Miroir FTPS explicite vers la racine FTP LWS (htdocs) (TLS obligatoire, certificat vérifié)
         run: |
           set -euo pipefail
           umask 077
@@ -183,7 +186,7 @@ jobs:
           trap 'rm -f "$script"' EXIT
           mirror_opts="--reverse --delete --no-perms --parallel=1 --verbose=1"
           if [ "$DRY_RUN" = "true" ]; then mirror_opts="$mirror_opts --dry-run"; echo "MODE SIMULATION : aucune écriture sur LWS."; fi
-          echo "Source locale : dist/ ($(find dist -type f | wc -l) fichiers) — cible distante : /htdocs/"
+          echo "Source locale : dist/ ($(find dist -type f | wc -l) fichiers) — cible distante : racine FTP LWS (htdocs)"
           cat > "$script" <<LFTP
           set cmd:fail-exit yes
           set net:max-retries 3
@@ -198,7 +201,7 @@ jobs:
           set ssl:verify-certificate yes
           set ssl:check-hostname no
           open -u "$(esc "$LWS_FTP_USERNAME")","$(esc "$LWS_FTP_PASSWORD")" -p 21 "$LWS_FTP_HOST"
-          cd /htdocs
+          cd /
           mirror $mirror_opts --exclude-glob .well-known --exclude-glob '.well-known/*' ./dist .
           bye
           LFTP

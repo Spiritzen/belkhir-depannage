@@ -318,7 +318,7 @@ describe('CI/CD — workflow GitHub Actions', () => {
     expect(mirrorScript).not.toMatch(/check-hostname\s+yes/);
     // Le commentaire YAML qui justifie l'exception précède l'étape.
     const idx = workflowText.indexOf('- name: Miroir FTPS explicite');
-    const before = workflowText.slice(Math.max(0, idx - 600), idx);
+    const before = workflowText.slice(Math.max(0, idx - 1400), idx);
     expect(before).toContain('serveur FTPS mutualisé LWS');
     expect(before).toContain('ssl:check-hostname no');
     expect(before).toContain('ssl:verify-certificate yes');
@@ -326,16 +326,49 @@ describe('CI/CD — workflow GitHub Actions', () => {
     expect(workflowText.match(/^\s+set ssl:check-hostname no$/gm)).toHaveLength(1);
   });
 
-  it('13-15. cible /htdocs/, source dist/, miroir borné, /.well-known/ préservé, jamais home/ ni tmp/', () => {
-    expect(mirrorScript).toContain('cd /htdocs');
+  it('13-15. cible = racine virtuelle « / » du compte FTP LWS, source dist/, miroir borné, /.well-known/ préservé', () => {
+    // Corps du script lftp (heredoc), hors libellés d'information.
+    const lftpBody = mirrorScript.split('<<LFTP\n')[1].split('\nLFTP')[0];
+    const lines = lftpBody.split('\n');
+    const cdIdx = lines.findIndex((l) => /^cd\s/.test(l));
+    const mirrorIdx = lines.findIndex((l) => /^mirror\s/.test(l));
+    // Une seule commande cd, vers la racine virtuelle, avant le miroir ; échec immédiat si elle échoue.
+    expect(mirrorScript.match(/^cd /gm)).toHaveLength(1);
+    expect(lines[cdIdx]).toBe('cd /');
     expect(mirrorScript).toContain('set cmd:fail-exit yes');
-    expect(mirrorScript).toMatch(/mirror \$mirror_opts[^\n]*\.\/dist \.\n/);
+    expect(cdIdx).toBeGreaterThan(-1);
+    expect(mirrorIdx).toBeGreaterThan(cdIdx);
+    // Aucun sous-dossier /htdocs dans la session FTP (550 observé), aucun chemin hors compte.
+    expect(lftpBody).not.toMatch(/htdocs/);
+    expect(mirrorScript).not.toMatch(/^cd\s+\/\S/m);
+    expect(mirrorScript).not.toMatch(/cd\s+\.\./);
+    expect(mirrorScript).not.toMatch(/\/home\b|\/tmp\b|\/etc\b|\/var\b|\/usr\b|\bmkdir\b|\.\.\//);
+    // Miroir : source locale dist/, cible = dossier courant de la session (la racine après cd /).
+    expect(mirrorScript).toMatch(/^mirror \$mirror_opts[^\n]*\.\/dist \.$/m);
     expect(mirrorScript).toContain('--reverse --delete');
+    expect(mirrorScript.match(/^mirror /gm)).toHaveLength(1);
     expect(mirrorScript).toContain("--exclude-glob .well-known --exclude-glob '.well-known/*'");
-    expect(mirrorScript).not.toMatch(/\bhome\b|\btmp\b|\.\.\//);
     // Le seul chemin distant est écrit en dur : aucune entrée utilisateur.
-    expect(mirrorScript.match(/\bcd /g)).toHaveLength(1);
     expect(workflowText).not.toMatch(/github\.event\.(inputs|pull_request|head_ref)/);
+  });
+
+  it('13 bis. la racine « / » est documentée comme racine virtuelle du compte LWS = htdocs physique', () => {
+    const idx = workflowText.indexOf('- name: Miroir FTPS explicite');
+    const before = workflowText.slice(Math.max(0, idx - 700), idx);
+    expect(before).toContain('racine VIRTUELLE du compte FTP LWS');
+    expect(before).toContain('dossier web physique htdocs');
+    expect(before).toContain('550');
+    // Les libellés ne laissent pas croire qu'un sous-dossier /htdocs existe côté FTP.
+    const activeYaml = workflowText
+      .split('\n')
+      .filter((l) => !l.trim().startsWith('#'))
+      .join('\n');
+    expect(activeYaml).not.toMatch(/vers \/htdocs|cible distante : \/htdocs|cd \/htdocs/);
+    expect(workflow.jobs.deploy.name).toContain('racine FTP LWS (htdocs)');
+    const doc = readFileSync(join(root, 'DEPLOIEMENT_LWS.md'), 'utf-8');
+    expect(doc).toContain("550 Can't change directory to /htdocs");
+    expect(doc).toMatch(/racine virtuelle/);
+    expect(doc).toMatch(/ni créer ni cibler un sous-dossier `\/htdocs`/);
   });
 
   it('16-17. secrets : uniquement les trois noms LWS_FTP_*, aucun secret SMTP', () => {
